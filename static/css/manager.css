@@ -1,0 +1,620 @@
+/* ===== ROOT ===== */
+:root {
+    --primary: #e76f51; /* Оранжевый для руководителя */
+    --secondary: #264653;
+    --accent: #f4a261;
+    --bg: #f4f7f8;
+    --card-bg: #ffffff;
+    --text: #264653;
+}
+
+/* ===== BASE ===== */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* ===== LAYOUT ===== */
+.layout {
+    display: flex;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: 240px;
+    background: #ffffff;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 8px 0 30px rgba(0,0,0,0.04);
+    z-index: 1000;
+}
+
+/* градиентная полоса */
+.sidebar::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(
+        180deg,
+        var(--secondary),
+        var(--primary),
+        var(--accent)
+    );
+}
+
+/* логотип */
+.sidebar .logo {
+    padding: 28px 24px;
+    font-size: 1.3em;
+    font-weight: 600;
+    color: var(--primary);
+    letter-spacing: 1px;
+}
+
+/* навигация */
+.sidebar nav {
+    padding: 10px;
+}
+
+.sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 6px;
+    text-decoration: none;
+    color: var(--text);
+    border-radius: 10px;
+    transition: all 0.25s ease;
+}
+
+/* hover */
+.sidebar nav a:hover {
+    background: rgba(231, 111, 81, 0.08);
+}
+
+/* ACTIVE */
+.sidebar nav a.active {
+    background: rgba(231, 111, 81, 0.15);
+    box-shadow:
+        inset 0 0 0 1px rgba(231, 111, 81, 0.25),
+        0 0 12px rgba(231, 111, 81, 0.35);
+    color: var(--primary);
+}
+
+/* SIDEBAR FOOTER */
+.sidebar-footer {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+}
+
+.sidebar-footer a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #6b7280;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-footer a:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+/* Notification dot on sidebar link */
+.sidebar nav a { position: relative; }
+.sidebar nav a .notification-dot {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background: #e63946; /* красный */
+    border-radius: 50%;
+    box-shadow: 0 0 0 6px rgba(230,57,70,0.04);
+    display: inline-block;
+}
+
+/* Visually hidden but accessible */
+.sr-only {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Improved projects layout: center grid and make cards look like cards */
+.projects-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-top: 32px;
+}
+
+@media (max-width: 1400px) {
+    .projects-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .projects-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.project-card {
+    background: #fff;
+    padding: 24px;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 380px;
+}
+
+.project-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(231,111,81,0.15);
+}
+
+.project-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.25rem;
+    color: var(--secondary);
+    font-weight: 600;
+    line-height: 1.4;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+
+.project-meta {
+    color: #6b7a83;
+    margin: 8px 0 16px 0;
+    font-size: 0.95em;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+
+.project-desc {
+    color: #555;
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+    font-size: 0.95em;
+    flex-grow: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    font-family: inherit;
+}
+
+.project-dates {
+    color: #888;
+    font-size: 0.9em;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+
+.project-card .btn {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-block;
+    text-align: center;
+    align-self: flex-start;
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
+.project-card .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(231,111,81,0.35);
+}
+
+.project-card .btn:active {
+    transform: translateY(0);
+}
+
+/* Highlight for new project (temporary) */
+.project-card.highlight-new {
+    border: 2px solid var(--primary);
+    box-shadow: 0 12px 40px rgba(231,111,81,0.2);
+    animation: pulse 1.2s infinite ease-in-out;
+}
+
+.project-card .new-badge {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 6px;
+}
+.project-card {
+    background: var(--card-bg);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.project-card:hover { transform: translateY(-6px); }
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+    flex: 1;
+    padding: 32px;
+    margin-left: 240px;
+    overflow-y: auto;
+    height: 100vh;
+}
+
+/* ===== DASHBOARD ===== */
+.dashboard-header {
+    margin-bottom: 32px;
+}
+
+.dashboard-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 2.5em;
+    color: var(--secondary);
+}
+
+.dashboard-header p {
+    margin: 0;
+    color: #666;
+    font-size: 1.1em;
+}
+
+.dashboard-content {
+    display: grid;
+    gap: 32px;
+}
+
+/* STATS GRID */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.stat-card h3 {
+    margin: 0 0 12px 0;
+    color: var(--text);
+    font-size: 1em;
+}
+
+.stat-number {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+}
+
+/* RECENT ACTIVITY */
+.recent-activity {
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.recent-activity h2 {
+    margin: 0 0 16px 0;
+    color: var(--secondary);
+}
+
+.recent-activity ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.recent-activity li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.recent-activity li:last-child {
+    border-bottom: none;
+}
+/* ===== STAT CARDS ===== */
+.stat-subtitle {
+    margin: 8px 0 0 0;
+    color: #999;
+    font-size: 0.95em;
+}
+
+/* ===== RECENT PROJECTS SECTION ===== */
+.recent-section {
+    margin-top: 32px;
+}
+
+.recent-section h2 {
+    margin: 0 0 20px 0;
+    color: var(--secondary);
+    font-size: 1.5em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.projects-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.project-mini-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.project-mini-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.project-header h4 {
+    margin: 0;
+    color: var(--secondary);
+    font-size: 1.1em;
+    flex: 1;
+    line-height: 1.4;
+}
+
+.project-status {
+    display: inline-block;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.project-status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: 0.85em;
+    color: white;
+}
+
+.project-code {
+    margin: 8px 0;
+    color: var(--primary);
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.project-meta,
+.project-type {
+    margin: 8px 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.project-meta i,
+.project-type i {
+    margin-right: 6px;
+    color: var(--primary);
+}
+
+/* ===== TASKS LIST ===== */
+.recent-activity h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 20px 0;
+}
+
+.tasks-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+.task-item:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-info {
+    flex: 1;
+}
+
+.task-info h4 {
+    margin: 0 0 6px 0;
+    color: var(--secondary);
+    font-size: 1em;
+}
+
+.task-project {
+    margin: 4px 0;
+    color: var(--primary);
+    font-size: 0.9em;
+}
+
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.task-status,
+.task-priority,
+.task-date {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.task-status {
+    background-color: #e8f4f8;
+    color: #366b7c;
+}
+
+.task-status-завершена {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.task-status-в\ процессе,
+.task-status-в_процессе {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.task-priority {
+    background-color: #f0f0f0;
+    color: #555;
+}
+
+.task-priority-высокий,
+.task-priority-высокая {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.task-priority-средний,
+.task-priority-средняя {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.task-priority-низкий,
+.task-priority-низкая {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.task-date {
+    background-color: #f0f0f0;
+    color: #555;
+}
+
+.task-date.overdue {
+    background-color: #f8d7da;
+    color: #721c24;
+    font-weight: 600;
+}
+
+.task-assigned {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        width: 240px;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 999;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .layout {
+        flex-direction: row;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+}

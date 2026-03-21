@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход в систему</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <style>
+        .password-container {
+            position: relative;
+        }
+        .password-container input {
+            width: 100%;
+            padding-right: 40px;
+            box-sizing: border-box;
+        }
+        .password-container button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #666;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <h1>Вход в систему</h1>
+    <p>Система управления проектами АНО «ЦСУРТ»</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <label>Логин</label>
+        <input type="text" name="username" required>
+
+        <label>Пароль</label>
+        <div class="password-container">
+            <input type="password" name="password" id="password" required>
+            <button type="button" id="toggle-password">&#128065;</button>
+        </div>
+
+        {% if form.errors %}
+            <div style="color: red;">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        {{ error }}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <button type="submit">Войти</button>
+    </form>
+
+    <script>
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '&#128065;' : '&#128064;';
+        });
+    </script>
+
+    <div class="auth-footer">
+        Доступ только для сотрудников организации
+    </div>
+</div>
+
+</body>
+</html>

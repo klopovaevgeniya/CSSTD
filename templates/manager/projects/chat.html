@@ -1,0 +1,760 @@
+{% extends 'manager/base_manager.html' %}
+
+{% block title %}{{ project.name }} - Чат{% endblock %}
+
+{% block content %}
+{% load tz %}
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 120px);
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+    }
+
+    .chat-header h2 {
+        margin: 0;
+        font-size: 1.5em;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .message {
+        display: flex;
+        gap: 12px;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message.own {
+        justify-content: flex-end;
+    }
+
+    .message-content {
+        max-width: 60%;
+        background: #f0f0f0;
+        padding: 12px 16px;
+        border-radius: 12px;
+        word-wrap: break-word;
+    }
+
+    .message.own .message-content {
+        background: var(--primary);
+        color: white;
+    }
+
+    .message-author {
+        font-weight: 600;
+        color: var(--primary);
+        font-size: 0.9em;
+    }
+
+    .message-time {
+        font-size: 0.8em;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    .message-text {
+        margin: 8px 0 0 0;
+        line-height: 1.4;
+    }
+
+    .message-attachments {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .attachment-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: rgba(0,0,0,0.1);
+        border-radius: 6px;
+        text-decoration: none;
+        color: inherit;
+        font-size: 0.9em;
+        width: fit-content;
+    }
+
+    .attachment-link:hover {
+        background: rgba(0,0,0,0.2);
+    }
+
+    .message-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .message-actions button {
+        padding: 4px 12px;
+        font-size: 0.8em;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .edit-btn {
+        background: #ffc107;
+        color: white;
+    }
+
+    .delete-btn {
+        background: #dc3545;
+        color: white;
+    }
+
+    .edit-btn:hover, .delete-btn:hover {
+        opacity: 0.9;
+    }
+
+    .chat-input-area {
+        padding: 20px;
+        border-top: 1px solid #eee;
+        background: #fafafa;
+    }
+
+    .chat-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9em;
+    }
+
+    textarea {
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        resize: vertical;
+        font-family: inherit;
+        font-size: 0.95em;
+        min-height: 80px;
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(66, 102, 244, 0.1);
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .file-input-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .file-input-label:hover {
+        background: #e0e0e0;
+    }
+
+    .file-input-wrapper input[type="file"] {
+        display: none;
+    }
+
+    .file-list {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    .file-item-name {
+        flex: 1;
+        font-size: 0.9em;
+    }
+
+    .remove-file {
+        cursor: pointer;
+        color: #dc3545;
+        font-weight: bold;
+        padding: 0 8px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    button[type="submit"] {
+        padding: 12px 24px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    button[type="submit"]:hover {
+        background: var(--secondary);
+    }
+
+    button[type="submit"]:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+
+    .back-link:hover {
+        gap: 10px;
+    }
+
+    .empty-chat {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #999;
+        font-size: 1.1em;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+    }
+
+    .close {
+        cursor: pointer;
+        font-size: 28px;
+        font-weight: bold;
+        color: #999;
+    }
+
+    .close:hover {
+        color: #000;
+    }
+
+    .modal-body {
+        margin-bottom: 20px;
+    }
+
+    .modal-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .modal-footer button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-cancel {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    .btn-save {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* Message action menu styling and long-press visual cue */
+    .message-action-menu {
+        animation: popIn 0.12s ease-out;
+        transform-origin: top left;
+    }
+
+    @keyframes popIn {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    /* subtle highlight shown while long-pressing own message */
+    .message.own.long-pressing .message-content {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+        transition: box-shadow 0.12s, transform 0.12s;
+    }
+</style>
+
+<a href="{% url 'manager_project_detail' pk=project.id %}" class="back-link">
+    ← Вернуться к проекту
+</a>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>💬 Чат проекта: {{ project.name }}</h2>
+        <p style="margin: 8px 0 0 0; opacity: 0.9;">Участники: {{ participants.count }}</p>
+    </div>
+
+    <div class="chat-messages" id="messages-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.author == current_user %}own{% endif %}" data-message-id="{{ message.id }}">
+                    <div class="message-content" data-message-id="{{ message.id }}">
+                        {% if message.author != current_user %}
+                            <div class="message-author">{{ message.author.first_name }} {{ message.author.last_name }}</div>
+                        {% endif %}
+                        <div class="message-text">{{ message.text }}</div>
+                        
+                        {% if message.attachments.all %}
+                            <div class="message-attachments">
+                                {% for attachment in message.attachments.all %}
+                                    <a href="{{ attachment.file.url }}" class="attachment-link" download>
+                                        📎 {{ attachment.filename }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="message-time">
+                            {{ message.created_at|localtime|date:"d.m.Y H:i" }}
+                            {% if message.updated_at|localtime != message.created_at|localtime %}
+                                (отредактировано)
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-chat">
+                Нет сообщений. Начните общение! 📝
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="chat-input-area">
+        <form class="chat-form" id="chat-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <div style="position:relative; width:100%;">
+                    <button type="button" id="send-icon" title="Отправить" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:18px; color:var(--primary);">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                    <textarea name="text" id="message-text" placeholder="Напишите ваше сообщение..." style="padding-right:44px; width:100%;"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="file-input-wrapper">
+                    <label class="file-input-label" for="attachments">
+                        📎 Прикрепить файлы
+                    </label>
+                    <input type="file" id="attachments" name="attachments" multiple accept="*/*">
+                </div>
+                <div class="file-list" id="file-list"></div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" id="send-btn" style="display:none;">Отправить сообщение</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно для редактирования -->
+<div id="edit-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Редактирование сообщения</h3>
+            <span class="close" onclick="closeEditModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <textarea id="edit-text" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; min-height: 120px;"></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeEditModal()">Отмена</button>
+            <button class="btn-save" onclick="saveEditMessage()">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let editingMessageId = null;
+    let attachmentsToSend = [];
+
+    // Обработка выбора файлов
+    document.getElementById('attachments').addEventListener('change', function(e) {
+        attachmentsToSend = Array.from(this.files);
+        updateFileList();
+    });
+
+    function updateFileList() {
+        const fileList = document.getElementById('file-list');
+        fileList.innerHTML = '';
+        
+        attachmentsToSend.forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <span class="file-item-name">${file.name}</span>
+                <span class="remove-file" onclick="removeFile(${index})">✕</span>
+            `;
+            fileList.appendChild(fileItem);
+        });
+    }
+
+    function removeFile(index) {
+        attachmentsToSend.splice(index, 1);
+        updateFileList();
+        document.getElementById('attachments').value = '';
+    }
+
+    // Отправка сообщения
+    document.getElementById('chat-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const text = document.getElementById('message-text').value.trim();
+        
+        if (!text && attachmentsToSend.length === 0) {
+            alert('Напишите сообщение или прикрепите файл');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('text', text);
+        
+        attachmentsToSend.forEach(file => {
+            formData.append('attachments', file);
+        });
+
+        try {
+            const response = await fetch(`{% url 'manager_project_chat_send' pk=project.id %}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('message-text').value = '';
+                document.getElementById('attachments').value = '';
+                attachmentsToSend = [];
+                updateFileList();
+                location.reload();
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ошибка при отправке сообщения');
+        }
+    });
+
+    // Отправка по иконке
+    document.getElementById('send-icon').addEventListener('click', function() {
+        document.getElementById('chat-form').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+    });
+
+    // Long-press handling for edit/delete — show a small action menu under own messages
+    let pressTimer = null;
+    const LONG_PRESS_DURATION = 600;
+    let actionMenu = null;
+    let currentPressEl = null;
+
+    document.querySelectorAll('.message-content').forEach(function(el){
+        el.addEventListener('mousedown', startPress);
+        el.addEventListener('touchstart', startPress);
+        el.addEventListener('mouseup', cancelPress);
+        el.addEventListener('mouseleave', cancelPress);
+        el.addEventListener('touchend', cancelPress);
+        el.addEventListener('touchcancel', cancelPress);
+    });
+
+    function startPress(e){
+        const target = e.currentTarget;
+        // only allow actions on own messages
+        const messageEl = target.closest('.message');
+        if (!messageEl || !messageEl.classList.contains('own')) return;
+
+        currentPressEl = messageEl;
+        messageEl.classList.add('long-pressing');
+
+        pressTimer = setTimeout(function(){
+            const messageId = target.getAttribute('data-message-id');
+            showActionMenu(messageId, target);
+            // keep visual cue while menu is open
+        }, LONG_PRESS_DURATION);
+    }
+
+    function cancelPress(){
+        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+        if (currentPressEl) { currentPressEl.classList.remove('long-pressing'); currentPressEl = null; }
+    }
+
+    function showActionMenu(messageId, targetEl){
+        // remove existing
+        hideActionMenu();
+
+        actionMenu = document.createElement('div');
+        actionMenu.className = 'message-action-menu';
+        actionMenu.style.position = 'absolute';
+        actionMenu.style.zIndex = 1001;
+        actionMenu.style.background = 'white';
+        actionMenu.style.border = '1px solid #ddd';
+        actionMenu.style.borderRadius = '6px';
+        actionMenu.style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)';
+        actionMenu.style.padding = '6px';
+        actionMenu.style.display = 'flex';
+        actionMenu.style.gap = '6px';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-edit-small';
+        editBtn.innerText = 'Редактировать';
+        editBtn.style.padding = '6px 10px';
+        editBtn.style.border = 'none';
+        editBtn.style.background = '#ffc107';
+        editBtn.style.color = 'white';
+        editBtn.style.borderRadius = '4px';
+        editBtn.style.cursor = 'pointer';
+        editBtn.onclick = function(e){
+            e.stopPropagation();
+            const text = document.querySelector('[data-message-id="' + messageId + '"] .message-text').innerText;
+            editMessage(messageId, text);
+            hideActionMenu();
+        };
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn-del-small';
+        delBtn.innerText = 'Удалить';
+        delBtn.style.padding = '6px 10px';
+        delBtn.style.border = 'none';
+        delBtn.style.background = '#dc3545';
+        delBtn.style.color = 'white';
+        delBtn.style.borderRadius = '4px';
+        delBtn.style.cursor = 'pointer';
+        delBtn.onclick = function(e){
+            e.stopPropagation();
+            deleteMessage(messageId);
+            hideActionMenu();
+        };
+
+        actionMenu.appendChild(editBtn);
+        actionMenu.appendChild(delBtn);
+
+        document.body.appendChild(actionMenu);
+
+        // position menu under targetEl
+        const rect = targetEl.getBoundingClientRect();
+        const menuRect = actionMenu.getBoundingClientRect();
+        let top = window.scrollY + rect.bottom + 6;
+        let left = window.scrollX + rect.left;
+        // ensure menu fits horizontally
+        if (left + menuRect.width > window.scrollX + window.innerWidth) {
+            left = window.scrollX + window.innerWidth - menuRect.width - 12;
+        }
+        actionMenu.style.top = top + 'px';
+        actionMenu.style.left = left + 'px';
+
+        // hide on outside click
+        setTimeout(()=>{
+            window.addEventListener('click', outsideClickListener);
+            window.addEventListener('touchstart', outsideClickListener);
+        }, 0);
+    }
+
+    function hideActionMenu(){
+        if (actionMenu) {
+            actionMenu.remove();
+            actionMenu = null;
+            window.removeEventListener('click', outsideClickListener);
+            window.removeEventListener('touchstart', outsideClickListener);
+            // ensure any long-press visual state is cleared
+            document.querySelectorAll('.message.long-pressing').forEach(el=>el.classList.remove('long-pressing'));
+        }
+    }
+
+    function outsideClickListener(e){
+        if (!actionMenu) return;
+        if (!actionMenu.contains(e.target)) hideActionMenu();
+    }
+
+    function deleteMessage(messageId) {
+        if (!confirm('Вы уверены, что хотите удалить это сообщение?')) {
+            return;
+        }
+
+        fetch(`{% url 'manager_delete_chat_message' pk=project.id message_id=0 %}`.replace('/0/', '/' + messageId + '/'), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при удалении сообщения');
+        });
+    }
+
+    function editMessage(messageId, text) {
+        editingMessageId = messageId;
+        document.getElementById('edit-text').value = text;
+        document.getElementById('edit-modal').classList.add('show');
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.remove('show');
+        editingMessageId = null;
+    }
+
+    function saveEditMessage() {
+        if (!editingMessageId) return;
+
+        const newText = document.getElementById('edit-text').value.trim();
+        
+        if (!newText) {
+            alert('Сообщение не может быть пустым');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('text', newText);
+
+        fetch(`{% url 'manager_edit_chat_message' pk=project.id message_id=0 %}`.replace('/0/', '/' + editingMessageId + '/'), {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при редактировании сообщения');
+        });
+    }
+
+    // Auto-scroll to bottom
+    const messagesContainer = document.getElementById('messages-container');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Close modal on click outside
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('edit-modal');
+        if (event.target == modal) {
+            closeEditModal();
+        }
+    });
+</script>
+{% endblock %}

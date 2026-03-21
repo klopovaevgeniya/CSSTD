@@ -1,0 +1,528 @@
+{% extends 'manager/base_manager.html' %}
+{% load static %}
+
+{% block title %}График проектов{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class="fa-solid fa-calendar-days"></i> График</h1>
+    <p>Сроки сдачи проектов руководителя на выбранный месяц.</p>
+</div>
+
+<div class="calendar-wrapper">
+    <div id="calendar"></div>
+    <div id="calendarTooltip" class="calendar-tooltip" aria-hidden="true"></div>
+</div>
+
+<!-- Данные проектов для календаря -->
+{{ projects_for_calendar|json_script:"projects-data" }}
+
+<!-- Модальное окно с подробностями проекта -->
+<div id="projectModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="true"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button type="button" class="modal-close" data-close="true" aria-label="Закрыть">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="modal-header">
+            <h2 id="modalTitle">Проект</h2>
+            <div id="modalStatus" class="project-status"></div>
+        </div>
+        <div class="modal-body">
+            <div id="modalList" class="modal-list"></div>
+            <div id="modalDetail" class="modal-detail" style="display:none;">
+                <p id="modalDates" class="modal-meta"></p>
+                <p id="modalDescription" class="modal-description"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a id="modalProjectLink" href="#" class="btn btn-sm">Открыть проект</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .calendar-wrapper {
+        /* Увеличиваем ширину для более растянутого вида */
+        max-width: 1140px;
+        width: min(100%, 1140px);
+        margin: 0 auto 60px;
+        padding: 0 16px;
+    }
+
+
+    .calendar-tooltip {
+        position: fixed;
+        pointer-events: none;
+        z-index: 2100;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        max-width: 260px;
+        font-size: 0.9em;
+        color: #2b3a4a;
+        display: none;
+    }
+
+    .calendar-tooltip h4 {
+        margin: 0 0 6px 0;
+        font-size: 1em;
+        font-weight: 700;
+        color: var(--secondary);
+    }
+
+    .calendar-tooltip p {
+        margin: 4px 0;
+    }
+
+    /* FullCalendar overrides */
+    .fc {
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .fc-toolbar {
+        padding: 12px 16px;
+        background: rgba(249, 241, 232, 0.9);
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    /* Шапка дней недели */
+    .fc-col-header {
+        background: rgba(249, 241, 232, 0.8);
+    }
+
+    .fc-col-header-cell {
+        border: none;
+    }
+
+    .fc-col-header-cell-cushion {
+        font-weight: 700;
+        color: #4a3a2d;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.4em;
+        font-weight: 700;
+        color: #4a3a2d;
+    }
+
+    .fc .fc-toolbar-chunk:not(:last-child) {
+        margin-right: 12px;
+    }
+
+    .fc-button {
+        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,0.08);
+        background: rgba(255, 246, 238, 0.9);
+        color: #5a4437;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .fc-button:hover {
+        background: rgba(255, 246, 238, 1);
+        transform: translateY(-1px);
+    }
+
+    .fc-button:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 196, 157, 0.5);
+    }
+
+    .fc-button.fc-button-active {
+        background: rgba(255, 210, 174, 1);
+        color: #4a3427;
+    }
+
+    .fc-event {
+        border: none;
+        border-radius: 12px;
+        padding: 6px 8px;
+        font-size: 0.85em;
+        cursor: pointer;
+    }
+
+    .fc-event-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal[aria-hidden="false"] {
+        display: flex;
+    }
+
+    .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.35);
+    }
+
+    .modal-dialog {
+        position: relative;
+        width: min(640px, 100%);
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+        overflow: hidden;
+        z-index: 1;
+        padding: 28px;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        border: none;
+        background: transparent;
+        color: #666;
+        font-size: 1.1em;
+        cursor: pointer;
+    }
+
+    .modal-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.4em;
+        color: var(--secondary);
+    }
+
+    .project-status {
+        font-size: 0.9em;
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: rgba(38,70,83,0.08);
+        color: var(--secondary);
+    }
+
+    .modal-meta {
+        margin: 8px 0;
+        color: #555;
+        font-size: 0.95em;
+    }
+
+    .modal-description {
+        margin-top: 12px;
+        line-height: 1.6;
+        color: #444;
+    }
+
+    .modal-list {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .modal-list-item {
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: #f6f8fb;
+        border: 1px solid rgba(0,0,0,0.06);
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .modal-list-item:hover {
+        background: rgba(231,111,81,0.08);
+    }
+
+    .modal-list-item h3 {
+        margin: 0 0 6px 0;
+        font-size: 1em;
+        font-weight: 700;
+        color: var(--secondary);
+    }
+
+    .modal-list-item p {
+        margin: 0;
+        color: #555;
+        font-size: 0.9em;
+    }
+
+    .modal-footer {
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        border-radius: 10px;
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #d65c3e;
+    }
+
+    .btn-secondary {
+        background: rgba(38,70,83,0.08);
+        color: var(--secondary);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(38,70,83,0.14);
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const rawData = document.getElementById('projects-data');
+        const events = JSON.parse(rawData.textContent || '[]');
+
+        const calendarEl = document.getElementById('calendar');
+
+        const getColor = (id) => {
+            // Простая детерминированная генерация цвета по id
+            const palette = [
+                'rgba(231,111,81,0.45)',
+                'rgba(42,157,143,0.45)',
+                'rgba(38,70,83,0.35)',
+                'rgba(244,162,97,0.4)',
+                'rgba(142,202,230,0.45)',
+                'rgba(214,40,40,0.35)',
+                'rgba(0,119,182,0.35)',
+                'rgba(0,109,119,0.35)',
+                'rgba(155,34,38,0.35)',
+                'rgba(106,153,78,0.35)'
+            ];
+            const numericId = parseInt(String(id).replace(/\D/g, ''), 10);
+            const index = Number.isNaN(numericId) ? 0 : numericId;
+            return palette[index % palette.length];
+        };
+
+        const allEvents = events.map(item => ({
+            id: item.id,
+            title: item.title,
+            start: item.start,
+            end: item.end,
+            backgroundColor: getColor(item.id),
+            borderColor: 'rgba(0,0,0,0.1)',
+            textColor: '#ffffff',
+            extendedProps: {
+                status: item.status,
+                type: item.type,
+                description: item.description,
+                code: item.code,
+                start_date: item.start_date,
+            }
+        }));
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'ru',
+            buttonText: {
+                today: 'Сегодня'
+            },
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: ''
+            },
+            dayMaxEvents: true,
+            events: allEvents,
+            eventDidMount: function (info) {
+                info.el.removeAttribute('title');
+
+                const showTooltip = (content, rect) => {
+                    const tooltip = document.getElementById('calendarTooltip');
+                    tooltip.innerHTML = content;
+                    tooltip.style.display = 'block';
+                    tooltip.style.top = `${Math.max(rect.top - 12, 12)}px`;
+                    tooltip.style.left = `${Math.min(rect.right + 8, window.innerWidth - tooltip.offsetWidth - 12)}px`;
+                };
+
+                const hideTooltip = () => {
+                    const tooltip = document.getElementById('calendarTooltip');
+                    tooltip.style.display = 'none';
+                };
+
+                info.el.addEventListener('mouseenter', () => {
+                    const props = info.event.extendedProps;
+                    const status = props.status ? `<strong>Статус:</strong> ${props.status}` : '';
+                    const deadline = info.event.end ? `<strong>Срок:</strong> ${FullCalendar.formatDate(info.event.end, {year: 'numeric', month: '2-digit', day: '2-digit'})}` : '';
+                    const description = props.description ? `<div style="margin-top:6px;">${props.description}</div>` : '';
+
+                    const content = `
+                        <h4>${info.event.title}</h4>
+                        <p>${status}</p>
+                        <p>${deadline}</p>
+                        ${description}
+                    `;
+
+                    showTooltip(content, info.el.getBoundingClientRect());
+                });
+
+                info.el.addEventListener('mouseleave', hideTooltip);
+            },
+            dayCellDidMount: function (arg) {
+                const dateStr = arg.date.toISOString().slice(0, 10);
+                const items = allEvents.filter(item => item.start === dateStr);
+                if (!items.length) return;
+
+                const showTooltip = (content, rect) => {
+                    const tooltip = document.getElementById('calendarTooltip');
+                    tooltip.innerHTML = content;
+                    tooltip.style.display = 'block';
+                    tooltip.style.top = `${Math.max(rect.top - 12, 12)}px`;
+                    tooltip.style.left = `${Math.min(rect.right + 8, window.innerWidth - tooltip.offsetWidth - 12)}px`;
+                };
+
+                const hideTooltip = () => {
+                    const tooltip = document.getElementById('calendarTooltip');
+                    tooltip.style.display = 'none';
+                };
+
+                arg.el.addEventListener('mouseenter', () => {
+                    const projectNames = items.slice(0, 3).map(i => `<li>${i.title}</li>`).join('');
+                    const extra = items.length > 3 ? `<li>...и ещё ${items.length - 3}</li>` : '';
+                    const content = `
+                        <h4>${items.length} проект${items.length === 1 ? '' : 'ов'}</h4>
+                        <ul style="margin:6px 0 0 0; padding-left: 18px;">${projectNames}${extra}</ul>
+                    `;
+
+                    showTooltip(content, arg.el.getBoundingClientRect());
+                });
+
+                arg.el.addEventListener('mouseleave', hideTooltip);
+            },
+            eventClick: function (info) {
+                const props = info.event.extendedProps;
+
+                renderDetail({
+                    id: info.event.id,
+                    title: info.event.title,
+                    status: props.status,
+                    type: props.type,
+                    start_date: props.start_date,
+                    end: info.event.end ? FullCalendar.formatDate(info.event.end, {year: 'numeric', month: '2-digit', day: '2-digit'}) : '',
+                    description: props.description,
+                    code: props.code,
+                });
+
+                openModal();
+            },
+            dateClick: function (arg) {
+                const clickedDate = arg.dateStr;
+                const items = allEvents.filter(item => item.start === clickedDate);
+                renderList(clickedDate, items);
+            }
+        });
+
+        calendar.render();
+
+        function openModal() {
+            document.getElementById('projectModal').setAttribute('aria-hidden', 'false');
+        }
+
+        function closeModal() {
+            document.getElementById('projectModal').setAttribute('aria-hidden', 'true');
+        }
+
+        function renderDetail(item) {
+            document.getElementById('modalTitle').textContent = item.title;
+            document.getElementById('modalStatus').textContent = item.status || '';
+
+const start = item.start_date ? item.start_date : '';
+            const end = item.end ? item.end : '';
+            document.getElementById('modalDates').textContent = start && end ? `Период: ${start} — ${end}` : (end ? `Дата завершения: ${end}` : '');
+
+            document.getElementById('modalDescription').textContent = item.description || 'Описание отсутствует.';
+            document.getElementById('modalProjectLink').href = `/manager/projects/${item.id}/detail/`;
+
+            document.getElementById('modalList').style.display = 'none';
+            document.getElementById('modalDetail').style.display = 'block';
+        }
+
+        function renderList(dateStr, items) {
+            if (items.length === 1) {
+                renderDetail(items[0]);
+                openModal();
+                return;
+            }
+
+            const listEl = document.getElementById('modalList');
+            listEl.innerHTML = '';
+
+            const title = document.createElement('h3');
+            title.textContent = `Проекты на ${dateStr}`;
+            title.style.margin = '0 0 10px 0';
+            listEl.appendChild(title);
+
+            if (!items.length) {
+                const message = document.createElement('p');
+                message.textContent = 'Нет проектов на выбранную дату.';
+                listEl.appendChild(message);
+            } else {
+                items.forEach(item => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'modal-list-item';
+
+                    const heading = document.createElement('h3');
+                    heading.textContent = item.title;
+                    itemEl.appendChild(heading);
+
+                    const meta = document.createElement('p');
+                    meta.textContent = `${item.status ? item.status + ' · ' : ''}${item.type ? item.type : ''}`;
+                    itemEl.appendChild(meta);
+
+                    itemEl.addEventListener('click', () => {
+                        renderDetail(item);
+                    });
+
+                    listEl.appendChild(itemEl);
+                });
+            }
+
+            document.getElementById('modalDetail').style.display = 'none';
+            listEl.style.display = 'block';
+
+            openModal();
+        }
+
+
+        document.querySelectorAll('[data-close="true"]').forEach(el => {
+            el.addEventListener('click', closeModal);
+        });
+
+        // Закрытие по Esc
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    });
+</script>
+{% endblock %}

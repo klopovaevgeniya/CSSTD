@@ -1,0 +1,118 @@
+{% extends 'employee/base_employee.html' %}
+
+{% block title %}Дашборд сотрудника{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Добро пожаловать!</h1>
+    <p>Ваша персональная панель управления</p>
+</div>
+
+<div class="dashboard-content">
+    <!-- STATS GRID -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3><i class="fa-solid fa-briefcase"></i> Мои проекты</h3>
+            <div class="stat-number">{{ my_projects_count|default:"0" }}</div>
+            <p class="stat-subtitle">текущих проектов</p>
+        </div>
+        <div class="stat-card">
+            <h3><i class="fa-solid fa-tasks"></i> Активные задачи</h3>
+            <div class="stat-number">{{ active_tasks_count|default:"0" }}</div>
+            <p class="stat-subtitle">не завершено</p>
+        </div>
+        <div class="stat-card">
+            <h3><i class="fa-solid fa-check-circle"></i> Завершённые</h3>
+            <div class="stat-number">{{ completed_tasks_count|default:"0" }}</div>
+            <p class="stat-subtitle">всего завершено</p>
+        </div>
+        <div class="stat-card">
+            <h3><i class="fa-solid fa-percent"></i> Прогресс</h3>
+            <div class="stat-number">{{ progress_percent|default:"0" }}%</div>
+            <p class="stat-subtitle">выполнено</p>
+        </div>
+    </div>
+
+    <!-- USER INFO SECTION -->
+    <div class="user-info-section">
+        <h2><i class="fa-solid fa-user"></i> Ваша информация</h2>
+        <div class="user-info-grid">
+            <div class="info-item">
+                <label>ФИО:</label>
+                <p>{% if user_first_name or user_last_name %}{{ user_first_name }} {{ user_last_name }}{% else %}{{ user.username }}{% endif %}</p>
+            </div>
+            <div class="info-item">
+                <label>Email:</label>
+                <p>{{ user_email|default:"Не указан" }}</p>
+            </div>
+            <div class="info-item">
+                <label>Должность:</label>
+                <p>{{ user_position|default:"Не указана" }}</p>
+            </div>
+            <div class="info-item">
+                <label>Отдел:</label>
+                <p>{{ user_department|default:"Не указан" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    {% if overdue_tasks_count > 0 %}
+    <div class="alert alert-warning">
+        <i class="fa-solid fa-exclamation-triangle"></i>
+        <div>
+            <strong>Внимание!</strong> У вас есть {{ overdue_tasks_count }} просрочен{% if overdue_tasks_count == 1 %}ная{% else %}ные{% endif %} 
+            {% if overdue_tasks_count == 1 %}задача{% elif overdue_tasks_count > 1 and overdue_tasks_count < 5 %}задачи{% else %}задач{% endif %}.
+        </div>
+    </div>
+    {% endif %}
+
+    {% if new_assignment_notifications > 0 %}
+    <div class="alert alert-info">
+        <i class="fa-solid fa-bell"></i>
+        <div>
+            <strong>Новые назначения!</strong> У вас есть {{ new_assignment_notifications }} новое назначение на проект.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- RECENT TASKS -->
+    {% if recent_tasks %}
+    <div class="recent-activity">
+        <h2><i class="fa-solid fa-list-check"></i> Предстоящие задачи</h2>
+        <ul class="tasks-list">
+            {% for task in recent_tasks %}
+            <li class="task-item">
+                <div class="task-info">
+                    <h4>{{ task.name }}</h4>
+                    <p class="task-project">
+                        {% if task.project %}
+                        <strong>{{ task.project.name }}</strong>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="task-meta">
+                    {% if task.status %}
+                    <span class="task-status task-status-{{ task.status|lower }}">{{ task.status }}</span>
+                    {% endif %}
+                    {% if task.priority %}
+                    <span class="task-priority task-priority-{{ task.priority|lower }}">{{ task.priority }}</span>
+                    {% endif %}
+                    {% if task.due_date %}
+                    <span class="task-date {% if task.due_date|date:'Y-m-d' <= today %}overdue{% endif %}">
+                        <i class="fa-solid fa-calendar-days"></i> {{ task.due_date|date:"d.m.Y" }}
+                    </span>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div class="recent-activity">
+        <h2><i class="fa-solid fa-inbox"></i> Нет активных задач</h2>
+        <p>Все ваши задачи завершены! Отличная работа!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

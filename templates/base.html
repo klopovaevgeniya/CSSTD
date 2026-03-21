@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}ЦСУРТ{% endblock %}</title>
+
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">ЦСУРТ</div>
+
+        <nav>
+            <a href="{% url 'admin_dashboard' %}">
+                <i class="fa-solid fa-chart-line"></i> Дашборд
+            </a>
+            <a href="{% url 'project_list' %}">
+                <i class="fa-solid fa-folder-open"></i> Проекты
+            </a>
+            <a href="#">
+                <i class="fa-solid fa-users"></i> Сотрудники
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="content">
+        <header class="topbar">
+            <span>{{ request.user.username }}</span>
+            <a href="{% url 'logout' %}">Выход</a>
+        </header>
+
+        <section class="page">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+
+</div>
+
+</body>
+</html>

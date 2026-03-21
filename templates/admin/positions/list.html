@@ -1,0 +1,78 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Должности{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <h1>Управление должностями</h1>
+    <a href="{% url 'position_create' %}" class="add-btn">
+        <i class="fa-solid fa-plus"></i> Добавить должность
+    </a>
+</div>
+
+<div class="list-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in positions %}
+            <tr>
+                <td>{{ p.name }}</td>
+                <td>
+                    <a href="{% url 'position_edit' p.id %}" title="Редактировать">
+                        <i class="fa-solid fa-edit"></i>
+                    </a>
+                    <a href="#" onclick="openDeleteModal({{ p.id }}, '{{ p.name }}')" title="Удалить">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Удаление должности</h3>
+        </div>
+        <div class="modal-body">
+            <p>Вы уверены, что хотите удалить должность <strong id="positionName"></strong>?</p>
+            <p class="text-muted">Это действие нельзя отменить.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDeleteModal()">Отмена</button>
+            <form id="deleteForm" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-trash"></i> Удалить
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDeleteModal(positionId, positionName) {
+    document.getElementById('positionName').textContent = positionName;
+    document.getElementById('deleteForm').action = "{% url 'position_delete' 0 %}".replace('0', positionId);
+    document.getElementById('deleteModal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{% if mode == "edit" %}Редактировать сотрудника{% else %}Добавить сотрудника{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h1 class="page-title">{% if mode == "edit" %}Редактировать сотрудника{% else %}Добавить сотрудника{% endif %}</h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="last_name">Фамилия *</label>
+                    <input type="text" id="last_name" name="last_name" value="{{ employee.last_name|default:'' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="first_name">Имя *</label>
+                    <input type="text" id="first_name" name="first_name" value="{{ employee.first_name|default:'' }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="middle_name">Отчество</label>
+                <input type="text" id="middle_name" name="middle_name" value="{{ employee.middle_name|default:'' }}">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="position">Должность</label>
+                    <select id="position" name="position">
+                        <option value="">-- Выберите должность --</option>
+                        {% for pos in positions %}
+                        <option value="{{ pos.id }}" {% if employee.position_id == pos.id %}selected{% endif %}>{{ pos.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Отдел</label>
+                    <select id="department" name="department">
+                        <option value="">-- Выберите отдел --</option>
+                        {% for dep in departments %}
+                        <option value="{{ dep.id }}" {% if employee.department_id == dep.id %}selected{% endif %}>{{ dep.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" value="{{ employee.email|default:'' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Телефон</label>
+                    <input type="text" id="phone" name="phone" value="{{ employee.phone|default:'' }}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="hire_date">Дата приема</label>
+                    <input type="date" id="hire_date" name="hire_date" value="{{ employee.hire_date|date:'Y-m-d'|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="is_active">Статус</label>
+                    <select id="is_active" name="is_active">
+                        <option value="true" {% if employee.is_active|default:True %}selected{% endif %}>Активен</option>
+                        <option value="false" {% if not employee.is_active|default:True %}selected{% endif %}>Неактивен</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'admin_employees' %}" class="btn btn-secondary">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-save"></i> {% if mode == "edit" %}Сохранить изменения{% else %}Создать сотрудника{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

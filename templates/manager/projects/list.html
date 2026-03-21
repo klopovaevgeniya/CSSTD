@@ -1,0 +1,75 @@
+{% extends 'manager/base_manager.html' %}
+
+{% block title %}Мои проекты{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class="fa-solid fa-briefcase"></i> Мои проекты</h1>
+    <p>Управляйте вашими проектами и командой</p>
+</div>
+
+<div class="projects-container">
+    {% if projects_data %}
+        <div class="projects-grid">
+            {% for item in projects_data %}
+                <div class="project-card {% if item.project.id in new_project_ids %}highlight-new{% endif %}{% if item.unread_chat_messages > 0 %}highlight-chat{% endif %}" data-project-id="{{ item.project.id }}">
+                    <h3>
+                        {{ item.project.name }}
+                        {% if item.project.id in new_project_ids %}
+                            <span class="new-badge">Новое</span>
+                        {% endif %}
+                    </h3>
+
+                    <p class="project-meta">
+                        {% if item.project.type %}{{ item.project.type.name }}{% endif %}
+                        {% if item.project.status %}
+                            • <span class="project-status-badge" style="background-color: {{ item.project.status.color_code|default:'#999' }};">{{ item.project.status.name }}</span>
+                        {% endif %}
+                    </p>
+
+                    <p class="project-desc">{{ item.project.description|default:"Описание отсутствует"|truncatechars:200 }}</p>
+
+                    <p class="project-dates">
+                        {% if item.project.start_date or item.project.end_date %}
+                            <i class="fa-solid fa-calendar-days"></i>
+                            {% if item.project.start_date %}{{ item.project.start_date|date:"d.m.Y" }}{% endif %}
+                            {% if item.project.end_date %} — {{ item.project.end_date|date:"d.m.Y" }}{% endif %}
+                        {% endif %}
+                    </p>
+
+                    {% if item.unread_chat_messages > 0 %}
+                        <div style="color: #e63946; font-size: 0.85em; margin: 8px 0; font-weight: 600;">
+                            Новое сообщение в чате
+                        </div>
+                    {% endif %}
+
+                    <a href="{% url 'manager_project_detail' item.project.id %}" class="btn btn-sm">
+                        <i class="fa-solid fa-arrow-right"></i> Подробнее
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 60px 20px; color: #999;">
+            <i class="fa-solid fa-inbox" style="font-size: 3em; margin-bottom: 16px; display: block; opacity: 0.5;"></i>
+            <p style="font-size: 1.1em;">У вас пока нет назначенных проектов.</p>
+            <p style="font-size: 0.95em; color: #bbb;">Обратитесь к администратору для добавления проектов</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Убираем выделение новых проектов через 7 секунд
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+            document.querySelectorAll('.project-card.highlight-new').forEach(function (el) {
+                el.classList.remove('highlight-new');
+            });
+            document.querySelectorAll('.project-card .new-badge').forEach(function (el) {
+                el.remove();
+            });
+        }, 7000);
+    });
+</script>
+
+{% endblock %}

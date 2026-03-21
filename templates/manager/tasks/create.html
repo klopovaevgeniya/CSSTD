@@ -1,0 +1,394 @@
+{% extends 'manager/base_manager.html' %}
+
+{% block title %}Создание новой задачи - {{ project.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .task-create-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .task-create-header {
+        margin-bottom: 32px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .task-create-header a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .task-create-header a:hover {
+        gap: 10px;
+    }
+
+    .task-create-header h1 {
+        margin: 0;
+        font-size: 2em;
+        color: var(--secondary);
+    }
+
+    .task-create-card {
+        background: white;
+        padding: 32px;
+        border-radius: 14px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    }
+
+    .task-create-card h2 {
+        margin: 0 0 8px 0;
+        font-size: 1.2em;
+        color: var(--secondary);
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 12px;
+    }
+
+    .task-create-card .info-text {
+        color: #666;
+        font-size: 0.9em;
+        margin-bottom: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--secondary);
+        margin-bottom: 8px;
+        font-size: 0.95em;
+    }
+
+    .form-group label .required {
+        color: #e63946;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.95em;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(231,111,81,0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+        font-family: inherit;
+    }
+
+    .form-group input:disabled,
+    .form-group select:disabled {
+        background: #f5f5f5;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .btn-submit,
+    .btn-cancel {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95em;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: white;
+        flex: 1;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(231,111,81,0.3);
+    }
+
+    .btn-submit:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-cancel {
+        background: #f0f0f0;
+        color: #555;
+    }
+
+    .btn-cancel:hover {
+        background: #e0e0e0;
+    }
+
+    .project-badge {
+        display: inline-block;
+        background: var(--primary);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .alert {
+        padding: 14px 18px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .alert i {
+        font-size: 1.2em;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .alert-error {
+        background: #f8d7da;
+        border-left: 4px solid #e63946;
+        color: #721c24;
+    }
+
+    .alert-error i {
+        color: #e63946;
+    }
+
+    .alert-info {
+        background: #d1ecf1;
+        border-left: 4px solid var(--primary);
+        color: #0c5460;
+    }
+
+    .alert-info i {
+        color: var(--primary);
+    }
+
+    .field-help {
+        font-size: 0.85em;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .btn-submit.loading {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+    .btn-submit.loading .loading-spinner {
+        display: inline-block;
+    }
+
+    .btn-submit.loading span {
+        display: none;
+    }
+</style>
+
+<div class="task-create-container">
+    <div class="task-create-header">
+        <a href="{% url 'manager_project_detail' pk=project.id %}">
+            <i class="fa-solid fa-arrow-left"></i> Вернуться к проекту
+        </a>
+    </div>
+
+    <h1>Создание новой задачи</h1>
+
+    <div class="task-create-card">
+        <h2>Новая задача</h2>
+        <p class="info-text">в проекте <strong>{{ project.name }}</strong></p>
+
+        {% if error %}
+        <div class="alert alert-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <div>
+                <strong>Ошибка:</strong> {{ error }}
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="post" id="task-form">
+            {% csrf_token %}
+
+            <!-- Task Name -->
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">
+                    Название задачи <span class="required">*</span>
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="alert alert-error" style="margin-top: 8px;">
+                        {{ form.name.errors.0 }}
+                    </div>
+                {% endif %}
+                <p class="field-help">Кратко опишите суть задачи</p>
+            </div>
+
+            <!-- Task Description -->
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">
+                    Описание
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="alert alert-error" style="margin-top: 8px;">
+                        {{ form.description.errors.0 }}
+                    </div>
+                {% endif %}
+                <p class="field-help">Подробное описание задачи и требования (опционально)</p>
+            </div>
+
+            <!-- Row: Assigned To, Due Date -->
+            <div class="form-row">
+                <!-- Assigned To -->
+                <div class="form-group">
+                    <label for="assigned_to">
+                        Назначить сотруднику <span class="required">*</span>
+                    </label>
+                    <select name="assigned_to" id="assigned_to" required>
+                        <option value="">-- Выберите сотрудника --</option>
+                        {% for emp in available_employees %}
+                            <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }} ({{ emp.position.name|default:"без должности" }})</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.assigned_to.errors %}
+                        <div class="alert alert-error" style="margin-top: 8px;">
+                            {{ form.assigned_to.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <p class="field-help">Выберите сотрудника из команды проекта</p>
+                </div>
+
+                <!-- Due Date -->
+                <div class="form-group">
+                    <label for="{{ form.due_date.id_for_label }}">
+                        Дата сдачи
+                    </label>
+                    {{ form.due_date }}
+                    {% if form.due_date.errors %}
+                        <div class="alert alert-error" style="margin-top: 8px;">
+                            {{ form.due_date.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <p class="field-help">Установите срок выполнения задачи</p>
+                </div>
+            </div>
+
+            <!-- Row: Priority, Status -->
+            <div class="form-row">
+                <!-- Priority -->
+                <div class="form-group">
+                    <label for="{{ form.priority.id_for_label }}">
+                        Приоритет
+                    </label>
+                    {{ form.priority }}
+                    {% if form.priority.errors %}
+                        <div class="alert alert-error" style="margin-top: 8px;">
+                            {{ form.priority.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Status -->
+                <div class="form-group">
+                    <label for="{{ form.status.id_for_label }}">
+                        Статус
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="alert alert-error" style="margin-top: 8px;">
+                            {{ form.status.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="form-buttons">
+                <button type="submit" class="btn-submit" id="submit-btn">
+                    <span><i class="fa-solid fa-check"></i> Создать задачу</span>
+                    <div class="loading-spinner"></div>
+                </button>
+                <a href="{% url 'manager_project_detail' pk=project.id %}" class="btn-cancel">
+                    <i class="fa-solid fa-times"></i> Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('task-form').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+    });
+</script>
+
+{% endblock %}

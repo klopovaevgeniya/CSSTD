@@ -1,0 +1,120 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Проект: {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="project-detail-header">
+    <a href="{% url 'admin_projects' %}" class="back-btn">
+        <i class="fa-solid fa-arrow-left"></i> Назад к проектам
+    </a>
+    <div class="project-title">
+        <h1 class="page-title">{{ project.name }}</h1>
+        {% if project.code %}<p class="project-code">Код: {{ project.code }}</p>{% endif %}
+    </div>
+</div>
+
+<div class="project-details">
+    <div class="detail-row">
+        <div class="detail-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-info-circle"></i>
+            </div>
+            <div class="card-content">
+                <h3>Основная информация</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Тип проекта</label>
+                        <span>{{ project.type.name|default:"Не указан" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Статус</label>
+                        <span class="project-status-badge" style="background-color: {{ project.status.color_code|default:'#999' }};">{{ project.status.name|default:"Не указан" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Руководитель</label>
+                        <span>{% if project.manager %}{{ project.manager.last_name }} {{ project.manager.first_name }}{% if project.manager.middle_name %} {{ project.manager.middle_name }}{% endif %}{% else %}Не назначен{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-calendar"></i>
+            </div>
+            <div class="card-content">
+                <h3>Сроки и даты</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Дата начала</label>
+                        <span>{{ project.start_date|date:"d.m.Y"|default:"Не указана" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Дата окончания</label>
+                        <span>{{ project.end_date|date:"d.m.Y"|default:"Не указана" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Дата создания</label>
+                        <span>{{ project.created_at|date:"d.m.Y H:i"|default:"Не указана" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-row">
+        <div class="detail-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-ruble-sign"></i>
+            </div>
+            <div class="card-content">
+                <h3>Бюджет и расходы</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Бюджет</label>
+                        <span class="budget-amount">{% if project.budget %}{{ project.budget|floatformat:0 }} руб.{% else %}Не указан{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Фактическая стоимость</label>
+                        <span class="cost-amount">{% if project.actual_cost %}{{ project.actual_cost|floatformat:0 }} руб.{% else %}Не указана{% endif %}</span>
+                    </div>
+                    {% if budget_deviation is not None %}
+                    <div class="info-item">
+                        <label>Отклонение</label>
+                        <span class="{% if budget_deviation > 0 %}over-budget{% else %}under-budget{% endif %}">
+                            {{ budget_deviation|floatformat:0 }} руб.
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="card-content">
+                <h3>Обновления</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Последнее обновление</label>
+                        <span>{{ project.updated_at|date:"d.m.Y H:i"|default:"Не указано" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if project.description %}
+    <div class="detail-card full-width">
+        <div class="card-icon">
+            <i class="fa-solid fa-file-alt"></i>
+        </div>
+        <div class="card-content">
+            <h3>Описание проекта</h3>
+            <p class="project-description">{{ project.description }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

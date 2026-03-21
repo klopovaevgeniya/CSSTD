@@ -1,0 +1,127 @@
+{% extends "manager/base_manager.html" %}
+
+{% block title %}Дашборд руководителя проекта{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Добро пожаловать!</h1>
+    <p>Ваш дашборд руководителя проекта</p>
+</div>
+
+<div class="dashboard-content">
+    <!-- STATS GRID -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3><i class="fa-solid fa-folder-open"></i> Активные проекты</h3>
+            <div class="stat-number">{{ active_projects_count|default:"0" }}</div>
+            <p class="stat-subtitle">из {{ total_projects_count|default:"0" }} всего</p>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fa-solid fa-tasks"></i> Задачи на сегодня</h3>
+            <div class="stat-number">{{ today_tasks_count|default:"0" }}</div>
+            <p class="stat-subtitle">{{ all_tasks_count|default:"0" }} всего</p>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fa-solid fa-users"></i> Члены команды</h3>
+            <div class="stat-number">{{ team_members_count|default:"0" }}</div>
+            <p class="stat-subtitle">в ваших проектах</p>
+        </div>
+
+        <div class="stat-card">
+            <h3><i class="fa-solid fa-chart-line"></i> Общий прогресс</h3>
+            <div class="stat-number">
+                {% if all_tasks_count > 0 %}
+                    {{ completed_tasks_count|default:"0" }}/{{ all_tasks_count|default:"0" }}
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+            <p class="stat-subtitle">завершено задач</p>
+        </div>
+    </div>
+
+    <!-- RECENT PROJECTS -->
+    {% if recent_projects %}
+    <div class="recent-section">
+        <h2><i class="fa-solid fa-star"></i> Текущие проекты</h2>
+        <div class="projects-mini-grid">
+            {% for project in recent_projects %}
+            <div class="project-mini-card">
+                <div class="project-header">
+                    <h4>{{ project.name }}</h4>
+                    {% if project.status %}
+                    <span class="project-status" style="background-color: {{ project.status.color_code|default:'#999' }};">
+                        {{ project.status.name }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% if project.code %}
+                <p class="project-code">Код: <strong>{{ project.code }}</strong></p>
+                {% endif %}
+                <p class="project-meta">
+                    {% if project.start_date %}
+                    <i class="fa-solid fa-calendar"></i> {{ project.start_date|date:"d.m.Y" }}
+                    {% if project.end_date %}
+                    — {{ project.end_date|date:"d.m.Y" }}
+                    {% endif %}
+                    {% endif %}
+                </p>
+                <p class="project-type">
+                    {% if project.type %}
+                    <i class="fa-solid fa-tag"></i> {{ project.type.name }}
+                    {% endif %}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- RECENT ACTIVITY (RECENT TASKS) -->
+    {% if recent_tasks %}
+    <div class="recent-activity">
+        <h2><i class="fa-solid fa-list-check"></i> Активные задачи</h2>
+        <ul class="tasks-list">
+            {% for task in recent_tasks %}
+            <li class="task-item">
+                <div class="task-info">
+                    <h4>{{ task.name }}</h4>
+                    <p class="task-project">
+                        {% if task.project %}
+                        <strong>{{ task.project.name }}</strong>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="task-meta">
+                    {% if task.status %}
+                    <span class="task-status task-status-{{ task.status|lower }}">{{ task.status }}</span>
+                    {% endif %}
+                    {% if task.priority %}
+                    <span class="task-priority task-priority-{{ task.priority|lower }}">{{ task.priority }}</span>
+                    {% endif %}
+                    {% if task.due_date %}
+                    <span class="task-date">
+                        <i class="fa-solid fa-calendar-days"></i> {{ task.due_date|date:"d.m.Y" }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% if task.assigned_to %}
+                <p class="task-assigned">
+                    <i class="fa-solid fa-user-circle"></i> 
+                    {{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}
+                </p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div class="recent-activity">
+        <h2><i class="fa-solid fa-inbox"></i> Нет активных задач</h2>
+        <p>Все задачи завершены! Отличная работа!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

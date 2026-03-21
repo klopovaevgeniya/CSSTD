@@ -1,0 +1,602 @@
+{% extends 'manager/base_manager.html' %}
+
+{% block title %}{{ project.name }} - Детали проекта{% endblock %}
+
+{% block content %}
+<style>
+    .project-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+        gap: 20px;
+    }
+
+    .project-detail-header-info h1 {
+        margin: 0 0 12px 0;
+        font-size: 2.2em;
+        color: var(--secondary);
+    }
+
+    .project-detail-header-info p {
+        margin: 4px 0;
+        color: #666;
+        font-size: 0.95em;
+    }
+
+    .project-status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 24px;
+        font-weight: 600;
+        font-size: 0.85em;
+        margin-top: 8px;
+        color: white;
+    }
+
+    .project-detail-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 20px;
+        transition: all 0.2s ease;
+    }
+
+    .project-detail-back:hover {
+        gap: 10px;
+    }
+
+    .project-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 32px;
+    }
+
+    @media (max-width: 1200px) {
+        .project-content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Project Info Card */
+    .project-info {
+        background: white;
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    }
+
+    .project-info h2 {
+        margin: 0 0 16px 0;
+        font-size: 1.3em;
+        color: var(--secondary);
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 12px;
+    }
+
+    .info-item {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--secondary);
+        font-size: 0.9em;
+    }
+
+    .info-value {
+        color: #555;
+        margin-top: 4px;
+    }
+
+    /* Participants Section */
+    .participants-section {
+        background: white;
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    }
+
+    .participants-section h2 {
+        margin: 0 0 20px 0;
+        font-size: 1.3em;
+        color: var(--secondary);
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 12px;
+    }
+
+    .participants-list {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .participant-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 16px;
+        background: #f8fafb;
+        border-radius: 10px;
+        border-left: 4px solid var(--primary);
+        transition: all 0.2s ease;
+    }
+
+    .participant-card:hover {
+        background: #f0f2f5;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .participant-info {
+        flex: 1;
+    }
+
+    .participant-name {
+        font-weight: 600;
+        color: var(--secondary);
+        margin: 0;
+    }
+
+    .participant-role {
+        font-size: 0.85em;
+        color: #888;
+        margin: 2px 0 0 0;
+    }
+
+    .participant-remove {
+        padding: 6px 12px;
+        background: #fee;
+        color: #e63946;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85em;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .participant-remove:hover {
+        background: #fdd;
+        transform: scale(1.05);
+    }
+
+    .no-participants {
+        text-align: center;
+        padding: 32px 16px;
+        color: #999;
+        font-style: italic;
+    }
+
+    /* Add Employee Form */
+    .add-employee-form {
+        background: linear-gradient(135deg, rgba(231,111,81,0.05) 0%, rgba(244,162,97,0.05) 100%);
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px dashed var(--primary);
+    }
+
+    .add-employee-form h3 {
+        margin: 0 0 16px 0;
+        color: var(--secondary);
+        font-size: 1.1em;
+    }
+
+    .form-group {
+        margin-bottom: 14px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        color: var(--secondary);
+        margin-bottom: 6px;
+        font-size: 0.9em;
+    }
+
+    .form-group select,
+    .form-group input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.95em;
+        transition: all 0.2s ease;
+    }
+
+    .form-group select:focus,
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(231,111,81,0.1);
+    }
+
+    .form-group select:disabled {
+        background: #f5f5f5;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    .btn-assign {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95em;
+    }
+
+    .btn-assign:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(231,111,81,0.3);
+    }
+
+    .btn-assign:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 3em;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8em;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-completed {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-draft {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-archived {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    @media (max-width: 768px) {
+        .project-detail-header {
+            flex-direction: column;
+        }
+
+        .project-content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ===== MODAL DIALOG ===== */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .modal-dialog {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        max-width: 400px;
+        width: 90%;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        padding: 24px 24px 16px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.3em;
+        color: var(--secondary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-header i {
+        color: #e63946;
+        font-size: 1.4em;
+    }
+
+    .modal-body {
+        padding: 24px;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .modal-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.95em;
+    }
+
+    .modal-btn-cancel {
+        background: #f0f0f0;
+        color: #555;
+    }
+
+    .modal-btn-cancel:hover {
+        background: #e0e0e0;
+    }
+
+    .modal-btn-delete {
+        background: #e63946;
+        color: white;
+    }
+
+    .modal-btn-delete:hover {
+        background: #d62828;
+        transform: translateY(-2px);
+    }
+
+</style>
+
+<a href="{% url 'manager_projects' %}" class="project-detail-back">
+    <i class="fa-solid fa-arrow-left"></i> Вернуться к проектам
+</a>
+
+<div class="project-detail-header">
+    <div class="project-detail-header-info">
+        <h1>{{ project.name }}</h1>
+        <p><strong>Тип:</strong> {% if project.type %}{{ project.type.name }}{% else %}Не указан{% endif %}</p>
+        <div>
+            {% if project.status %}
+                <span class="project-status-badge" style="background-color: {{ project.status.color_code|default:'#999' }};">
+                    {{ project.status.name }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        <a href="{% url 'manager_create_task' project_id=project.id %}" class="btn-chat" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
+            <i class="fa-solid fa-plus"></i> Создать задачу
+        </a>
+        <a href="{% url 'manager_project_chat' pk=project.id %}" class="btn-chat" style="display: inline-flex; align-items: center; justify-content: center; gap: 0; padding: 12px 18px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;" title="Открыть чат проекта">
+            💬
+        </a>
+    </div>
+</div>
+
+<div class="project-content">
+    <!-- Project Info -->
+    <div class="project-info">
+        <h2>Информация о проекте</h2>
+
+        <div class="info-item">
+            <div class="info-label">Код проекта</div>
+            <div class="info-value">{{ project.code|default:"Не указан" }}</div>
+        </div>
+
+        <div class="info-item">
+            <div class="info-label">Описание</div>
+            <div class="info-value">{{ project.description|default:"Описание отсутствует" }}</div>
+        </div>
+
+        {% if project.start_date %}
+        <div class="info-item">
+            <div class="info-label">Дата начала</div>
+            <div class="info-value">{{ project.start_date|date:"d.m.Y" }}</div>
+        </div>
+        {% endif %}
+
+        {% if project.end_date %}
+        <div class="info-item">
+            <div class="info-label">Дата завершения</div>
+            <div class="info-value">{{ project.end_date|date:"d.m.Y" }}</div>
+        </div>
+        {% endif %}
+
+        {% if project.budget %}
+        <div class="info-item">
+            <div class="info-label">Бюджет</div>
+            <div class="info-value">{{ project.budget|floatformat:2 }} ₽</div>
+        </div>
+        {% endif %}
+
+        {% if project.actual_cost %}
+        <div class="info-item">
+            <div class="info-label">Фактические затраты</div>
+            <div class="info-value">{{ project.actual_cost|floatformat:2 }} ₽</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Participants and Add Form -->
+    <div class="participants-section">
+        <h2>Команда проекта</h2>
+
+        {% if participants %}
+            <div class="participants-list">
+                {% for participant in participants %}
+                    <div class="participant-card">
+                        <div class="participant-info">
+                            <p class="participant-name">{{ participant.employee.first_name }} {{ participant.employee.last_name }}</p>
+                            <p class="participant-role">{{ participant.employee.position.name|default:"Без должности" }}</p>
+                        </div>
+                        <button class="participant-remove" onclick="removeParticipant({{ participant.id }}, '{{ participant.employee.first_name }} {{ participant.employee.last_name }}')">
+                            Удалить
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-participants">
+                <i class="fa-solid fa-users"></i>
+                <p>Пока нет назначенных сотрудников</p>
+            </div>
+        {% endif %}
+
+        <!-- Add Employee Form -->
+        {% if available_employees %}
+            <form method="post" id="add-employee-form" class="add-employee-form">
+                {% csrf_token %}
+                <h3><i class="fa-solid fa-plus"></i> Добавить сотрудника</h3>
+
+                <div class="form-group">
+                    <label for="employee_id">Выберите сотрудника</label>
+                    <select name="employee_id" id="employee_id" required>
+                        <option value="">-- Выберите сотрудника --</option>
+                        {% for emp in available_employees %}
+                            <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }} ({{ emp.position.name|default:"без должности" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-assign">
+                    <i class="fa-solid fa-user-plus"></i> Назначить сотрудника
+                </button>
+            </form>
+        {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-check-circle"></i>
+                <p>Все активные сотрудники уже назначены на этот проект</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h2><i class="fa-solid fa-trash-can"></i> Удалить из проекта?</h2>
+        </div>
+        <div class="modal-body">
+            <p>Вы уверены, что хотите удалить <strong id="participantName"></strong> из проекта?</p>
+            <p style="font-size: 0.9em; color: #999; margin: 12px 0 0 0;">Это действие невозможно отменить.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Отмена</button>
+            <button class="modal-btn modal-btn-delete" onclick="confirmDelete()">Удалить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let pendingParticipantId = null;
+
+    function removeParticipant(participantId, participantName) {
+        pendingParticipantId = participantId;
+        document.getElementById('participantName').textContent = participantName;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('active');
+        pendingParticipantId = null;
+    }
+
+    function confirmDelete() {
+        if (pendingParticipantId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.innerHTML = '<input type="hidden" name="participant_id" value="' + pendingParticipantId + '">' +
+                             '<input type="hidden" name="csrfmiddlewaretoken" value="' + document.querySelector('[name=csrfmiddlewaretoken]').value + '">';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Закрытие модального окна при клике на оверлей
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
+
+    // Закрытие модального окна по Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{% if mode == "edit" %}Редактировать должность{% else %}Добавить должность{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h1 class="page-title">{% if mode == "edit" %}Редактировать должность{% else %}Добавить должность{% endif %}</h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="name">Название *</label>
+                <input type="text" id="name" name="name" value="{{ position.name|default:'' }}" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {% if mode == "edit" %}Обновить{% else %}Создать{% endif %}
+                </button>
+                <a href="{% url 'admin_positions' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

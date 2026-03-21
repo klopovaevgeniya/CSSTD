@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Дашборд руководителя{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/manager.css' %}?v=2026-02-03">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">ЦСУРТ</div>
+
+        <nav>
+            <a href="{% url 'manager_dashboard' %}"
+               class="{% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-chart-line"></i> Дашборд
+            </a>
+
+            <!-- Добавить ссылки на проекты, задачи и т.д. -->
+            <a href="{% url 'manager_projects' %}" class="{% if request.resolver_match.url_name == 'manager_projects' %}active{% endif %}">
+                <i class="fa-solid fa-folder-open"></i> Мои проекты
+                {% if manager_new_projects_count and manager_new_projects_count > 0 or manager_new_chat_count and manager_new_chat_count > 0 %}
+                    <span class="notification-dot" title="Новые проекты/сообщения" aria-hidden="true"></span>
+                {% endif %} 
+            </a>
+
+            <a href="{% url 'manager_calendar' %}" class="{% if request.resolver_match.url_name == 'manager_calendar' %}active{% endif %}">
+                <i class="fa-solid fa-calendar-days"></i> График
+            </a>
+
+            <a href="{% url 'manager_tasks' %}" class="{% if request.resolver_match.url_name == 'manager_tasks' %}active{% endif %}">
+                <i class="fa-solid fa-tasks"></i> Задачи
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Выход
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+</div>
+
+</body>
+</html>

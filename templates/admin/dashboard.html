@@ -1,0 +1,68 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Дашборд{% endblock %}
+
+{% block content %}
+<div class="dashboard-header"Щ>
+    <h1 class="page-title">Панель администратора</h1>
+    <p class="dashboard-subtitle">Добро пожаловать в систему управления проектами АНО «ЦСУРТ»</p>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card stat-projects">
+        <div class="stat-icon">
+            <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Всего проектов</h3>
+            <div class="stat-number">{{ total_projects }}</div>
+        </div>
+    </div>
+    <div class="stat-card stat-active-projects">
+        <div class="stat-icon">
+            <i class="fa-solid fa-play-circle"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Активных проектов</h3>
+            <div class="stat-number">{{ active_projects }}</div>
+        </div>
+    </div>
+    <div class="stat-card stat-employees">
+        <div class="stat-icon">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Всего сотрудников</h3>
+            <div class="stat-number">{{ total_employees }}</div>
+        </div>
+    </div>
+    <div class="stat-card stat-active-employees">
+        <div class="stat-icon">
+            <i class="fa-solid fa-user-check"></i>
+        </div>
+        <div class="stat-content">
+            <h3>Активных сотрудников</h3>
+            <div class="stat-number">{{ active_employees }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-quick-actions">
+    <h2>Быстрый доступ</h2>
+    <div class="quick-actions-grid">
+        <a href="{% url 'admin_employees' %}" class="quick-action-btn">
+            <i class="fa-solid fa-users"></i>
+            <span>Сотрудники</span>
+        </a>
+        <a href="{% url 'admin_projects' %}" class="quick-action-btn">
+            <i class="fa-solid fa-folder-open"></i>
+            <span>Проекты</span>
+        </a>
+        <a href="{% url 'project_create' %}" class="quick-action-btn">
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Новый проект</span>
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+

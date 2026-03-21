@@ -1,0 +1,548 @@
+{% extends 'employee/base_employee.html' %}
+
+{% block title %}Мои задачи{% endblock %}
+
+{% block content %}
+<style>
+    .tasks-header {
+        margin-bottom: 32px;
+    }
+
+    .tasks-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2em;
+        color: var(--secondary);
+    }
+
+    .tasks-header p {
+        margin: 0;
+        color: #666;
+        font-size: 0.95em;
+    }
+
+    .tasks-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        border-left: 4px solid var(--primary);
+    }
+
+    .stat-card.warning {
+        border-left-color: #ff9800;
+    }
+
+    .stat-card.success {
+        border-left-color: #4caf50;
+    }
+
+    .stat-card h3 {
+        margin: 0 0 8px 0;
+        font-size: 0.9em;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .stat-card .number {
+        font-size: 2em;
+        font-weight: 700;
+        color: var(--secondary);
+    }
+
+    .tasks-container {
+        display: flex;
+        gap: 20px;
+        margin-top: 32px;
+    }
+
+    .tasks-filter {
+        min-width: 220px;
+    }
+
+    .filter-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 20px;
+    }
+
+    .filter-card h3 {
+        margin: 0 0 16px 0;
+        font-size: 1em;
+        color: var(--secondary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 8px;
+    }
+
+    .filter-btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 10px 12px;
+        background: transparent;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        color: #555;
+        cursor: pointer;
+        font-size: 0.9em;
+        text-align: left;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(231,111,81,0.05);
+    }
+
+    .filter-btn.active {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .tasks-content {
+        flex: 1;
+    }
+
+    .tasks-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .task-card {
+        background: white;
+        padding: 18px;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        border-left: 4px solid #ddd;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .task-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .task-card.new {
+        border-left-color: var(--primary);
+        background: linear-gradient(to right, rgba(231,111,81,0.02), transparent);
+    }
+
+    .task-card.overdue {
+        border-left-color: #e63946;
+    }
+
+    .task-card.completed {
+        opacity: 0.7;
+        border-left-color: #4caf50;
+    }
+
+    .task-badge-new {
+        display: inline-block;
+        background: var(--primary);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.75em;
+        font-weight: 700;
+        margin-right: 8px;
+    }
+
+    .task-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .task-title {
+        font-size: 1.05em;
+        font-weight: 600;
+        color: var(--secondary);
+        margin: 0;
+        flex: 1;
+    }
+
+    .task-card.completed .task-title {
+        text-decoration: line-through;
+        color: #999;
+    }
+
+    .task-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 0.85em;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .task-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .task-meta-item i {
+        color: var(--primary);
+    }
+
+    .task-project {
+        background: #f5f5f5;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+        color: var(--secondary);
+    }
+
+    .task-status {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.8em;
+    }
+
+    .task-status-в_работе {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .task-status-завершена {
+        background: #c8e6c9;
+        color: #388e3c;
+    }
+
+    .task-status-на_проверке {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .task-status-отложена {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .task-priority {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.8em;
+    }
+
+    .task-priority-низкий {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .task-priority-средний {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .task-priority-высокий {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+    .task-priority-критический {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .task-description {
+        color: #666;
+        font-size: 0.9em;
+        line-height: 1.4;
+        margin: 8px 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .task-due-date {
+        color: #999;
+        font-size: 0.85em;
+    }
+
+    .task-due-date.overdue {
+        color: #e63946;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state i {
+        font-size: 4em;
+        color: #ddd;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h2 {
+        margin: 0 0 8px 0;
+        color: #999;
+        font-size: 1.2em;
+    }
+
+    .empty-state p {
+        color: #bbb;
+        margin: 0;
+    }
+
+    .alert {
+        padding: 14px 18px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .alert i {
+        font-size: 1.2em;
+        flex-shrink: 0;
+    }
+
+    .alert-warning {
+        background: #fff3cd;
+        border-left: 4px solid #ff9800;
+        color: #856404;
+    }
+
+    .alert-warning i {
+        color: #ff9800;
+    }
+
+    .alert-info {
+        background: #d1ecf1;
+        border-left: 4px solid var(--primary);
+        color: #0c5460;
+    }
+
+    .alert-info i {
+        color: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+        .tasks-container {
+            flex-direction: column;
+        }
+
+        .tasks-filter {
+            min-width: auto;
+        }
+
+        .filter-card {
+            position: static;
+        }
+
+        .tasks-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="tasks-header">
+    <h1><i class="fa-solid fa-tasks"></i> Мои задачи</h1>
+    <p>Список всех ваших назначенных задач</p>
+</div>
+
+<!-- Stats -->
+<div class="tasks-stats">
+    <div class="stat-card">
+        <h3><i class="fa-solid fa-circle-notch"></i> Всего задач</h3>
+        <div class="number">{{ total_tasks }}</div>
+    </div>
+    <div class="stat-card">
+        <h3><i class="fa-solid fa-circle-play"></i> Активные</h3>
+        <div class="number">{{ active_tasks }}</div>
+    </div>
+    <div class="stat-card success">
+        <h3><i class="fa-solid fa-check-circle"></i> Завершённые</h3>
+        <div class="number">{{ completed_tasks }}</div>
+    </div>
+    <div class="stat-card warning">
+        <h3><i class="fa-solid fa-exclamation-triangle"></i> Просроченные</h3>
+        <div class="number">{{ overdue_tasks_count }}</div>
+    </div>
+</div>
+
+<!-- Alerts -->
+{% if overdue_tasks_count > 0 %}
+<div class="alert alert-warning">
+    <i class="fa-solid fa-exclamation-triangle"></i>
+    <div>
+        <strong>Внимание!</strong> У вас есть {{ overdue_tasks_count }} просроченн{% if overdue_tasks_count == 1 %}ая{% else %}ые{% endif %} 
+        {% if overdue_tasks_count == 1 %}задача{% elif overdue_tasks_count > 1 and overdue_tasks_count < 5 %}задачи{% else %}задач{% endif %}.
+    </div>
+</div>
+{% endif %}
+
+{% if task_ids_with_notification %}
+<div class="alert alert-info">
+    <i class="fa-solid fa-lightbulb"></i>
+    <div>
+        <strong>Новые задачи!</strong> Вам назначены {{ task_ids_with_notification|length }} новая{% if task_ids_with_notification|length > 1 %} задачи{% endif %}.
+    </div>
+</div>
+{% endif %}
+
+<!-- Content -->
+<div class="tasks-container">
+    <!-- Filter Sidebar -->
+    <div class="tasks-filter">
+        <div class="filter-card">
+            <h3><i class="fa-solid fa-filter"></i> Фильтр</h3>
+            <button class="filter-btn active" onclick="filterTasks('all')">
+                <i class="fa-solid fa-circle"></i> Все задачи ({{ all_tasks.count }})
+            </button>
+            <button class="filter-btn" onclick="filterTasks('active')">
+                <i class="fa-solid fa-play-circle"></i> Активные ({{ active_tasks }})
+            </button>
+            <button class="filter-btn" onclick="filterTasks('completed')">
+                <i class="fa-solid fa-check-circle"></i> Завершённые ({{ completed_tasks }})
+            </button>
+            {% if overdue_tasks_count > 0 %}
+            <button class="filter-btn" onclick="filterTasks('overdue')">
+                <i class="fa-solid fa-clock"></i> Просроченные ({{ overdue_tasks_count }})
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tasks List -->
+    <div class="tasks-content">
+        {% if tasks_data %}
+            <div class="tasks-list">
+                {% for item in tasks_data %}
+                <a href="{% url 'employee_task_detail' item.task.id %}" style="text-decoration: none; color: inherit;">
+                <div class="task-card {% if item.is_new %}new{% endif %}{% if item.task.status == 'завершена' %} completed{% endif %}{% if item.is_overdue %} overdue{% endif %}" 
+                     data-status="{% if item.task.status == 'завершена' %}completed{% elif item.is_overdue %}overdue{% else %}active{% endif %}">
+                    
+                    <div class="task-header">
+                        <div style="flex: 1;">
+                            {% if item.is_new %}
+                            <span class="task-badge-new">НОВАЯ</span>
+                            {% endif %}
+                            <h3 class="task-title">{{ item.task.name }}</h3>
+                        </div>
+                    </div>
+
+                    <div class="task-meta-row">
+                        <span class="task-meta-item">
+                            <i class="fa-solid fa-folder"></i>
+                            <span class="task-project">{{ item.task.project.name }}</span>
+                        </span>
+                        
+                        {% if item.task.status %}
+                        <span class="task-status task-status-{{ item.status_class }}">
+                            {{ item.task.status }}
+                        </span>
+                        {% endif %}
+
+                        {% if item.task.priority %}
+                        <span class="task-priority task-priority-{{ item.task.priority|lower }}">
+                            {{ item.task.priority }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if item.task.description %}
+                    <p class="task-description">{{ item.task.description }}</p>
+                    {% endif %}
+
+                    {% if item.task.due_date %}
+                    <div class="task-due-date {% if item.is_overdue %}overdue{% endif %}">
+                        <i class="fa-solid fa-calendar"></i>
+                        Срок: {{ item.task.due_date|date:"d.m.Y" }}
+                        {% if item.is_overdue %}
+                        <span> (просрочено на {{ today|date:"d.m.Y" }})</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if item.task.created_by %}
+                    <div style="font-size: 0.8em; color: #999; margin-top: 8px;">
+                        <i class="fa-solid fa-user-circle"></i> 
+                        Создано: {{ item.task.created_by.first_name }} {{ item.task.created_by.last_name }}
+                    </div>
+                    {% endif %}
+                </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-inbox"></i>
+                <h2>Нет задач</h2>
+                <p>У вас пока нет назначенных задач. Дождитесь, когда руководитель проекта назначит вам задачи.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function filterTasks(filter) {
+        // Update active button
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // Filter cards
+        const cards = document.querySelectorAll('.task-card');
+        cards.forEach(card => {
+            card.style.display = 'block';
+            const status = card.getAttribute('data-status');
+            
+            if (filter === 'all') {
+                card.style.display = 'block';
+            } else if (filter === 'active' && status === 'active') {
+                card.style.display = 'block';
+            } else if (filter === 'active' && status !== 'active') {
+                card.style.display = 'none';
+            } else if (filter === 'completed' && status === 'completed') {
+                card.style.display = 'block';
+            } else if (filter === 'completed' && status !== 'completed') {
+                card.style.display = 'none';
+            } else if (filter === 'overdue' && status === 'overdue') {
+                card.style.display = 'block';
+            } else if (filter === 'overdue' && status !== 'overdue') {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Add click event to task cards (optional: for navigation to task detail in the future)
+    document.querySelectorAll('.task-card').forEach(card => {
+        card.addEventListener('click', function() {
+            // You can add navigation to task detail page here in the future
+            // window.location.href = '/path/to/task/' + taskId;
+        });
+    });
+</script>
+
+{% endblock %}

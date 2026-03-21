@@ -1,0 +1,82 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{% if mode == "edit" %}Редактировать проект{% else %}Добавить проект{% endif %}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h1 class="page-title">{% if mode == "edit" %}Редактировать проект{% else %}Добавить проект{% endif %}</h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="name">Название проекта *</label>
+                <input type="text" id="name" name="name" value="{{ project.name|default:'' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description">{{ project.description|default:'' }}</textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="start_date">Дата начала</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ project.start_date|date:'Y-m-d'|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">Дата окончания</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ project.end_date|date:'Y-m-d'|default:'' }}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="budget">Бюджет</label>
+                    <input type="number" id="budget" name="budget" step="0.01" value="{{ project.budget|default:'' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Статус</label>
+                    <select id="status" name="status">
+                        <option value="">Выберите статус</option>
+                        {% for status in statuses %}
+                            <option value="{{ status.id }}" {% if project.status_id == status.id %}selected{% endif %}>{{ status.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="type">Тип проекта</label>
+                    <select id="type" name="type">
+                        <option value="">Выберите тип</option>
+                        {% for type in types %}
+                            <option value="{{ type.id }}" {% if project.type_id == type.id %}selected{% endif %}>{{ type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="manager">Руководитель</label>
+                    <select id="manager" name="manager">
+                        <option value="">Выберите руководителя</option>
+                        {% for manager in managers %}
+                            <option value="{{ manager.id }}" {% if project.manager_id == manager.id %}selected{% endif %}>{{ manager.last_name }} {{ manager.first_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'admin_projects' %}" class="btn btn-secondary">Отмена</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-save"></i> {% if mode == "edit" %}Сохранить изменения{% else %}Создать проект{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

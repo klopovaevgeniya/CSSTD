@@ -1,0 +1,110 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Сотрудники{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <h1>Управление сотрудниками</h1>
+    <a href="{% url 'employee_create' %}" class="add-btn">
+        <i class="fa-solid fa-plus"></i> Добавить сотрудника
+    </a>
+</div>
+
+<div class="list-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Должность</th>
+                <th>Отдел</th>
+                <th>Email</th>
+                <th>Телефон</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in employees %}
+            <tr>
+                <td>{{ e.last_name }} {{ e.first_name }}{% if e.middle_name %} {{ e.middle_name }}{% endif %}</td>
+                <td>
+                    {% if e.position %}
+                        {{ e.position.name }}
+                    {% else %}
+                        <span class="status-badge status-inactive">Не указана</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if e.department %}
+                        {{ e.department.name }}
+                    {% else %}
+                        <span class="status-badge status-inactive">Не указан</span>
+                    {% endif %}
+                </td>
+                <td>{{ e.email }}</td>
+                <td>
+                    {% if e.phone %}
+                        {{ e.phone }}
+                    {% else %}
+                        <span class="status-badge status-inactive">Отсутствует</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="status-badge {% if e.is_active %}status-active{% else %}status-inactive{% endif %}">
+                        {% if e.is_active %}Активен{% else %}Неактивен{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'employee_edit' e.id %}" title="Редактировать">
+                        <i class="fa-solid fa-edit"></i>
+                    </a>
+                    <a href="#" onclick="openDeleteModal({{ e.id }}, '{{ e.last_name }} {{ e.first_name }}')" title="Удалить">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Удаление сотрудника</h3>
+        </div>
+        <div class="modal-body">
+            <p>Вы уверены, что хотите удалить сотрудника <strong id="employeeName"></strong>?</p>
+            <p class="text-muted">Это действие нельзя отменить. Будет удалена учетная запись пользователя.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeDeleteModal()">Отмена</button>
+            <form id="deleteForm" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-trash"></i> Удалить
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDeleteModal(employeeId, employeeName) {
+    document.getElementById('employeeName').textContent = employeeName;
+    document.getElementById('deleteForm').action = "{% url 'employee_delete' 0 %}".replace('0', employeeId);
+    document.getElementById('deleteModal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
+{% endblock %}

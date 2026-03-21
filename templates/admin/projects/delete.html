@@ -1,0 +1,14 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Удаление{% endblock %}
+
+{% block content %}
+<h1>Удалить проект</h1>
+
+<p>Вы уверены, что хотите удалить проект <b>{{ project.name }}</b>?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger">Удалить</button>
+    <a href="{% url 'admin_projects' %}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}
