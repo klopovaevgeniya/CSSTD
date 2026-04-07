@@ -1,70 +1,138 @@
+
+
 {% extends "admin/base_admin.html" %}
 {% block title %}Сотрудники{% endblock %}
 
 {% block content %}
-<div class="list-header">
-    <h1>Управление сотрудниками</h1>
-    <a href="{% url 'employee_create' %}" class="add-btn">
-        <i class="fa-solid fa-plus"></i> Добавить сотрудника
-    </a>
-</div>
+<style>
+    :root {
+        --primary: #2a9d8f;
+        --secondary: #264653;
+        --accent: #e9c46a;
+        --bg: #f4f7f8;
+        --card-bg: #ffffff;
+        --text: #264653;
+    }
+    html, body { overflow-x: hidden; }
+    .admin-container { padding: 32px; background: linear-gradient(135deg, var(--bg) 0%, #ffffff 100%); }
+    .page-header { margin-bottom: 40px; animation: slideDownFade 0.5s ease; }
+    @keyframes slideDownFade { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .page-header h1 { margin: 0 0 8px 0; font-size: 2.5em; color: var(--secondary); display: flex; align-items: center; gap: 12px; font-weight: 700; }
+    .page-header p { margin: 0; color: #666; font-size: 1.1em; }
+    .header-toolbar { margin-top: 24px; display: flex; justify-content: flex-end; }
+    .btn-add { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: linear-gradient(135deg, var(--primary) 0%, rgba(42, 157, 143, 0.85) 100%); color: white; border: none; border-radius: 8px; font-size: 0.95em; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2); }
+    .btn-add:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(42, 157, 143, 0.35); }
+    .btn-add:active { transform: translateY(-1px); }
+    .list-container { background: var(--card-bg); border-radius: 14px; padding: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid rgba(42, 157, 143, 0.1); overflow-x: auto; animation: fadeInUp 0.6s ease 0.1s backwards; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table thead { background: linear-gradient(135deg, var(--primary) 0%, rgba(42, 157, 143, 0.9) 100%); }
+    .data-table th { padding: 16px; text-align: left; font-size: 0.9em; font-weight: 700; color: #ffffff; border-bottom: 2px solid rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: 0.5px; }
+    .data-table tr { transition: all 0.2s ease; }
+    .data-table tbody tr { border-bottom: 1px solid #e9ecef; }
+    .data-table tbody tr:hover { background: linear-gradient(90deg, rgba(42,157,143,0.02) 0%, rgba(42,157,143,0.05) 100%); transform: scale(1.01); box-shadow: inset 0 0 8px rgba(42,157,143,0.08); }
+    .data-table td { padding: 16px; font-size: 0.9em; color: var(--text); }
+    .action-links { display: flex; gap: 12px; align-items: center; }
+    .action-links a { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; color: var(--primary); background: rgba(42,157,143,0.05); transition: all 0.2s ease; font-size: 0.9em; font-weight: 500; }
+    .action-links a:hover { background: rgba(42,157,143,0.15); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(42,157,143,0.2); }
+    .action-links a.delete-link { color: #f44336; background: rgba(244,67,54,0.05); }
+    .action-links a.delete-link:hover { background: rgba(244,67,54,0.15); color: #f44336; box-shadow: 0 4px 12px rgba(244,67,54,0.2); }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); animation: fadeIn 0.3s ease; }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal-content { background: var(--card-bg); padding: 0; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 420px; width: 90%; animation: scaleUp 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .modal-header { padding: 24px; border-bottom: 1px solid #e9ecef; background: linear-gradient(135deg, rgba(42,157,143,0.05) 0%, rgba(42,157,143,0.02) 100%); }
+    .modal-header h3 { margin: 0; color: var(--secondary); font-size: 1.3em; font-weight: 700; }
+    .modal-body { padding: 24px; }
+    .modal-body p { margin: 0 0 12px 0; color: var(--text); font-size: 0.95em; line-height: 1.6; }
+    .modal-body p:last-child { margin-bottom: 0; }
+    .text-muted { color: #999 !important; font-size: 0.85em !important; }
+    .modal-footer { padding: 20px 24px; border-top: 1px solid #e9ecef; display: flex; gap: 12px; justify-content: flex-end; background: #f8f9fa; }
+    .btn { padding: 12px 24px; border: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-secondary { background: #e9ecef; color: var(--text); }
+    .btn-secondary:hover { background: #dee2e6; transform: translateY(-2px); }
+    .btn-danger { background: linear-gradient(135deg, #f44336 0%, rgba(244,67,54,0.85) 100%); color: white; box-shadow: 0 4px 12px rgba(244,67,54,0.2); }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(244,67,54,0.35); }
+    @media (max-width: 768px) { .admin-container { padding: 16px; } .page-header { margin-bottom: 24px; } .page-header h1 { font-size: 1.8em; } .header-toolbar { margin-top: 16px; } .list-container { padding: 16px; overflow-x: auto; } .data-table { font-size: 0.8em; } .data-table th, .data-table td { padding: 12px; } .action-links a { width: 32px; height: 32px; } }
+</style>
 
-<div class="list-container">
-    <table>
-        <thead>
-            <tr>
-                <th>ФИО</th>
-                <th>Должность</th>
-                <th>Отдел</th>
-                <th>Email</th>
-                <th>Телефон</th>
-                <th>Статус</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for e in employees %}
-            <tr>
-                <td>{{ e.last_name }} {{ e.first_name }}{% if e.middle_name %} {{ e.middle_name }}{% endif %}</td>
-                <td>
-                    {% if e.position %}
-                        {{ e.position.name }}
-                    {% else %}
-                        <span class="status-badge status-inactive">Не указана</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if e.department %}
-                        {{ e.department.name }}
-                    {% else %}
-                        <span class="status-badge status-inactive">Не указан</span>
-                    {% endif %}
-                </td>
-                <td>{{ e.email }}</td>
-                <td>
-                    {% if e.phone %}
-                        {{ e.phone }}
-                    {% else %}
-                        <span class="status-badge status-inactive">Отсутствует</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <span class="status-badge {% if e.is_active %}status-active{% else %}status-inactive{% endif %}">
-                        {% if e.is_active %}Активен{% else %}Неактивен{% endif %}
-                    </span>
-                </td>
-                <td>
-                    <a href="{% url 'employee_edit' e.id %}" title="Редактировать">
-                        <i class="fa-solid fa-edit"></i>
-                    </a>
-                    <a href="#" onclick="openDeleteModal({{ e.id }}, '{{ e.last_name }} {{ e.first_name }}')" title="Удалить">
-                        <i class="fa-solid fa-trash"></i>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="admin-container">
+    <div class="page-header">
+        <h1><i class="fa-solid fa-users"></i> Управление сотрудниками</h1>
+        <p>Добавляйте, редактируйте и удаляйте сотрудников компании</p>
+        <div class="header-toolbar">
+            <a href="{% url 'employee_create' %}" class="btn-add">
+                <i class="fa-solid fa-plus"></i> Добавить сотрудника
+            </a>
+        </div>
+    </div>
+    <div class="list-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Должность</th>
+                    <th>Отдел</th>
+                    <th>Email</th>
+                    <th>Телефон</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in employees %}
+                <tr>
+                    <td><strong>{{ e.last_name }} {{ e.first_name }}{% if e.middle_name %} {{ e.middle_name }}{% endif %}</strong></td>
+                    <td>
+                        {% if e.position %}
+                            {{ e.position.name }}
+                        {% else %}
+                            <span class="badge badge-active">Не указана</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if e.department %}
+                            {{ e.department.name }}
+                        {% else %}
+                            <span class="badge badge-active">Не указан</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ e.email }}</td>
+                    <td>
+                        {% if e.phone %}
+                            {{ e.phone }}
+                        {% else %}
+                            <span class="badge badge-active">Отсутствует</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if e.is_active %}badge-primary{% else %}badge-completed{% endif %}">
+                            {% if e.is_active %}Активен{% else %}Неактивен{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-links">
+                            <a href="{% url 'employee_edit' e.id %}" title="Редактировать" class="edit-link">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a href="#" onclick="openDeleteModal({{ e.id }}, '{{ e.last_name }} {{ e.first_name }}')" title="Удалить" class="delete-link">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
+                        <i class="fa-solid fa-inbox" style="font-size: 2em; margin-bottom: 12px;"></i><br>
+                        Нет сотрудников
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Delete Modal -->
@@ -95,12 +163,9 @@ function openDeleteModal(employeeId, employeeName) {
     document.getElementById('deleteForm').action = "{% url 'employee_delete' 0 %}".replace('0', employeeId);
     document.getElementById('deleteModal').classList.add('show');
 }
-
 function closeDeleteModal() {
     document.getElementById('deleteModal').classList.remove('show');
 }
-
-// Close modal when clicking outside
 document.getElementById('deleteModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeDeleteModal();
