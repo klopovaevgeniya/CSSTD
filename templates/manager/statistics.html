@@ -1,0 +1,781 @@
+{% extends "manager/base_manager.html" %}
+
+{% block title %}Статистика и отчёты{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class="fa-solid fa-chart-bar"></i> Статистика и отчёты</h1>
+    <p>Полная информация о ваших проектах и задачах</p>
+</div>
+
+<div class="dashboard-content">
+    <!-- ОСНОВНАЯ СТАТИСТИКА -->
+    <section class="stats-section">
+        <h2><i class="fa-solid fa-chart-line"></i> Основные показатели</h2>
+        <div class="stats-grid stats-primary">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-folder"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Всего проектов</p>
+                    <div class="stat-number">{{ total_projects }}</div>
+                    <p class="stat-detail">
+                        <span class="badge badge-active">Активных: {{ active_projects }}</span>
+                        <span class="badge badge-completed">Завершено: {{ completed_projects }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-tasks"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Всего задач</p>
+                    <div class="stat-number">{{ total_tasks }}</div>
+                    <p class="stat-detail">
+                        <span class="badge badge-done">Выполнено: {{ completed_tasks }}</span>
+                        <span class="badge badge-active">В работе: {{ active_tasks }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Члены команды</p>
+                    <div class="stat-number">{{ team_members }}</div>
+                    <p class="stat-detail">{{ tasks_per_member }} задач на человека</p>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-percent"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Выполнено</p>
+                    <div class="stat-number">{{ completion_percentage }}%</div>
+                    <p class="stat-detail">{{ completed_tasks }} из {{ total_tasks }} задач</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ПРОГРЕСС БАР -->
+    <section class="progress-section">
+        <div class="progress-card">
+            <div class="progress-header">
+                <h3><i class="fa-solid fa-hourglass-end"></i> Прогресс завершения задач</h3>
+                <span class="progress-percentage">{{ completion_percentage }}%</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: {{ completion_percentage }}%">
+                    <span class="progress-text">{{ completed_tasks }}/{{ total_tasks }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- СРОЧНАЯ СТАТИСТИКА -->
+    <section class="urgent-section">
+        <h2><i class="fa-solid fa-exclamation-triangle"></i> Внимание требуется</h2>
+        <div class="urgent-grid">
+            <div class="urgent-card urgent-card-today">
+                <div class="urgent-icon"><i class="fa-solid fa-calendar-day"></i></div>
+                <div class="urgent-content">
+                    <p class="urgent-label">Задачи на сегодня</p>
+                    <div class="urgent-number">{{ today_tasks }}</div>
+                    <p class="urgent-action">Требуют внимания</p>
+                </div>
+            </div>
+
+            <div class="urgent-card urgent-card-overdue">
+                <div class="urgent-icon"><i class="fa-solid fa-alarm-clock"></i></div>
+                <div class="urgent-content">
+                    <p class="urgent-label">Просроченные задачи</p>
+                    <div class="urgent-number">{{ overdue_tasks }}</div>
+                    <p class="urgent-action">Требуют срочного решения</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- СТАТИСТИКА ПО ПРИОРИТЕТАМ И СТАТУСАМ -->
+    <section class="detailed-stats">
+        <div class="stats-row">
+            <div class="stats-column">
+                <div class="stat-breakdown-card">
+                    <h3><i class="fa-solid fa-filter"></i> Задачи по приоритетам</h3>
+                    <ul class="breakdown-list">
+                        {% for stat in priority_stats %}
+                            <li class="breakdown-item">
+                                <span class="breakdown-label">
+                                    {% if stat.priority %}
+                                        {{ stat.priority|title }}
+                                    {% else %}
+                                        Не указан
+                                    {% endif %}
+                                </span>
+                                <span class="breakdown-count">{{ stat.count }}</span>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-fill" style="width: {% widthratio stat.count total_tasks 100 %}%"></div>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <li class="empty-state">Нет данных</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="stats-column">
+                <div class="stat-breakdown-card">
+                    <h3><i class="fa-solid fa-list-check"></i> Задачи по статусам</h3>
+                    <ul class="breakdown-list">
+                        {% for stat in status_stats %}
+                            <li class="breakdown-item">
+                                <span class="breakdown-label">{{ stat.status }}</span>
+                                <span class="breakdown-count">{{ stat.count }}</span>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-fill" style="width: {% widthratio stat.count total_tasks 100 %}%"></div>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <li class="empty-state">Нет данных</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stats-column full-width">
+                <div class="stat-breakdown-card">
+                    <h3><i class="fa-solid fa-tag"></i> Проекты по типам</h3>
+                    <ul class="breakdown-list">
+                        {% for stat in project_type_stats %}
+                            <li class="breakdown-item">
+                                <span class="breakdown-label">{{ stat.type__name|default:"Не указан" }}</span>
+                                <span class="breakdown-count">{{ stat.count }}</span>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-fill" style="width: {% widthratio stat.count total_projects 100 %}%"></div>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <li class="empty-state">Нет данных</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ФИНАНСОВЫЕ ПОКАЗАТЕЛИ -->
+    {% if total_budget %}
+    <section class="budget-section">
+        <h2><i class="fa-solid fa-money-bill-wave"></i> Финансовые показатели</h2>
+        <div class="budget-cards">
+            <div class="budget-card budget-card-budget">
+                <div class="budget-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+                <div class="budget-content">
+                    <p class="budget-label">Утвержденный бюджет</p>
+                    <p class="budget-amount">{{ total_budget }} ₽</p>
+                </div>
+            </div>
+
+            <div class="budget-card budget-card-cost">
+                <div class="budget-icon"><i class="fa-solid fa-receipt"></i></div>
+                <div class="budget-content">
+                    <p class="budget-label">Прямые затраты</p>
+                    <p class="budget-amount">{{ total_cost }} ₽</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ВЫГРУЗКА ОТЧЁТОВ -->
+    <section class="reports-section">
+        <h2><i class="fa-solid fa-download"></i> Выгрузка отчётов</h2>
+        <p class="reports-subtitle">Скачайте подробные отчёты в формате Excel для анализа и документирования</p>
+        
+        <div class="reports-grid">
+            <div class="report-card">
+                <div class="report-icon">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <h3>Отчёт по проектам</h3>
+                <p class="report-desc">Полный список ваших проектов со всеми показателями</p>
+                <a href="{% url 'manager_export_projects_excel' %}" class="report-btn">
+                    <i class="fa-solid fa-download"></i> Скачать Excel
+                </a>
+            </div>
+
+            <div class="report-card">
+                <div class="report-icon">
+                    <i class="fa-solid fa-tasks"></i>
+                </div>
+                <h3>Отчёт по задачам</h3>
+                <p class="report-desc">Детальный список всех задач с назначениями и сроками</p>
+                <a href="{% url 'manager_export_tasks_excel' %}" class="report-btn">
+                    <i class="fa-solid fa-download"></i> Скачать Excel
+                </a>
+            </div>
+
+            <div class="report-card report-card-coming">
+                <div class="report-icon">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <h3>Статистический отчёт</h3>
+                <p class="report-desc">Полный анализ со всеми ключевыми метриками</p>
+                <button class="report-btn report-btn-disabled" disabled title="Будет добавлено в ближайшее время">
+                    <i class="fa-solid fa-hourglass-end"></i> Скоро
+                </button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    html, body {
+        overflow-x: hidden;
+    }
+    
+    /* Статистика - основное */
+    .stats-section {
+        margin-bottom: 40px;
+    }
+
+    .stats-section h2 {
+        margin: 0 0 24px 0;
+        color: var(--secondary);
+        font-size: 1.5em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .stats-primary {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .stat-card-primary {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 24px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid rgba(38, 70, 83, 0.1);
+        border-radius: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card-primary:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(231, 111, 81, 0.12);
+        border-color: rgba(231, 111, 81, 0.2);
+    }
+
+    .stat-icon {
+        font-size: 2.2em;
+        color: var(--primary);
+        opacity: 0.9;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-label {
+        margin: 0;
+        color: #666;
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .stat-card-primary .stat-number {
+        margin: 6px 0;
+        font-size: 2em;
+        color: var(--secondary);
+        font-weight: 700;
+    }
+
+    .stat-detail {
+        margin: 8px 0 0 0;
+        font-size: 0.8em;
+        color: #999;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75em;
+        font-weight: 600;
+        margin-right: 6px;
+    }
+
+    .badge-active {
+        background: rgba(231, 111, 81, 0.15);
+        color: var(--primary);
+    }
+
+    .badge-completed {
+        background: rgba(76, 175, 80, 0.15);
+        color: #4caf50;
+    }
+
+    .badge-done {
+        background: rgba(76, 175, 80, 0.15);
+        color: #4caf50;
+    }
+
+    /* Прогресс секция */
+    .progress-section {
+        margin-bottom: 40px;
+    }
+
+    .progress-card {
+        background: var(--card-bg);
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(38, 70, 83, 0.05);
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .progress-header h3 {
+        margin: 0;
+        color: var(--secondary);
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .progress-percentage {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .progress-bar-container {
+        background: #f0f0f0;
+        border-radius: 12px;
+        height: 32px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 12px;
+        transition: width 0.5s ease;
+        min-width: 40px;
+    }
+
+    .progress-text {
+        color: white;
+        font-weight: 600;
+        font-size: 0.9em;
+    }
+
+    /* Срочная статистика */
+    .urgent-section {
+        margin-bottom: 40px;
+    }
+
+    .urgent-section h2 {
+        margin: 0 0 24px 0;
+        color: var(--secondary);
+        font-size: 1.5em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .urgent-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+    }
+
+    .urgent-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        border-radius: 14px;
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+
+    .urgent-card-today {
+        background: rgba(255, 193, 7, 0.08);
+        border-left-color: #ffc107;
+    }
+
+    .urgent-card-today:hover {
+        background: rgba(255, 193, 7, 0.15);
+    }
+
+    .urgent-card-overdue {
+        background: rgba(244, 67, 54, 0.08);
+        border-left-color: #f44336;
+    }
+
+    .urgent-card-overdue:hover {
+        background: rgba(244, 67, 54, 0.15);
+    }
+
+    .urgent-icon {
+        font-size: 2em;
+    }
+
+    .urgent-card-today .urgent-icon {
+        color: #ffc107;
+    }
+
+    .urgent-card-overdue .urgent-icon {
+        color: #f44336;
+    }
+
+    .urgent-content {
+        flex: 1;
+    }
+
+    .urgent-label {
+        margin: 0;
+        color: #666;
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .urgent-number {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: var(--secondary);
+        margin: 4px 0;
+    }
+
+    .urgent-action {
+        margin: 4px 0 0 0;
+        font-size: 0.8em;
+        color: #999;
+    }
+
+    /* Детальная статистика */
+    .detailed-stats {
+        margin-bottom: 40px;
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .stats-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .stats-column.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .stat-breakdown-card {
+        background: var(--card-bg);
+        padding: 24px;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(38, 70, 83, 0.05);
+    }
+
+    .stat-breakdown-card h3 {
+        margin: 0 0 16px 0;
+        color: var(--secondary);
+        font-size: 1.1em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .breakdown-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breakdown-item {
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .breakdown-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .breakdown-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+        font-size: 0.95em;
+        color: var(--text);
+    }
+
+    .breakdown-count {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.9em;
+    }
+
+    .breakdown-bar {
+        background: #f0f0f0;
+        border-radius: 6px;
+        height: 6px;
+        overflow: hidden;
+    }
+
+    .breakdown-fill {
+        background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #999;
+        padding: 20px;
+        font-style: italic;
+    }
+
+    /* Бюджет */
+    .budget-section {
+        margin-bottom: 40px;
+    }
+
+    .budget-section h2 {
+        margin: 0 0 24px 0;
+        color: var(--secondary);
+        font-size: 1.5em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .budget-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .budget-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        border-radius: 14px;
+        background: var(--card-bg);
+        border: 1px solid rgba(38, 70, 83, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .budget-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .budget-card-budget {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.04) 100%);
+        border-color: rgba(76, 175, 80, 0.2);
+    }
+
+    .budget-card-cost {
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.08) 0%, rgba(244, 67, 54, 0.04) 100%);
+        border-color: rgba(244, 67, 54, 0.2);
+    }
+
+    .budget-icon {
+        font-size: 2em;
+    }
+
+    .budget-card-budget .budget-icon {
+        color: #4caf50;
+    }
+
+    .budget-card-cost .budget-icon {
+        color: #f44336;
+    }
+
+    .budget-content {
+        flex: 1;
+    }
+
+    .budget-label {
+        margin: 0;
+        color: #666;
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .budget-amount {
+        margin: 4px 0 0 0;
+        font-size: 1.6em;
+        font-weight: 700;
+        color: var(--secondary);
+    }
+
+    /* Отчёты */
+    .reports-section {
+        margin-bottom: 0;
+    }
+
+    .reports-section h2 {
+        margin: 0 0 12px 0;
+        color: var(--secondary);
+        font-size: 1.5em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .reports-subtitle {
+        margin: 0 0 24px 0;
+        color: #666;
+        font-size: 0.95em;
+    }
+
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+    }
+
+    .report-card {
+        background: var(--card-bg);
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(38, 70, 83, 0.05);
+        text-align: center;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .report-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(231, 111, 81, 0.15);
+        border-color: rgba(231, 111, 81, 0.2);
+    }
+
+    .report-card-coming {
+        opacity: 0.8;
+        background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%);
+    }
+
+    .report-card-coming:hover {
+        transform: none;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .report-icon {
+        font-size: 3em;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .report-card h3 {
+        margin: 0 0 8px 0;
+        color: var(--secondary);
+        font-size: 1.2em;
+    }
+
+    .report-desc {
+        margin: 0 0 20px 0;
+        color: #666;
+        font-size: 0.9em;
+        flex: 1;
+    }
+
+    .report-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95em;
+    }
+
+    .report-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(231, 111, 81, 0.35);
+    }
+
+    .report-btn:active {
+        transform: translateY(0);
+    }
+
+    .report-btn-disabled {
+        background: #d0d0d0;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .report-btn-disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .progress-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .reports-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-section h2,
+        .urgent-section h2,
+        .budget-section h2,
+        .reports-section h2 {
+            font-size: 1.3em;
+        }
+    }
+</style>
+
+{% endblock %}

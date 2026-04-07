@@ -1,12 +1,13 @@
 from django.urls import path
 from .views.public import home, access_denied
-from .views.auth import login_view, logout_view
+from .views.auth import login_view, logout_view, change_password_view
 from . import views
-from core.views.admin import dashboard, projects, employees, audit, positions, departments
-from .views.manager import projects as manager_projects_views, chat as manager_chat_views, calendar as manager_calendar_views
+from core.views.admin import dashboard, projects, employees, audit, positions, departments, reports, statistics
+from core.views.manager import projects as manager_projects_views, chat as manager_chat_views, calendar as manager_calendar_views, statistics as manager_statistics_views
 from .views.employee.dashboard import employee_dashboard, employee_projects, employee_project_detail, employee_tasks, employee_task_detail
 from .views.employee import chat as employee_chat_views
 from .views.employee.calendar import employee_calendar
+from .views.employee.profile import employee_profile
 from .views.dashboard import (
     admin_dashboard,
     readonly_dashboard,
@@ -18,6 +19,7 @@ urlpatterns = [
 
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
+    path('change-password/', change_password_view, name='change_password'),
 
     path("admin/", dashboard.admin_dashboard, name="admin_dashboard"),
     path('admin/projects/', projects.project_list, name='admin_projects'),
@@ -41,6 +43,16 @@ urlpatterns = [
     path('admin/departments/<int:pk>/edit/', departments.department_edit, name='department_edit'),
     path('admin/departments/<int:pk>/delete/', departments.department_delete, name='department_delete'),
 
+    path('admin/reports/', reports.reports_list, name='admin_reports'),
+    path('admin/reports/export/projects/excel/', reports.export_projects_excel, name='export_projects_excel'),
+    path('admin/reports/export/projects/csv/', reports.export_projects_csv, name='export_projects_csv'),
+    path('admin/reports/export/employees/excel/', reports.export_employees_excel, name='export_employees_excel'),
+    path('admin/reports/export/employees/csv/', reports.export_employees_csv, name='export_employees_csv'),
+    path('admin/reports/export/tasks/excel/', reports.export_tasks_excel, name='export_tasks_excel'),
+    path('admin/reports/export/tasks/csv/', reports.export_tasks_csv, name='export_tasks_csv'),
+
+    path('admin/statistics/', statistics.statistics_dashboard, name='admin_statistics'),
+
     path('manager/projects/', manager_projects_views.manager_projects_list, name='manager_projects'),
     path('manager/projects/<int:pk>/detail/', manager_projects_views.manager_project_detail, name='manager_project_detail'),
     path('manager/projects/<int:project_id>/create-task/', manager_projects_views.manager_create_task, name='manager_create_task'),
@@ -53,9 +65,14 @@ urlpatterns = [
 
     path('manager/calendar/', manager_calendar_views.manager_calendar, name='manager_calendar'),
 
+    path('manager/statistics/', manager_statistics_views.manager_statistics, name='manager_statistics'),
+    path('manager/statistics/export/projects/excel/', manager_statistics_views.export_manager_projects_excel, name='manager_export_projects_excel'),
+    path('manager/statistics/export/tasks/excel/', manager_statistics_views.export_manager_tasks_excel, name='manager_export_tasks_excel'),
+
     path('dashboard/manager/', manager_dashboard, name='manager_dashboard'),
 
     path('dashboard/employee/', employee_dashboard, name='employee_dashboard'),
+    path('dashboard/employee/profile/', employee_profile, name='employee_profile'),
     path('dashboard/employee/tasks/', employee_tasks, name='employee_tasks'),
     path('dashboard/employee/tasks/<int:task_id>/', employee_task_detail, name='employee_task_detail'),
     path('dashboard/employee/projects/', employee_projects, name='employee_projects'),

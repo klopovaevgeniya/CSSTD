@@ -42,6 +42,16 @@
                class="{% if 'project' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="fa-solid fa-folder-open"></i> Проекты
             </a>
+
+            <a href="{% url 'admin_statistics' %}"
+               class="{% if 'statistics' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fa-solid fa-chart-pie"></i> Статистика
+            </a>
+
+            <a href="{% url 'admin_reports' %}"
+               class="{% if 'reports' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fa-solid fa-file-export"></i> Отчеты
+            </a>
         </nav>
 
         <div class="sidebar-footer">

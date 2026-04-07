@@ -38,6 +38,10 @@
             <a href="{% url 'manager_tasks' %}" class="{% if request.resolver_match.url_name == 'manager_tasks' %}active{% endif %}">
                 <i class="fa-solid fa-tasks"></i> Задачи
             </a>
+
+            <a href="{% url 'manager_statistics' %}" class="{% if request.resolver_match.url_name == 'manager_statistics' %}active{% endif %}">
+                <i class="fa-solid fa-chart-bar"></i> Статистика
+            </a>
         </nav>
 
         <div class="sidebar-footer">
@@ -53,6 +57,21 @@
     </main>
 
 </div>
+
+<script>
+    // Блокировка скролла при наведении на сайдбар
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.addEventListener('wheel', function(e) {
+        e.preventDefault();
+    }, { passive: false });
+    
+    // Блокировка скролла через стрелки клавиатуры на сайдбаре
+    sidebar.addEventListener('keydown', function(e) {
+        if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'].includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+</script>
 
 </body>
 </html>

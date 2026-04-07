@@ -1,0 +1,169 @@
+{% extends 'employee/base_employee.html' %}
+
+{% block title %}Профиль сотрудника{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class="fa-solid fa-user"></i> Профиль сотрудника</h1>
+    <p>Личная информация и статистика работы</p>
+</div>
+
+<div class="dashboard-content">
+    <!-- ИНФОРМАЦИЯ О СОТРУДНИКЕ -->
+    <section class="employee-info-section">
+        <div class="employee-info-card">
+            <div class="employee-info-header">
+                <div class="employee-avatar">
+                    {{ employee.first_name.0|upper }}{{ employee.last_name.0|upper }}
+                </div>
+                <div class="employee-details">
+                    <h2>{{ employee.last_name }} {{ employee.first_name }}{% if employee.middle_name %} {{ employee.middle_name }}{% endif %}</h2>
+                    <p>{{ employee.position.name }}{% if employee.department %} • {{ employee.department.name }}{% endif %}</p>
+                </div>
+            </div>
+
+            <div class="employee-info-grid">
+                <div class="info-item">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">{{ employee.email|default:"Не указан" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Телефон</span>
+                    <span class="info-value">{{ employee.phone|default:"Не указан" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Дата трудоустройства</span>
+                    <span class="info-value">{{ employee.hire_date|date:"d.m.Y"|default:"Не указана" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Статус</span>
+                    <span class="info-value">{% if employee.is_active %}Активен{% else %}Неактивен{% endif %}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ОСНОВНАЯ СТАТИСТИКА -->
+    <section class="stats-section">
+        <h2><i class="fa-solid fa-chart-line"></i> Основные показатели</h2>
+        <div class="stats-grid stats-primary">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-folder"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Всего проектов</p>
+                    <div class="stat-number">{{ total_projects }}</div>
+                    <p class="stat-detail">
+                        <span class="badge badge-active">Активных: {{ active_projects }}</span>
+                        <span class="badge badge-completed">Завершено: {{ completed_projects }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-tasks"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Всего задач</p>
+                    <div class="stat-number">{{ total_tasks }}</div>
+                    <p class="stat-detail">
+                        <span class="badge badge-done">Выполнено: {{ completed_tasks }}</span>
+                        <span class="badge badge-active">В работе: {{ active_tasks }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-percent"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Выполнено</p>
+                    <div class="stat-number">{{ completion_percentage }}%</div>
+                    <p class="stat-detail">{{ completed_tasks }} из {{ total_tasks }} задач</p>
+                </div>
+            </div>
+
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Эффективность</p>
+                    <div class="stat-number">{{ efficiency_percentage }}%</div>
+                    <p class="stat-detail">Задачи выполнены в срок</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ПРОГРЕСС БАР -->
+    <section class="progress-section">
+        <div class="progress-card">
+            <div class="progress-header">
+                <h3><i class="fa-solid fa-hourglass-end"></i> Прогресс завершения задач</h3>
+                <span class="progress-percentage">{{ completion_percentage }}%</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: {{ completion_percentage }}%">
+                    <span class="progress-text">{{ completed_tasks }}/{{ total_tasks }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ДОПОЛНИТЕЛЬНАЯ СТАТИСТИКА -->
+    <section class="stats-section">
+        <h2><i class="fa-solid fa-chart-bar"></i> Дополнительная статистика</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-calendar-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Задачи за последний месяц</p>
+                    <div class="stat-number">{{ tasks_last_month }}</div>
+                    <p class="stat-detail">Новых задач</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-stopwatch"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Среднее время выполнения</p>
+                    <div class="stat-number">{{ avg_completion_time }}</div>
+                    <p class="stat-detail">Дней на задачу</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ВНИМАНИЕ ТРЕБУЕТСЯ -->
+    <section class="urgent-section">
+        <h2><i class="fa-solid fa-exclamation-triangle"></i> Внимание требуется</h2>
+        <div class="urgent-grid">
+            <div class="urgent-card urgent-card-today">
+                <div class="urgent-icon"><i class="fa-solid fa-calendar-day"></i></div>
+                <div class="urgent-content">
+                    <p class="urgent-label">Задачи на сегодня</p>
+                    <div class="urgent-number">{{ today_tasks }}</div>
+                    <p class="urgent-action">Требуют внимания</p>
+                </div>
+            </div>
+
+            <div class="urgent-card urgent-card-overdue">
+                <div class="urgent-icon"><i class="fa-solid fa-alarm-clock"></i></div>
+                <div class="urgent-content">
+                    <p class="urgent-label">Просроченные задачи</p>
+                    <div class="urgent-number">{{ overdue_tasks }}</div>
+                    <p class="urgent-action">Требуют срочного решения</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

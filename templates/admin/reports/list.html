@@ -1,0 +1,305 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Отчёты и выгрузки{% endblock %}
+
+{% block content %}
+<div class="admin-reports">
+    <div class="dashboard-header">
+        <h1><i class="fa-solid fa-download"></i> Отчёты и выгрузки</h1>
+        <p>Скачайте полные отчёты в различных форматах для анализа и документирования</p>
+    </div>
+
+    <!-- ВЫГРУЗКА ОТЧЁТОВ -->
+    <section class="reports-section">
+        <div class="reports-subtitle">
+            <i class="fa-solid fa-file-export"></i> Экспорт данных
+        </div>
+        
+        <div class="reports-grid">
+            <!-- Отчет: Проекты -->
+            <div class="report-card">
+                <div class="report-icon">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <h3>Отчёт по проектам</h3>
+                <p class="report-desc">Полный список всех проектов со всеми показателями и статусами</p>
+                <div class="report-actions">
+                    {% if excel_available %}
+                    <a href="{% url 'export_projects_excel' %}" class="report-btn">
+                        <i class="fa-solid fa-download"></i> Excel
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'export_projects_csv' %}" class="report-btn report-btn-secondary">
+                        <i class="fa-solid fa-download"></i> CSV
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Отчет: Сотрудники -->
+            <div class="report-card">
+                <div class="report-icon">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <h3>Отчёт по сотрудникам</h3>
+                <p class="report-desc">Информация о всех сотрудниках, их позициях и отделах</p>
+                <div class="report-actions">
+                    {% if excel_available %}
+                    <a href="{% url 'export_employees_excel' %}" class="report-btn">
+                        <i class="fa-solid fa-download"></i> Excel
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'export_employees_csv' %}" class="report-btn report-btn-secondary">
+                        <i class="fa-solid fa-download"></i> CSV
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Отчет: Задачи -->
+            <div class="report-card">
+                <div class="report-icon">
+                    <i class="fa-solid fa-tasks"></i>
+                </div>
+                <h3>Отчёт по задачам</h3>
+                <p class="report-desc">Детальный список всех задач с назначениями, статусами и сроками</p>
+                <div class="report-actions">
+                    {% if excel_available %}
+                    <a href="{% url 'export_tasks_excel' %}" class="report-btn">
+                        <i class="fa-solid fa-download"></i> Excel
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'export_tasks_csv' %}" class="report-btn report-btn-secondary">
+                        <i class="fa-solid fa-download"></i> CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% if not excel_available %}
+        <div class="alert-box alert-info">
+            <i class="fa-solid fa-info-circle"></i>
+            <div>
+                <strong>Совет:</strong> Для экспорта в формате Excel установите пакет <code>openpyxl</code> с помощью команды <code>pip install openpyxl</code>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+    :root {
+        --primary: #2a9d8f;
+        --secondary: #264653;
+        --accent: #e9c46a;
+        --bg: #f4f7f8;
+        --card-bg: #ffffff;
+        --text: #264653;
+    }
+
+    html, body {
+        overflow-x: hidden;
+    }
+
+    .admin-reports {
+        padding: 32px;
+    }
+
+    .dashboard-header {
+        margin-bottom: 40px;
+    }
+
+    .dashboard-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.5em;
+        color: var(--secondary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .dashboard-header p {
+        margin: 0;
+        color: #666;
+        font-size: 1.1em;
+    }
+
+    /* ОТЧЁТЫ */
+    .reports-section {
+    }
+
+    .reports-subtitle {
+        margin: 0 0 24px 0;
+        color: var(--secondary);
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        padding: 12px 16px;
+        background: rgba(42, 157, 143, 0.05);
+        border-radius: 8px;
+        border-left: 4px solid var(--primary);
+    }
+
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .report-card {
+        background: var(--card-bg);
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(42, 157, 143, 0.05);
+        text-align: center;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .report-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(42, 157, 143, 0.15);
+        border-color: rgba(42, 157, 143, 0.2);
+    }
+
+    .report-icon {
+        font-size: 3em;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .report-card h3 {
+        margin: 0 0 8px 0;
+        color: var(--secondary);
+        font-size: 1.2em;
+    }
+
+    .report-desc {
+        margin: 0 0 20px 0;
+        color: #666;
+        font-size: 0.9em;
+        flex: 1;
+    }
+
+    .report-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .report-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95em;
+        flex: 1;
+    }
+
+    .report-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(42, 157, 143, 0.35);
+    }
+
+    .report-btn:active {
+        transform: translateY(0);
+    }
+
+    .report-btn-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #868d96 100%);
+    }
+
+    .report-btn-secondary:hover {
+        box-shadow: 0 8px 20px rgba(108, 117, 125, 0.35);
+    }
+
+    /* АЛЁРТЫ -->  */
+    .alert-box {
+        padding: 16px 20px;
+        border-radius: 10px;
+        border-left: 4px solid;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        margin-top: 24px;
+    }
+
+    .alert-box i {
+        font-size: 1.2em;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .alert-box div {
+        flex: 1;
+    }
+
+    .alert-box p {
+        margin: 0;
+        font-size: 0.9em;
+    }
+
+    .alert-box code {
+        background: rgba(0, 0, 0, 0.08);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85em;
+    }
+
+    .alert-info {
+        background: rgba(33, 150, 243, 0.08);
+        border-left-color: #2196f3;
+    }
+
+    .alert-info i {
+        color: #2196f3;
+    }
+
+    .alert-info strong {
+        color: #1565c0;
+    }
+
+    /* АДАПТИВНОСТЬ */
+    @media (max-width: 1024px) {
+        .reports-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-reports {
+            padding: 16px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.8em;
+        }
+
+        .reports-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .report-actions {
+            flex-direction: column;
+        }
+
+        .report-btn {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}

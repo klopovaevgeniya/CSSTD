@@ -21,7 +21,7 @@ def authenticate(username, password):
                     role = 'employee'
                 
                 print(f"Django auth success: {username}, role: {role}")
-                return {'id': user.id, 'role': role}
+                return {'id': user.id, 'role': role, 'force_password_change': employee.force_password_change}
             except Exception as e:
                 print(f"Django auth: no employee for {username}: {e}")
                 return None

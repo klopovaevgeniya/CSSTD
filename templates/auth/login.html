@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <title>Вход в систему</title>
     <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         .password-container {
             position: relative;
@@ -35,49 +37,49 @@
 </head>
 <body>
 
-<div class="auth-card">
-    <h1>Вход в систему</h1>
-    <p>Система управления проектами АНО «ЦСУРТ»</p>
-
-    <form method="post">
-        {% csrf_token %}
-        <label>Логин</label>
-        <input type="text" name="username" required>
-
-        <label>Пароль</label>
-        <div class="password-container">
-            <input type="password" name="password" id="password" required>
-            <button type="button" id="toggle-password">&#128065;</button>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo">ЦСУРТ</div>
+            <h1>Вход в систему</h1>
+            <p>Система управления проектами АНО «ЦСУРТ»</p>
         </div>
 
-        {% if form.errors %}
-            <div style="color: red;">
-                {% for field, errors in form.errors.items %}
-                    {% for error in errors %}
-                        {{ error }}
-                    {% endfor %}
-                {% endfor %}
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="username">Логин</label>
+                <input type="text" name="username" id="username" required>
             </div>
-        {% endif %}
 
-        <button type="submit">Войти</button>
-    </form>
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <div class="password-container">
+                    <input type="password" name="password" id="password" required>
+                    <button type="button" id="toggle-password">&#128065;</button>
+                </div>
+            </div>
 
-    <script>
-        const togglePassword = document.getElementById('toggle-password');
-        const passwordInput = document.getElementById('password');
+            {% if form.errors %}
+                <div class="messages">
+                    <div class="message error">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                {{ error }}
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
 
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.innerHTML = type === 'password' ? '&#128065;' : '&#128064;';
-        });
-    </script>
+            <button type="submit" class="auth-btn">
+                <i class="fa-solid fa-sign-in-alt"></i> Войти
+            </button>
+        </form>
 
-    <div class="auth-footer">
-        Доступ только для сотрудников организации
+        <div class="auth-footer">
+            <p>Доступ только для сотрудников организации</p>
+        </div>
     </div>
 </div>
-
-</body>
-</html>

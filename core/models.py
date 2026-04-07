@@ -58,6 +58,7 @@ class Employee(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True)
     hire_date = models.DateField(blank=True, null=True)
     is_active = models.BooleanField(blank=True, null=True)
+    force_password_change = models.BooleanField(default=True)
 
     class Meta:
         managed = False

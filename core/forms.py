@@ -123,3 +123,4 @@ class ProjectTaskForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-control'}),
         initial='в работе'
     )
+

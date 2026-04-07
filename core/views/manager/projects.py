@@ -233,7 +233,7 @@ def manager_create_task(request, project_id):
     )
 
     if request.method == 'POST':
-        form = ProjectTaskForm(request.POST)
+        form = ProjectTaskForm(request.POST, request.FILES)
         # Переопределяем queryset для поля assigned_to
         form.fields['assigned_to'].queryset = available_employees
         
@@ -261,6 +261,10 @@ def manager_create_task(request, project_id):
                         seen=False,
                         created_at=timezone.now()
                     )
+
+                    # Сохраняем вложения, если они были загружены
+                    for uploaded_file in request.FILES.getlist('attachments'):
+                        TaskAttachment.objects.create(task=task, file=uploaded_file)
 
                 # Возвращаем успешный ответ
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
