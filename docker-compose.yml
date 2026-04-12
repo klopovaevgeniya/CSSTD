@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Веб-приложение на Flask
+  web:
+    build: .
+    container_name: csurt_web
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - app_net
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # База данных PostgreSQL
+  db:
+    image: postgres:15
+    container_name: csurt_db
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app_net
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+volumes:
+  pgdata:
+    name: csurt_pgdata
+
+networks:
+  app_net:
+    name: csurt_app_net
+    driver: bridge

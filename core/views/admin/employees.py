@@ -50,12 +50,12 @@ def employee_create(request):
         if not last_name or not first_name or not email:
             messages.error(request, "Фамилия, имя и email обязательны")
         else:
-            # Generate username
+            # Генерация username
             username = transliterate(last_name).lower()
             counter = 1
             original_username = username
             while True:
-                # Check if username exists in Django User or custom users table
+                # Проверка существования в User и users
                 user_exists = User.objects.filter(username=username).exists()
                 from django.db import connection
                 with connection.cursor() as cursor:
