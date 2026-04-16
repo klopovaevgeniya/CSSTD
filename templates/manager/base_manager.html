@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Дашборд руководителя{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
 
     <link rel="stylesheet" href="{% static 'css/manager.css' %}?v=2026-02-03">
     <link rel="stylesheet"
@@ -24,7 +25,7 @@
             </a>
 
             <!-- Добавить ссылки на проекты, задачи и т.д. -->
-            <a href="{% url 'manager_projects' %}" class="{% if request.resolver_match.url_name == 'manager_projects' %}active{% endif %}">
+            <a href="{% url 'manager_projects' %}" class="{% if request.resolver_match.url_name == 'manager_projects' or request.resolver_match.url_name == 'manager_project_detail' or request.resolver_match.url_name == 'manager_create_task' or request.resolver_match.url_name == 'manager_task_detail' or request.resolver_match.url_name == 'manager_edit_task' %}active{% endif %}">
                 <i class="fa-solid fa-folder-open"></i> Мои проекты
                 {% if manager_new_projects_count and manager_new_projects_count > 0 or manager_new_chat_count and manager_new_chat_count > 0 %}
                     <span class="notification-dot" title="Новые проекты/сообщения" aria-hidden="true"></span>
@@ -33,10 +34,6 @@
 
             <a href="{% url 'manager_calendar' %}" class="{% if request.resolver_match.url_name == 'manager_calendar' %}active{% endif %}">
                 <i class="fa-solid fa-calendar-days"></i> График
-            </a>
-
-            <a href="{% url 'manager_tasks' %}" class="{% if request.resolver_match.url_name == 'manager_tasks' %}active{% endif %}">
-                <i class="fa-solid fa-tasks"></i> Задачи
             </a>
 
             <a href="{% url 'manager_statistics' %}" class="{% if request.resolver_match.url_name == 'manager_statistics' %}active{% endif %}">

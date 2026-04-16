@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.db.models import Q
 from core.decorators import role_required
 from core.models import (
     Employee,
@@ -29,7 +30,9 @@ def employee_calendar(request):
     projects = [p.project for p in project_participants if p.project]
 
     # Задачи сотрудника
-    tasks = ProjectTask.objects.filter(assigned_to=employee).select_related('project')
+    tasks = ProjectTask.objects.filter(
+        Q(assigned_to=employee) | Q(task_assignees__employee=employee, task_assignees__step_status__in=['active', 'completed'])
+    ).select_related('project').distinct()
 
     # Подготовка данных для календаря
     calendar_items = []

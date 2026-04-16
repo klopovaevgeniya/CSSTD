@@ -1,9 +1,12 @@
 from django.urls import path
+from django.views.generic import RedirectView
+from django.contrib.staticfiles.storage import staticfiles_storage
 from .views.public import home, access_denied
 from .views.auth import login_view, logout_view, change_password_view
 from . import views
 from core.views.admin import dashboard, projects, employees, audit, positions, departments, reports, statistics
 from core.views.manager import projects as manager_projects_views, chat as manager_chat_views, calendar as manager_calendar_views, statistics as manager_statistics_views
+from core.views import task_chat as task_chat_views
 from .views.employee.dashboard import employee_dashboard, employee_projects, employee_project_detail, employee_tasks, employee_task_detail
 from .views.employee import chat as employee_chat_views
 from .views.employee.calendar import employee_calendar
@@ -16,6 +19,7 @@ from core.views.manager.dashboard import manager_dashboard
 
 urlpatterns = [
     path('', home, name='home'),
+    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('img/favicon.svg'), permanent=True)),
 
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
@@ -58,6 +62,8 @@ urlpatterns = [
     path('manager/projects/<int:project_id>/create-task/', manager_projects_views.manager_create_task, name='manager_create_task'),
     path('manager/tasks/', manager_projects_views.manager_tasks, name='manager_tasks'),
     path('manager/tasks/<int:task_id>/', manager_projects_views.manager_task_detail, name='manager_task_detail'),
+    path('manager/tasks/<int:task_id>/edit/', manager_projects_views.manager_edit_task, name='manager_edit_task'),
+    path('manager/tasks/<int:task_id>/chat/', task_chat_views.task_chat_view, name='manager_task_chat'),
     path('manager/projects/<int:pk>/chat/', manager_chat_views.manager_project_chat, name='manager_project_chat'),
     path('manager/projects/<int:pk>/chat/send/', manager_chat_views.manager_project_chat_send, name='manager_project_chat_send'),
     path('manager/projects/<int:pk>/chat/delete/<int:message_id>/', manager_chat_views.manager_delete_chat_message, name='manager_delete_chat_message'),
@@ -75,6 +81,7 @@ urlpatterns = [
     path('dashboard/employee/profile/', employee_profile, name='employee_profile'),
     path('dashboard/employee/tasks/', employee_tasks, name='employee_tasks'),
     path('dashboard/employee/tasks/<int:task_id>/', employee_task_detail, name='employee_task_detail'),
+    path('dashboard/employee/tasks/<int:task_id>/chat/', task_chat_views.task_chat_view, name='employee_task_chat'),
     path('dashboard/employee/projects/', employee_projects, name='employee_projects'),
     path('dashboard/employee/projects/<int:pk>/', employee_project_detail, name='employee_project_detail'),
     path('dashboard/employee/projects/<int:pk>/chat/', employee_chat_views.employee_project_chat, name='employee_project_chat'),
@@ -87,4 +94,5 @@ urlpatterns = [
     path('dashboard/readonly/', readonly_dashboard, name='readonly_dashboard'),
 
     path('denied/', access_denied, name='access_denied'),
+    path('tasks/<int:task_id>/chat/send/', task_chat_views.task_chat_send, name='task_chat_send'),
 ]

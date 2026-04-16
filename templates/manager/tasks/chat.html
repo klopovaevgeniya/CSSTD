@@ -1,0 +1,302 @@
+{% extends 'manager/base_manager.html' %}
+{% load tz %}
+
+{% block title %}{{ task.name }} - Чат задачи{% endblock %}
+
+{% block content %}
+<style>
+    .chat-shell { max-width: 1180px; margin: 0 auto; }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 14px;
+    }
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 135px);
+        background: linear-gradient(180deg, #fff 0%, #f7fafc 100%);
+        border-radius: 16px;
+        box-shadow: 0 12px 36px rgba(38, 70, 83, 0.12);
+        border: 1px solid rgba(38, 70, 83, 0.08);
+        overflow: hidden;
+    }
+    .chat-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(38, 70, 83, 0.08);
+        background: linear-gradient(120deg, var(--secondary), var(--primary));
+        color: white;
+    }
+    .chat-header h2 { margin: 0; font-size: 1.2rem; }
+    .chat-header p { margin: 8px 0 0 0; opacity: 0.9; font-size: 0.9rem; }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background:
+            radial-gradient(circle at 0 0, rgba(231,111,81,0.06) 0, transparent 36%),
+            radial-gradient(circle at 100% 100%, rgba(38,70,83,0.05) 0, transparent 36%),
+            #f8fafc;
+    }
+    .chat-messages::-webkit-scrollbar { width: 8px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(38, 70, 83, 0.25); border-radius: 10px; }
+    .message { display: flex; animation: bubbleIn 0.22s ease; }
+    @keyframes bubbleIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .message.own { justify-content: flex-end; }
+    .message-content {
+        max-width: min(72%, 780px);
+        background: #fff;
+        color: #1f2937;
+        padding: 10px 12px;
+        border-radius: 14px 14px 14px 6px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(148, 163, 184, 0.26);
+    }
+    .message.own .message-content {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff;
+        border: none;
+        border-radius: 14px 14px 6px 14px;
+    }
+    .message-author { font-weight: 700; color: var(--secondary); font-size: 0.82rem; margin-bottom: 4px; }
+    .message-text { margin: 0; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+    .message-time { font-size: 0.76rem; margin-top: 6px; color: #6b7280; }
+    .message.own .message-time { color: rgba(255,255,255,0.88); }
+    .message-attachment { margin-top: 6px; }
+    .message-attachment a {
+        text-decoration: none;
+        color: inherit;
+        font-size: 0.86rem;
+        background: rgba(38,70,83,0.08);
+        padding: 6px 10px;
+        border-radius: 8px;
+        display: inline-flex;
+        gap: 6px;
+    }
+    .message.own .message-attachment a { background: rgba(255,255,255,0.18); }
+    .chat-input-area {
+        padding: 12px 14px;
+        border-top: 1px solid rgba(38, 70, 83, 0.1);
+        background: #fff;
+    }
+    .composer {
+        border: 1px solid #dbe3ea;
+        border-radius: 16px;
+        background: #fbfdff;
+        padding: 8px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    .composer-row { display: flex; align-items: flex-end; gap: 8px; }
+    .attach-btn {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 12px;
+        background: #eef2f7;
+        color: #475569;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+    .attach-btn:hover { background: #e2e8f0; color: #1f2937; }
+    .composer textarea {
+        flex: 1;
+        min-height: 38px;
+        max-height: 120px;
+        resize: none;
+        border: none;
+        border-radius: 10px;
+        padding: 9px 10px;
+        background: transparent;
+        line-height: 1.35;
+        font-size: 0.95rem;
+    }
+    .composer textarea:focus { outline: none; }
+    .send-btn {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .send-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(231,111,81,0.35); }
+    .send-btn:disabled { opacity: 0.55; box-shadow: none; transform: none; cursor: not-allowed; }
+    .composer-files {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .file-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 260px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: #334155;
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 0.82rem;
+    }
+    .file-chip-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .file-chip-remove {
+        border: none;
+        background: transparent;
+        color: #ef4444;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 0 2px;
+        line-height: 1;
+    }
+    #attachments { display: none; }
+    .empty-chat { margin: auto; color: #94a3b8; font-weight: 600; }
+</style>
+
+<div class="chat-shell">
+    <a href="{% url back_url_name task.id %}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Назад к задаче</a>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2><i class="fa-solid fa-comments"></i> Чат задачи: {{ task.name }}</h2>
+            <p>Участники: {{ participants|length }}</p>
+        </div>
+        <div class="chat-messages" id="messages-container">
+            {% for message in messages %}
+                <div class="message {% if message.author == current_user %}own{% endif %}">
+                    <div class="message-content">
+                        {% if message.author != current_user %}<div class="message-author">{{ message.author.first_name }} {{ message.author.last_name }}</div>{% endif %}
+                        {% if message.text %}<div class="message-text">{{ message.text }}</div>{% endif %}
+                        {% for attachment in message.attachments.all %}
+                            <div class="message-attachment"><a href="{{ attachment.file.url }}" target="_blank">📎 {{ attachment.filename }}</a></div>
+                        {% endfor %}
+                        <div class="message-time">{{ message.created_at|localtime|date:"d.m.Y H:i" }}</div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-chat">Сообщений пока нет.</div>
+            {% endfor %}
+        </div>
+        <div class="chat-input-area">
+            <form id="chat-form">
+                {% csrf_token %}
+                <div class="composer">
+                    <div class="composer-row">
+                        <button type="button" class="attach-btn" id="attach-trigger" title="Прикрепить файл">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
+                        <textarea name="text" id="message-text" rows="1" placeholder="Напишите сообщение..."></textarea>
+                        <button type="submit" class="send-btn" id="send-btn" title="Отправить">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <input type="file" id="attachments" name="attachments" multiple>
+                    <div class="composer-files" id="composer-files"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('chat-form');
+    const textarea = document.getElementById('message-text');
+    const attachmentsInput = document.getElementById('attachments');
+    const attachTrigger = document.getElementById('attach-trigger');
+    const composerFiles = document.getElementById('composer-files');
+    const sendBtn = document.getElementById('send-btn');
+
+    function resizeTextarea() {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    }
+
+    function updateSendButtonState() {
+        const hasText = textarea.value.trim().length > 0;
+        const hasFiles = attachmentsInput.files && attachmentsInput.files.length > 0;
+        sendBtn.disabled = !(hasText || hasFiles);
+    }
+
+    function renderFileChips() {
+        composerFiles.innerHTML = '';
+        Array.from(attachmentsInput.files || []).forEach((file, index) => {
+            const chip = document.createElement('div');
+            chip.className = 'file-chip';
+            chip.innerHTML = `
+                <i class="fa-solid fa-file"></i>
+                <span class="file-chip-name">${file.name}</span>
+                <button type="button" class="file-chip-remove" data-index="${index}">×</button>
+            `;
+            composerFiles.appendChild(chip);
+        });
+        updateSendButtonState();
+    }
+
+    function removeFileByIndex(index) {
+        const dt = new DataTransfer();
+        Array.from(attachmentsInput.files || []).forEach((file, fileIndex) => {
+            if (fileIndex !== index) dt.items.add(file);
+        });
+        attachmentsInput.files = dt.files;
+        renderFileChips();
+    }
+
+    attachTrigger.addEventListener('click', () => attachmentsInput.click());
+    attachmentsInput.addEventListener('change', renderFileChips);
+    textarea.addEventListener('input', () => {
+        resizeTextarea();
+        updateSendButtonState();
+    });
+    textarea.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            if (!sendBtn.disabled) form.requestSubmit();
+        }
+    });
+    composerFiles.addEventListener('click', function(event) {
+        const button = event.target.closest('.file-chip-remove');
+        if (!button) return;
+        removeFileByIndex(Number(button.getAttribute('data-index')));
+    });
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const response = await fetch("{% url 'task_chat_send' task.id %}", {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        });
+        const data = await response.json();
+        if (!data.success) {
+            alert(data.message || 'Ошибка отправки сообщения');
+            return;
+        }
+        location.reload();
+    });
+    const messages = document.getElementById('messages-container');
+    messages.scrollTop = messages.scrollHeight;
+    resizeTextarea();
+    updateSendButtonState();
+</script>
+{% endblock %}

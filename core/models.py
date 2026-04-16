@@ -170,6 +170,25 @@ class ProjectTask(models.Model):
     def __str__(self):
         return self.name
 
+    def get_assignees(self):
+        """Возвращает список исполнителей задачи с fallback на legacy assigned_to."""
+        employees = [assignment.employee for assignment in self.task_assignees.select_related('employee').all()]
+        if employees:
+            return employees
+        return [self.assigned_to] if self.assigned_to else []
+
+    def get_assignees_display(self):
+        employees = self.get_assignees()
+        return ", ".join(f"{employee.first_name} {employee.last_name}" for employee in employees)
+
+    def get_chain_steps(self):
+        return self.task_assignees.select_related('employee').order_by('step_order')
+
+    def get_active_step(self):
+        return self.task_assignees.select_related('employee').filter(
+            step_status=TaskAssignee.STEP_STATUS_ACTIVE
+        ).order_by('step_order').first()
+
 
 class ProjectType(models.Model):
     name = models.CharField(unique=True, max_length=100)
@@ -245,6 +264,8 @@ class TaskAttachment(models.Model):
     """Файлы, прикреплённые к задаче."""
     task = models.ForeignKey(ProjectTask, models.CASCADE, related_name='attachments')
     file = models.FileField(upload_to='task_attachments/')
+    uploaded_by = models.ForeignKey(Employee, models.SET_NULL, blank=True, null=True, related_name='uploaded_task_attachments')
+    step_order = models.PositiveIntegerField(blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -253,6 +274,60 @@ class TaskAttachment(models.Model):
 
     def __str__(self):
         return f"Attachment for {self.task.name}: {self.file.name}"
+
+
+class TaskAssignee(models.Model):
+    """Связка задача -> сотрудник для назначения нескольких исполнителей."""
+    STEP_STATUS_PENDING = 'pending'
+    STEP_STATUS_ACTIVE = 'active'
+    STEP_STATUS_COMPLETED = 'completed'
+    STEP_STATUS_CHOICES = [
+        (STEP_STATUS_PENDING, 'Ожидает'),
+        (STEP_STATUS_ACTIVE, 'В работе'),
+        (STEP_STATUS_COMPLETED, 'Завершен'),
+    ]
+
+    task = models.ForeignKey(ProjectTask, models.CASCADE, related_name='task_assignees')
+    employee = models.ForeignKey(Employee, models.CASCADE, related_name='task_assignees')
+    step_order = models.PositiveIntegerField(default=1)
+    step_status = models.CharField(max_length=20, choices=STEP_STATUS_CHOICES, default=STEP_STATUS_PENDING)
+    started_at = models.DateTimeField(blank=True, null=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = True
+        db_table = 'task_assignees'
+        unique_together = (('task', 'employee'),)
+
+    def __str__(self):
+        return f"{self.task.name} -> {self.employee.first_name} {self.employee.last_name}"
+
+
+class TaskChatMessage(models.Model):
+    """Сообщение в чате задачи."""
+    task = models.ForeignKey(ProjectTask, models.CASCADE, related_name='chat_messages')
+    author = models.ForeignKey(Employee, models.CASCADE, related_name='task_chat_messages')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = True
+        db_table = 'task_chat_messages'
+        ordering = ['created_at']
+
+
+class TaskChatAttachment(models.Model):
+    """Вложение к сообщению чата задачи."""
+    message = models.ForeignKey(TaskChatMessage, models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='task_chat_attachments/%Y/%m/%d/')
+    filename = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = True
+        db_table = 'task_chat_attachments'
 
 
 class ResourceType(models.Model):

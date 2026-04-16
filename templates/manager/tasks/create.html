@@ -1,9 +1,11 @@
 {% extends 'manager/base_manager.html' %}
 
-{% block title %}Создание новой задачи - {{ project.name }}{% endblock %}
+{% block title %}{% if task %}Редактирование задачи{% else %}Создание новой задачи{% endif %} - {{ project.name }}{% endblock %}
 
 {% block content %}
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap');
+
     .task-create-header {
         margin-bottom: 32px;
     }
@@ -231,20 +233,86 @@
     .back-link:hover {
         gap: 10px;
     }
+
+    .chain-builder {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 14px;
+        background: #fafbfc;
+        margin-top: 16px;
+        width: 100%;
+        font-family: "Manrope", "Segoe UI", system-ui, sans-serif;
+    }
+
+    .chain-builder h4 {
+        margin: 0 0 10px 0;
+        font-size: 0.95em;
+        color: var(--secondary);
+        letter-spacing: 0.2px;
+    }
+
+    .chain-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .chain-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-family: "Manrope", "Segoe UI", system-ui, sans-serif;
+        font-weight: 600;
+    }
+
+    .chain-controls {
+        display: flex;
+        gap: 6px;
+    }
+
+    .chain-btn {
+        border: none;
+        background: #f1f5f9;
+        border-radius: 6px;
+        padding: 4px 8px;
+        cursor: pointer;
+    }
+
+    #assigned_to {
+        font-family: "Manrope", "Segoe UI", system-ui, sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+
+    #assigned_to option {
+        font-family: "Manrope", "Segoe UI", system-ui, sans-serif;
+        padding: 4px 6px;
+    }
 </style>
 
-<a href="{% url 'manager_project_detail' pk=project.id %}" class="back-link">
+<a href="{% url 'manager_project_detail' pk=project.id %}?tab=tasks" class="back-link">
     <i class="fa-solid fa-arrow-left"></i> Вернуться к проекту
 </a>
 
 <div class="task-create-header">
-    <h1>Создание новой задачи</h1>
-    <p>Создайте задачу для проекта <strong>{{ project.name }}</strong></p>
+    <h1>{% if task %}Редактирование задачи{% else %}Создание новой задачи{% endif %}</h1>
+    <p>
+        {% if task %}
+            Измените параметры задачи в проекте <strong>{{ project.name }}</strong>
+        {% else %}
+            Создайте задачу для проекта <strong>{{ project.name }}</strong>
+        {% endif %}
+    </p>
 </div>
 
 <div class="task-create-content">
-    <h2>Новая задача</h2>
-    <p>Заполните все необходимые поля для создания задачи</p>
+    <h2>{% if task %}Параметры задачи{% else %}Новая задача{% endif %}</h2>
+    <p>{% if task %}Обновите необходимые поля и сохраните изменения{% else %}Заполните все необходимые поля для создания задачи{% endif %}</p>
 
     {% if error %}
     <div class="form-error" style="margin-bottom: 20px;">
@@ -279,16 +347,15 @@
         <div class="form-section">
             <div class="form-group">
                 <label for="assigned_to">
-                    Назначить сотруднику <span class="required">*</span>
+                    Назначить сотрудникам <span class="required">*</span>
                 </label>
-                <select name="assigned_to" id="assigned_to" required>
-                    <option value="">-- Выберите сотрудника --</option>
+                <select name="assigned_to" id="assigned_to" required multiple size="6">
                     {% for emp in available_employees %}
-                        <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                        <option value="{{ emp.id }}" {% if emp.id in selected_assignee_ids %}selected{% endif %}>{{ emp.first_name }} {{ emp.last_name }} — {{ emp.position.name|default:"без должности" }}</option>
                     {% endfor %}
                 </select>
                 {% if form.assigned_to.errors %}<div class="form-error">{{ form.assigned_to.errors.0 }}</div>{% endif %}
-                <p class="form-help">Выберите сотрудника из команды</p>
+                <p class="form-help">Можно выбрать нескольких сотрудников (Ctrl/Cmd + click)</p>
             </div>
 
             <div class="form-group">
@@ -300,6 +367,13 @@
                 <p class="form-help">Установите срок выполнения</p>
             </div>
         </div>
+
+        <div class="chain-builder">
+            <h4>Цепочка этапов выполнения</h4>
+            <div id="chain-list" class="chain-list"></div>
+            <p class="form-help" style="margin-bottom: 0;">Порядок сверху вниз. Используйте стрелки для изменения очередности.</p>
+        </div>
+        <input type="hidden" name="chain_order" id="chain_order" value="{{ chain_order_initial }}">
 
         <!-- Приоритет и Статус -->
         <div class="form-section">
@@ -321,6 +395,7 @@
         </div>
 
         <!-- Файлы -->
+        {% if not task %}
         <div class="form-group" style="margin-bottom: 20px;">
             <label for="attachments">
                 Файлы
@@ -336,13 +411,14 @@
             </div>
             <p class="form-help">Прикрепите файлы, если необходимо</p>
         </div>
+        {% endif %}
 
         <!-- Кнопки -->
         <div class="form-actions">
             <button type="submit" class="btn-submit" id="submit-btn">
-                <i class="fa-solid fa-check"></i> Создать задачу
+                <i class="fa-solid fa-check"></i> {% if task %}Сохранить изменения{% else %}Создать задачу{% endif %}
             </button>
-            <a href="{% url 'manager_project_detail' pk=project.id %}" class="btn-cancel">
+            <a href="{% if task %}{% url 'manager_task_detail' task.id %}{% else %}{% url 'manager_project_detail' pk=project.id %}?tab=tasks{% endif %}" class="btn-cancel">
                 <i class="fa-solid fa-times"></i> Отмена
             </a>
         </div>
@@ -352,6 +428,86 @@
 <script>
     const fileInput = document.getElementById('attachments');
     const fileText = document.querySelector('.file-upload-text');
+    const assigneesSelect = document.getElementById('assigned_to');
+    const chainList = document.getElementById('chain-list');
+    const chainOrderInput = document.getElementById('chain_order');
+    let chain = [];
+
+    function selectedOptions() {
+        return Array.from(assigneesSelect.selectedOptions).map(option => ({
+            id: option.value,
+            name: option.textContent.trim()
+        }));
+    }
+
+    function syncChainWithSelected() {
+        const selected = selectedOptions();
+        const selectedIds = new Set(selected.map(item => item.id));
+        chain = chain.filter(item => selectedIds.has(item.id));
+        selected.forEach(item => {
+            if (!chain.some(existing => existing.id === item.id)) {
+                chain.push(item);
+            }
+        });
+        renderChain();
+    }
+
+    function applyInitialOrder() {
+        const raw = (chainOrderInput.value || '').trim();
+        if (!raw || chain.length === 0) {
+            return;
+        }
+        const idOrder = raw.split(',').map(value => value.trim()).filter(Boolean);
+        if (!idOrder.length) {
+            return;
+        }
+        const positionMap = new Map(idOrder.map((id, index) => [id, index]));
+        chain.sort((a, b) => {
+            const posA = positionMap.has(a.id) ? positionMap.get(a.id) : 9999;
+            const posB = positionMap.has(b.id) ? positionMap.get(b.id) : 9999;
+            return posA - posB;
+        });
+        renderChain();
+    }
+
+    function moveChainItem(index, direction) {
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= chain.length) {
+            return;
+        }
+        const temp = chain[index];
+        chain[index] = chain[targetIndex];
+        chain[targetIndex] = temp;
+        renderChain();
+    }
+
+    function renderChain() {
+        chainList.innerHTML = '';
+        chain.forEach((item, index) => {
+            const element = document.createElement('div');
+            element.className = 'chain-item';
+            element.innerHTML = `
+                <span>${index + 1}. ${item.name}</span>
+                <div class="chain-controls">
+                    <button type="button" class="chain-btn" data-direction="-1" data-index="${index}">↑</button>
+                    <button type="button" class="chain-btn" data-direction="1" data-index="${index}">↓</button>
+                </div>
+            `;
+            chainList.appendChild(element);
+        });
+        chainOrderInput.value = chain.map(item => item.id).join(',');
+    }
+
+    assigneesSelect.addEventListener('change', syncChainWithSelected);
+    chainList.addEventListener('click', function (event) {
+        const button = event.target.closest('.chain-btn');
+        if (!button) {
+            return;
+        }
+        const index = parseInt(button.getAttribute('data-index'), 10);
+        const direction = parseInt(button.getAttribute('data-direction'), 10);
+        moveChainItem(index, direction);
+    });
 
     fileInput.addEventListener('change', function() {
         const files = Array.from(this.files);
@@ -368,6 +524,9 @@
         const submitBtn = document.getElementById('submit-btn');
         submitBtn.disabled = true;
     });
+
+    syncChainWithSelected();
+    applyInitialOrder();
 </script>
 
 {% endblock %}

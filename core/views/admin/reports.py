@@ -265,13 +265,9 @@ def export_tasks_excel(request):
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Данные
-    tasks = ProjectTask.objects.select_related('project', 'assigned_to')
+    tasks = ProjectTask.objects.select_related('project', 'assigned_to').prefetch_related('task_assignees__employee')
     for row, task in enumerate(tasks, 2):
-        assigned_name = ""
-        if task.assigned_to:
-            assigned_name = f"{
-                task.assigned_to.last_name} {
-                task.assigned_to.first_name}"
+        assigned_name = task.get_assignees_display()
 
         worksheet.cell(row=row, column=1).value = task.id
         worksheet.cell(
@@ -306,13 +302,9 @@ def export_tasks_csv(request):
     writer.writerow(["ID", "Проект", "Название", "Назначена",
                     "Статус", "Приоритет", "Срок выполнения"])
 
-    tasks = ProjectTask.objects.select_related('project', 'assigned_to')
+    tasks = ProjectTask.objects.select_related('project', 'assigned_to').prefetch_related('task_assignees__employee')
     for task in tasks:
-        assigned_name = ""
-        if task.assigned_to:
-            assigned_name = f"{
-                task.assigned_to.last_name} {
-                task.assigned_to.first_name}"
+        assigned_name = task.get_assignees_display()
 
         writer.writerow([
             task.id,

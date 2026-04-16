@@ -84,10 +84,10 @@ class ProjectTaskForm(forms.Form):
         })
     )
 
-    assigned_to = forms.ModelChoiceField(
-        label='Назначить сотруднику',
+    assigned_to = forms.ModelMultipleChoiceField(
+        label='Назначить сотрудникам',
         queryset=Employee.objects.filter(is_active=True),
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.SelectMultiple(attrs={'class': 'form-control', 'size': 6})
     )
 
     due_date = forms.DateField(

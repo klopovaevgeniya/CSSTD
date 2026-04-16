@@ -21,9 +21,9 @@ def manager_dashboard(request):
     
     # Получаем все задачи для проектов руководителя
     if employee:
-        all_tasks = ProjectTask.objects.filter(project__manager=employee)
+        all_tasks = ProjectTask.objects.filter(project__manager=employee).prefetch_related('task_assignees__employee')
     else:
-        all_tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user)
+        all_tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user).prefetch_related('task_assignees__employee')
     
     # Задачи на сегодня (не завершённые)
     today_tasks = all_tasks.filter(

@@ -1,742 +1,278 @@
 {% extends 'manager/base_manager.html' %}
-
 {% load static %}
 
 {% block title %}{{ task.name }} — Задача{% endblock %}
 
 {% block content %}
 <style>
-    .task-detail-header {
-        margin-bottom: 32px;
+    .task-page { max-width: 1320px; margin: 0 auto; }
+    .task-topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+    .task-title-wrap h1 { margin: 10px 0 8px 0; color: var(--secondary); font-size: 2rem; line-height: 1.25; }
+    .breadcrumb-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .breadcrumb-link:hover { text-decoration: underline; }
+    .task-top-actions { display: flex; gap: 10px; }
+    .btn-link {
+        display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: white;
+        background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px; padding: 10px 14px; font-weight: 600;
     }
-
-    .task-detail-header h1 {
-        margin: 0 0 8px 0;
-        font-size: 2em;
-        color: var(--secondary);
-    }
-
-    .task-detail-header .breadcrumb {
-        font-size: 0.9em;
-        color: #666;
-        margin: 0;
-    }
-
-    .task-detail-header .breadcrumb a {
-        color: var(--primary);
-        text-decoration: none;
-    }
-
-    .task-detail-header .breadcrumb a:hover {
-        text-decoration: underline;
-    }
-
-    .task-detail-grid {
-        display: grid;
-        grid-template-columns: 1fr 320px;
-        gap: 24px;
-        margin-top: 32px;
-    }
-
-    @media (max-width: 1024px) {
-        .task-detail-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .task-detail-content {
-        background: white;
-        padding: 28px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-    }
-
-    .task-section {
-        margin-bottom: 32px;
-    }
-
-    .task-section:last-child {
-        margin-bottom: 0;
-    }
-
-    .task-section h2 {
-        font-size: 1.1em;
-        margin: 0 0 16px 0;
-        padding-bottom: 12px;
-        border-bottom: 2px solid var(--primary);
-        color: var(--secondary);
-        font-weight: 600;
-    }
-
-    .task-description {
-        background: #f9f9f9;
-        padding: 16px;
-        border-radius: 8px;
-        line-height: 1.6;
-        color: #555;
-        white-space: pre-wrap;
-    }
-
-    .task-meta-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .task-meta-table tr {
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .task-meta-table tr:last-child {
-        border-bottom: none;
-    }
-
-    .task-meta-table td {
-        padding: 12px 0;
-        vertical-align: top;
-    }
-
-    .task-meta-label {
-        font-weight: 600;
-        color: #666;
-        width: 140px;
-    }
-
-    .task-meta-value {
-        color: #333;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 6px;
-        font-size: 0.85em;
-        font-weight: 600;
-    }
-
-    .badge-status {
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.9em;
-    }
-
-    .badge-status-в_работе {
-        background: #e3f2fd;
-        color: #1976d2;
-    }
-
-    .badge-status-завершена {
-        background: #c8e6c9;
-        color: #388e3c;
-    }
-
-    .badge-status-на_проверке {
-        background: #fff3e0;
-        color: #f57c00;
-    }
-
-    .badge-status-отложена {
-        background: #f3e5f5;
-        color: #7b1fa2;
-    }
-
-    .badge-priority {
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.9em;
-    }
-
-    .badge-priority-низкий {
-        background: #e8f5e9;
-        color: #2e7d32;
-    }
-
-    .badge-priority-средний {
-        background: #e3f2fd;
-        color: #1565c0;
-    }
-
-    .badge-priority-высокий {
-        background: #fff3e0;
-        color: #e65100;
-    }
-
-    .badge-priority-критический {
-        background: #ffebee;
-        color: #c62828;
-    }
-
-    .attachments-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .attachment-item {
-        background: #f9f9f9;
-        padding: 12px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border-left: 3px solid var(--primary);
-    }
-
-    .attachment-item i {
-        color: var(--primary);
-        font-size: 1.2em;
-    }
-
-    .attachment-item a {
-        flex: 1;
-        color: var(--primary);
-        text-decoration: none;
-        word-break: break-word;
-    }
-
-    .attachment-item a:hover {
-        text-decoration: underline;
-    }
-
+    .task-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; align-items: start; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); padding: 14px; }
+    .section-title { margin: 0 0 14px 0; color: var(--secondary); font-size: 1.05rem; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; }
+    .meta-item { padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+    .meta-label { font-size: 0.84rem; color: #777; margin-bottom: 4px; }
+    .meta-value { color: #222; font-weight: 600; line-height: 1.4; }
+    .badge { display: inline-block; padding: 5px 10px; border-radius: 7px; font-size: 0.83rem; font-weight: 700; }
+    .badge-status-в_работе { background: #e3f2fd; color: #1976d2; }
+    .badge-status-завершена { background: #c8e6c9; color: #388e3c; }
+    .badge-status-на_проверке { background: #fff3e0; color: #f57c00; }
+    .badge-status-отложена { background: #f3e5f5; color: #7b1fa2; }
+    .badge-priority-низкий { background: #e8f5e9; color: #2e7d32; }
+    .badge-priority-средний { background: #e3f2fd; color: #1565c0; }
+    .badge-priority-высокий { background: #fff3e0; color: #e65100; }
+    .badge-priority-критический { background: #ffebee; color: #c62828; }
+    .description-box { background: #f8fafc; border: 1px solid #edf2f7; border-radius: 10px; padding: 14px; line-height: 1.6; white-space: pre-wrap; color: #475569; }
+    .chain-list { display: grid; gap: 8px; }
+    .chain-item { border: 1px solid #eceff3; border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; gap: 10px; align-items: center; background: #fafafa; }
+    .chain-item.active { border-color: #93c5fd; background: #eff6ff; }
+    .chain-item.completed { border-color: #86efac; background: #f0fdf4; }
+    .chain-state { font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase; }
     .upload-area {
-        border: 2px dashed #ddd;
-        border-radius: 8px;
-        padding: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: #fafafa;
+        border: 2px dashed #d5dbe3; border-radius: 10px; padding: 18px; text-align: center; cursor: pointer; margin-bottom: 14px; background: #fafafa;
     }
-
-    .upload-area:hover {
-        border-color: var(--primary);
-        background: rgba(231,111,81,0.02);
-    }
-
-    .upload-area i {
-        font-size: 2em;
-        color: var(--primary);
-        margin-bottom: 8px;
-    }
-
-    .upload-area p {
-        margin: 4px 0 0 0;
-        color: #666;
-        font-size: 0.9em;
-    }
-
-    #fileInput {
-        display: none;
-    }
-
-    .task-sidebar {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .sidebar-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-    }
-
-    .sidebar-card h3 {
-        margin: 0 0 16px 0;
-        font-size: 0.95em;
-        color: var(--secondary);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
+    .upload-area:hover { border-color: var(--primary); background: #fff; }
+    #fileInput { display: none; }
+    .hint { border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; font-size: 0.9rem; }
+    .hint.warn { background: #fff7ed; color: #c2410c; }
+    .hint.ok { background: #ecfdf3; color: #166534; }
+    .attachments-grid { display: grid; gap: 12px; }
+    .attachment-card { border: 1px solid #eceff3; border-radius: 10px; padding: 12px; background: #fff; }
+    .attachment-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+    .attachment-name { color: var(--primary); text-decoration: none; font-weight: 600; word-break: break-all; }
+    .attachment-name:hover { text-decoration: underline; }
+    .attachment-meta { color: #64748b; font-size: 0.82rem; }
+    .attachment-preview { margin-top: 8px; border: 1px solid #edf2f7; border-radius: 8px; overflow: hidden; background: #f8fafc; }
+    .attachment-preview img { width: 100%; max-height: 240px; object-fit: contain; display: block; }
+    .attachment-preview iframe { width: 100%; height: 240px; border: 0; display: block; background: white; }
+    .sidebar-stack { display: flex; flex-direction: column; gap: 14px; align-self: start; }
+    .status-banner { border-left: 4px solid var(--primary); background: rgba(231,111,81,0.05); border-radius: 8px; padding: 12px; color: #475569; }
     .action-button {
-        width: 100%;
-        padding: 12px 16px;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 0.95em;
-        margin-bottom: 8px;
+        width: 100%; border: none; border-radius: 8px; padding: 11px 12px; color: #fff; font-weight: 700; cursor: pointer; margin-bottom: 8px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
     }
-
-    .action-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(231,111,81,0.3);
-    }
-
-    .action-button:active {
-        transform: translateY(0);
-    }
-
-    .action-button.secondary {
-        background: transparent;
-        border: 1px solid #ddd;
-        color: #555;
-    }
-
-    .action-button.secondary:hover {
-        background: #f9f9f9;
-        border-color: var(--primary);
-        color: var(--primary);
-        box-shadow: none;
-    }
-
-    .action-button.danger {
-        background: #e63946;
-    }
-
-    .action-button.danger:hover {
-        background: #d62828;
-        box-shadow: 0 4px 16px rgba(230,57,70,0.3);
-    }
-
-    .action-button.success {
-        background: #4caf50;
-    }
-
-    .action-button.success:hover {
-        background: #45a049;
-        box-shadow: 0 4px 16px rgba(76,175,80,0.3);
-    }
-
-    .action-button.warning {
-        background: #ff9800;
-    }
-
-    .action-button.warning:hover {
-        background: #e68900;
-        box-shadow: 0 4px 16px rgba(255,152,0,0.3);
-    }
-
-    .info-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .info-item {
-        padding: 12px;
-        background: #f9f9f9;
-        border-radius: 6px;
-        border-left: 3px solid var(--primary);
-    }
-
-    .info-item-label {
-        font-size: 0.8em;
-        color: #999;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-    }
-
-    .info-item-value {
-        font-size: 1.05em;
-        color: var(--secondary);
-        font-weight: 600;
-        margin-top: 4px;
-    }
-
-    .status-banner {
-        padding: 16px;
-        border-radius: 8px;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border-left: 4px solid var(--primary);
-        background: rgba(231,111,81,0.02);
-    }
-
-    .status-banner i {
-        font-size: 1.3em;
-        color: var(--primary);
-    }
-
-    .status-banner p {
-        margin: 0;
-        color: #555;
-    }
-
-    .form-group {
-        margin-bottom: 16px;
-    }
-
-    .form-group label {
-        display: block;
-        font-size: 0.9em;
-        color: #666;
-        font-weight: 600;
-        margin-bottom: 8px;
-    }
-
-    .form-group input[type="date"] {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 0.9em;
-    }
-
-    .form-group input[type="date"]:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(231,111,81,0.1);
-    }
-
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 2000;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal.active {
-        display: flex;
-    }
-
-    .modal-content {
-        background: white;
-        padding: 28px;
-        border-radius: 12px;
-        max-width: 400px;
-        width: 90%;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    }
-
-    .modal-header {
-        margin-bottom: 20px;
-    }
-
-    .modal-header h2 {
-        margin: 0;
-        font-size: 1.3em;
-        color: var(--secondary);
-    }
-
-    .modal-body {
-        margin-bottom: 20px;
-    }
-
-    .modal-footer {
-        display: flex;
-        gap: 10px;
-    }
-
-    .modal-footer button {
-        flex: 1;
-        padding: 10px 16px;
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .modal-footer .btn-primary {
-        background: var(--primary);
-        color: white;
-    }
-
-    .modal-footer .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(231,111,81,0.3);
-    }
-
-    .modal-footer .btn-secondary {
-        background: #f0f0f0;
-        color: #555;
-    }
-
-    .modal-footer .btn-secondary:hover {
-        background: #e0e0e0;
+    .action-button.secondary { background: #f1f5f9; color: #334155; }
+    .action-button.warning { background: #f59e0b; }
+    .action-button.success { background: #16a34a; }
+    .action-button.danger { background: #dc2626; }
+    .mini-label { color: #6b7280; font-size: 0.78rem; text-transform: uppercase; font-weight: 700; }
+    .mini-value { margin-top: 4px; font-weight: 700; color: #1e293b; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: #fff; border-radius: 12px; width: 92%; max-width: 420px; padding: 20px; }
+    .modal-footer { display: flex; gap: 8px; margin-top: 12px; }
+    .modal-footer button { flex: 1; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-weight: 700; }
+    .btn-secondary { background: #f1f5f9; color: #334155; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    @media (max-width: 1024px) {
+        .task-layout { grid-template-columns: 1fr; }
+        .task-topbar { flex-direction: column; }
+        .meta-grid { grid-template-columns: 1fr; }
     }
 </style>
 
-<div class="task-detail-header">
-    <div class="breadcrumb">
-        <a href="{% url 'manager_tasks' %}">← Назад к задачам</a>
-    </div>
-    <h1>{{ task.name }}</h1>
-</div>
-
-<div class="task-detail-grid">
-    <!-- Main content -->
-    <div class="task-detail-content">
-        <!-- Task info -->
-        <div class="task-section">
-            <h2><i class="fa-solid fa-info-circle"></i> Информация о задаче</h2>
-            <table class="task-meta-table">
-                <tr>
-                    <td class="task-meta-label">Проект</td>
-                    <td class="task-meta-value">{{ task.project.name }}</td>
-                </tr>
-                <tr>
-                    <td class="task-meta-label">Статус</td>
-                    <td class="task-meta-value">
-                        <span class="badge-status badge-status-{{ task.status|lower|slugify }}">
-                            {{ task.status }}
-                        </span>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="task-meta-label">Исполнитель</td>
-                    <td class="task-meta-value">{{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}</td>
-                </tr>
-                <tr>
-                    <td class="task-meta-label">Приоритет</td>
-                    <td class="task-meta-value">
-                        {% if task.priority %}
-                        <span class="badge-priority badge-priority-{{ task.priority|lower|slugify }}">
-                            {{ task.priority }}
-                        </span>
-                        {% else %}
-                        —
-                        {% endif %}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="task-meta-label">Дата сдачи</td>
-                    <td class="task-meta-value">
-                        {% if task.due_date %}
-                            {{ task.due_date|date:"d.m.Y" }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="task-meta-label">Создана</td>
-                    <td class="task-meta-value">{{ task.created_at|date:"d.m.Y H:i" }}</td>
-                </tr>
-            </table>
+<div class="task-page">
+    <div class="task-topbar">
+        <div class="task-title-wrap">
+            <a href="{{ back_to_project_tasks_url }}" class="breadcrumb-link">← Назад к задачам проекта</a>
+            <h1>{{ task.name }}</h1>
         </div>
-
-        <!-- Description -->
-        {% if task.description %}
-        <div class="task-section">
-            <h2><i class="fa-solid fa-align-left"></i> Описание</h2>
-            <div class="task-description">{{ task.description }}</div>
-        </div>
-        {% endif %}
-
-        <!-- Attachments -->
-        <div class="task-section">
-            <h2><i class="fa-solid fa-paperclip"></i> Прикрепленные файлы</h2>
-
-            {% if task.status|lower|slugify != "завершена" and task.status|lower|slugify != "на-проверке" %}
-            <form method="post" enctype="multipart/form-data" style="margin-bottom: 20px;">
-                {% csrf_token %}
-                <div class="upload-area" onclick="document.getElementById('fileInput').click();">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <p><strong>Нажмите чтобы загрузить файл</strong></p>
-                    <p style="font-size: 0.85em; color: #999; margin-top: 4px;">или перетащите файл сюда</p>
-                    <input type="file" id="fileInput" name="attachment" onchange="this.form.submit();">
-                </div>
-            </form>
-            {% elif task.status|lower|slugify == "на-проверке" %}
-            <div style="background: #fff3e0; padding: 12px; border-radius: 6px; color: #e65100; margin-bottom: 20px;">
-                <i class="fa-solid fa-info-circle"></i> Загрузка файлов запрещена. Задача на проверке.
-            </div>
-            {% elif task.status|lower|slugify == "завершена" %}
-            <div style="background: #c8e6c9; padding: 12px; border-radius: 6px; color: #388e3c; margin-bottom: 20px;">
-                <i class="fa-solid fa-check-circle"></i> Загруждача файлов запрещена. Задача завершена.
-            </div>
-            {% endif %}
-
-            {% if attachments %}
-            <div class="attachments-list">
-                {% for attachment in attachments %}
-                <div class="attachment-item">
-                    <i class="fa-solid fa-file"></i>
-                    <a href="{{ attachment.file.url }}" target="_blank">
-                        {{ attachment.file.name|slice:"20:" }}
-                    </a>
-                    <small style="color: #999;">{{ attachment.uploaded_at|date:"d.m.Y H:i" }}</small>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p style="color: #999; text-align: center; padding: 20px 0;">Нет прикрепленных файлов</p>
-            {% endif %}
+        <div class="task-top-actions">
+            <a href="{% url 'manager_edit_task' task.id %}" class="btn-link"><i class="fa-solid fa-pen"></i> Редактировать</a>
+            <a href="{% url 'manager_task_chat' task.id %}" class="btn-link"><i class="fa-solid fa-comments"></i> Чат задачи</a>
         </div>
     </div>
 
-    <!-- Sidebar -->
-    <div class="task-sidebar">
-        <!-- Status info -->
-        {% if task.status == "в работе" %}
-        <div class="status-banner">
-            <i class="fa-solid fa-hourglass-start"></i>
-            <p><strong>В работе</strong><br><small>Исполнитель выполняет задачу</small></p>
-        </div>
-        {% elif task.status == "завершена" %}
-        <div class="status-banner" style="border-left-color: #4caf50; background: rgba(76,175,80,0.02);">
-            <i class="fa-solid fa-check-circle" style="color: #4caf50;"></i>
-            <p><strong>Завершена</strong><br><small>Задача выполнена</small></p>
-        </div>
-        {% elif task.status == "на проверке" %}
-        <div class="status-banner" style="border-left-color: #ff9800; background: rgba(255,152,0,0.02);">
-            <i class="fa-solid fa-clipboard-check" style="color: #ff9800;"></i>
-            <p><strong>На проверке</strong><br><small>Ожидает вашего одобрения</small></p>
-        </div>
-        {% elif task.status == "отложена" %}
-        <div class="status-banner" style="border-left-color: #7b1fa2; background: rgba(123,31,162,0.02);">
-            <i class="fa-solid fa-pause-circle" style="color: #7b1fa2;"></i>
-            <p><strong>Отложена</strong><br><small>Задача приостановлена</small></p>
-        </div>
-        {% endif %}
+    <div class="task-layout">
+        <div>
+            <div class="card" style="margin-bottom: 14px;">
+                <h2 class="section-title"><i class="fa-solid fa-circle-info"></i> Основная информация</h2>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <div class="meta-label">Проект</div>
+                        <div class="meta-value">{{ task.project.name }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Статус</div>
+                        <div class="meta-value"><span class="badge badge-status-{{ task.status|lower|slugify }}">{{ task.status }}</span></div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Исполнители</div>
+                        <div class="meta-value">
+                            {% if task_assignees %}
+                                {% for assignee in task_assignees %}{{ assignee.first_name }} {{ assignee.last_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            {% else %}—{% endif %}
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Приоритет</div>
+                        <div class="meta-value">{% if task.priority %}<span class="badge badge-priority-{{ task.priority|lower|slugify }}">{{ task.priority }}</span>{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Срок</div>
+                        <div class="meta-value">{% if task.due_date %}{{ task.due_date|date:"d.m.Y" }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Создана</div>
+                        <div class="meta-value">{{ task.created_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Текущий этап</div>
+                        <div class="meta-value">
+                            {% if active_step %}{{ active_step.step_order }}: {{ active_step.employee.first_name }} {{ active_step.employee.last_name }}{% else %}—{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Actions -->
-        <div class="sidebar-card">
-            <h3><i class="fa-solid fa-sliders"></i> Управление</h3>
-            
+            {% if task.description %}
+            <div class="card" style="margin-bottom: 14px;">
+                <h2 class="section-title"><i class="fa-solid fa-align-left"></i> Описание</h2>
+                <div class="description-box">{{ task.description }}</div>
+            </div>
+            {% endif %}
+
+            <div class="card" style="margin-bottom: 14px;">
+                <h2 class="section-title"><i class="fa-solid fa-shuffle"></i> Цепочка этапов</h2>
+                <div class="chain-list">
+                    {% for step in chain_steps %}
+                    <div class="chain-item {% if step.step_status == 'active' %}active{% elif step.step_status == 'completed' %}completed{% endif %}">
+                        <div><strong>Этап {{ step.step_order }}:</strong> {{ step.employee.first_name }} {{ step.employee.last_name }}</div>
+                        <div class="chain-state">{% if step.step_status == 'active' %}в работе{% elif step.step_status == 'completed' %}завершен{% else %}ожидает{% endif %}</div>
+                    </div>
+                    {% empty %}
+                    <div style="color:#94a3b8;">Цепочка не задана</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="section-title"><i class="fa-solid fa-paperclip"></i> Вложения</h2>
+
+                {% if task.status|lower|slugify != "завершена" and task.status|lower|slugify != "на-проверке" %}
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click();">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p><strong>Нажмите, чтобы загрузить файл</strong></p>
+                        <p style="font-size: 0.85rem; color: #94a3b8;">или перетащите файл сюда</p>
+                        <input type="file" id="fileInput" name="attachment" onchange="this.form.submit();">
+                    </div>
+                </form>
+                {% elif task.status|lower|slugify == "на-проверке" %}
+                <div class="hint warn"><i class="fa-solid fa-info-circle"></i> Загрузка файлов запрещена: задача на проверке.</div>
+                {% elif task.status|lower|slugify == "завершена" %}
+                <div class="hint ok"><i class="fa-solid fa-check-circle"></i> Загрузка файлов запрещена: задача завершена.</div>
+                {% endif %}
+
+                {% if attachments_data %}
+                <div class="attachments-grid">
+                    {% for item in attachments_data %}
+                    <div class="attachment-card">
+                        <div class="attachment-head">
+                            <a href="{{ item.obj.file.url }}" target="_blank" class="attachment-name">{{ item.filename }}</a>
+                            <span class="attachment-meta">{{ item.obj.uploaded_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="attachment-meta">
+                            {% if item.obj.uploaded_by %}{{ item.obj.uploaded_by.first_name }} {{ item.obj.uploaded_by.last_name }}{% endif %}
+                            {% if item.obj.step_order %} • этап {{ item.obj.step_order }}{% endif %}
+                        </div>
+                        {% if item.preview_type == 'image' %}
+                        <div class="attachment-preview">
+                            <img src="{{ item.obj.file.url }}" alt="{{ item.filename }}">
+                        </div>
+                        {% elif item.preview_type == 'pdf' %}
+                        <div class="attachment-preview">
+                            <iframe src="{{ item.obj.file.url }}"></iframe>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color:#94a3b8; text-align:center; padding: 18px 0;">Нет прикрепленных файлов.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <aside class="sidebar-stack">
+            <div class="card">
+                <div class="mini-label">Срок сдачи</div>
+                <div class="mini-value">{% if task.due_date %}{{ task.due_date|date:"d.m.Y" }}{% else %}Не указан{% endif %}</div>
+            </div>
+
             {% if task.status == "в работе" %}
-                <!-- Task is in progress -->
-                <form method="post" style="margin-bottom: 8px;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="take_review">
-                    <button type="submit" class="action-button warning">
-                        <i class="fa-solid fa-eye"></i> Взять на проверку
-                    </button>
-                </form>
-                <form method="post" style="margin-bottom: 8px;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="pause_task">
-                    <button type="submit" class="action-button secondary">
-                        <i class="fa-solid fa-pause"></i> Остановить
-                    </button>
-                </form>
-                
-            {% elif task.status == "отложена" %}
-                <!-- Task is paused -->
-                <button type="button" onclick="showOpenTaskModal()" class="action-button">
-                    <i class="fa-solid fa-play"></i> Открыть и установить срок
-                </button>
-                
-            {% elif task.status == "на проверке" %}
-                <!-- Task is under review -->
-                <form method="post" style="margin-bottom: 8px;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="close_task">
-                    <button type="submit" class="action-button success">
-                        <i class="fa-solid fa-check"></i> Одобрить и закрыть
-                    </button>
-                </form>
-                <form method="post" style="margin-bottom: 0;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="pause_task">
-                    <button type="submit" class="action-button secondary">
-                        <i class="fa-solid fa-arrow-rotate-left"></i> Вернуть в работу
-                    </button>
-                </form>
-                
+            <div class="status-banner"><strong>В работе</strong><br><small>Исполнитель выполняет задачу</small></div>
             {% elif task.status == "завершена" %}
-                <p style="color: #999; text-align: center; padding: 20px 0;">
-                    <i class="fa-solid fa-check-circle" style="color: #4caf50; font-size: 2em; display: block; margin-bottom: 8px;"></i>
-                    Задача завершена
-                </p>
-                
+            <div class="status-banner" style="border-left-color:#16a34a;"><strong>Завершена</strong><br><small>Задача выполнена</small></div>
+            {% elif task.status == "на проверке" %}
+            <div class="status-banner" style="border-left-color:#f59e0b;"><strong>На проверке</strong><br><small>Ожидает вашего одобрения</small></div>
+            {% elif task.status == "отложена" %}
+            <div class="status-banner" style="border-left-color:#7b1fa2;"><strong>Отложена</strong><br><small>Задача приостановлена</small></div>
             {% endif %}
 
-            <!-- Always show close task button if not completed -->
-            {% if task.status != "завершена" %}
-            <form method="post" style="margin-top: 16px; margin-bottom: 0;">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="close_task">
-                <button type="submit" class="action-button danger">
-                    <i class="fa-solid fa-times"></i> Закрыть задачу
-                </button>
-            </form>
-            {% endif %}
-        </div>
+            <div class="card">
+                <h3 style="margin:0 0 12px 0; font-size:0.95rem; color:var(--secondary);">Управление</h3>
+                {% if task.status == "в работе" %}
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="take_review"><button type="submit" class="action-button warning">Взять на проверку</button></form>
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="pause_task"><button type="submit" class="action-button secondary">Остановить</button></form>
+                {% elif task.status == "отложена" %}
+                <button type="button" onclick="showOpenTaskModal()" class="action-button">Открыть и установить срок</button>
+                {% elif task.status == "на проверке" %}
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="close_task"><button type="submit" class="action-button success">Одобрить и закрыть</button></form>
+                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="pause_task"><button type="submit" class="action-button secondary">Вернуть в работу</button></form>
+                {% else %}
+                <p style="margin:0; color:#94a3b8;">Дополнительных действий нет.</p>
+                {% endif %}
 
-        <!-- Info sidebar -->
-        <div class="sidebar-card">
-            <h3><i class="fa-solid fa-calendar-alt"></i> Сроки</h3>
-            <div class="info-list">
-                <div class="info-item">
-                    <div class="info-item-label">Дата сдачи</div>
-                    {% if task.due_date %}
-                        <div class="info-item-value">{{ task.due_date|date:"d.m.Y" }}</div>
-                    {% else %}
-                        <div class="info-item-value" style="color: #999;">Не указана</div>
-                    {% endif %}
-                </div>
+                {% if task.status != "завершена" %}
+                <form method="post" style="margin-top: 8px;">{% csrf_token %}<input type="hidden" name="action" value="close_task"><button type="submit" class="action-button danger">Закрыть задачу</button></form>
+                {% endif %}
             </div>
-        </div>
+
+        </aside>
     </div>
 </div>
 
-<!-- Modal for reopening task with new date -->
 <div id="openTaskModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2>Открыть задачу</h2>
-        </div>
+        <h2 style="margin:0 0 12px 0; color:var(--secondary);">Открыть задачу</h2>
         <form method="post">
             {% csrf_token %}
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="newDueDate">Новая дата сдачи *</label>
-                    <input type="date" id="newDueDate" name="new_due_date" required>
-                </div>
-            </div>
+            <label for="newDueDate" style="font-weight:600; color:#64748b;">Новая дата сдачи</label>
+            <input type="date" id="newDueDate" name="new_due_date" required style="width:100%; margin-top:8px; border:1px solid #d5dbe3; border-radius:8px; padding:10px;">
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeOpenTaskModal()">Отмена</button>
-                <button type="submit" name="action" value="open_task" class="btn-primary">Открыть}</button>
+                <button type="submit" name="action" value="open_task" class="btn-primary">Открыть</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    // Modal control
-    function showOpenTaskModal() {
-        document.getElementById('openTaskModal').classList.add('active');
-    }
+    function showOpenTaskModal() { document.getElementById('openTaskModal').classList.add('active'); }
+    function closeOpenTaskModal() { document.getElementById('openTaskModal').classList.remove('active'); }
+    document.getElementById('openTaskModal')?.addEventListener('click', function(event) { if (event.target === this) closeOpenTaskModal(); });
 
-    function closeOpenTaskModal() {
-        document.getElementById('openTaskModal').classList.remove('active');
-    }
-
-    // Close modal on background click
-    document.getElementById('openTaskModal')?.addEventListener('click', function(e) {
-        if (e.target === this) closeOpenTaskModal();
-    });
-
-    // Drag and drop for file upload
     const uploadArea = document.querySelector('.upload-area');
     if (uploadArea) {
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, preventDefaults, false);
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(name) {
+            uploadArea.addEventListener(name, function(event) { event.preventDefault(); event.stopPropagation(); }, false);
         });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        uploadArea.addEventListener('drop', handleDrop, false);
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
+        uploadArea.addEventListener('drop', function(event) {
+            const files = event.dataTransfer.files;
             document.getElementById('fileInput').files = files;
-            document.querySelector('form').submit();
-        }
+            uploadArea.closest('form').submit();
+        }, false);
     }
 </script>
-
 {% endblock %}

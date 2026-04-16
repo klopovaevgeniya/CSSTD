@@ -30,7 +30,9 @@ def manager_statistics(request):
         ).values('employee').distinct().count()
     else:
         projects = Project.objects.filter(manager=employee).select_related('status', 'type')
-        all_tasks = ProjectTask.objects.filter(project__manager=employee).select_related('status', 'project', 'assigned_to')
+        all_tasks = ProjectTask.objects.filter(project__manager=employee).select_related(
+            'status', 'project', 'assigned_to'
+        ).prefetch_related('task_assignees__employee')
         team_members = ProjectParticipant.objects.filter(
             project__manager=employee
         ).values('employee').distinct().count()
@@ -194,9 +196,13 @@ def export_manager_tasks_excel(request):
     employee = Employee.objects.filter(employee_user_id=request.session.get('user_id')).first()
     
     if employee:
-        tasks = ProjectTask.objects.filter(project__manager=employee).select_related('project', 'assigned_to')
+        tasks = ProjectTask.objects.filter(project__manager=employee).select_related(
+            'project', 'assigned_to'
+        ).prefetch_related('task_assignees__employee')
     else:
-        tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user).select_related('project', 'assigned_to')
+        tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user).select_related(
+            'project', 'assigned_to'
+        ).prefetch_related('task_assignees__employee')
     
     workbook = Workbook()
     worksheet = workbook.active
@@ -230,7 +236,7 @@ def export_manager_tasks_excel(request):
         worksheet.cell(row=row, column=3).value = task.project.name if task.project else ""
         worksheet.cell(row=row, column=4).value = task.status or ""
         worksheet.cell(row=row, column=5).value = task.priority or ""
-        worksheet.cell(row=row, column=6).value = f"{task.assigned_to.last_name} {task.assigned_to.first_name}" if task.assigned_to else ""
+        worksheet.cell(row=row, column=6).value = task.get_assignees_display()
         worksheet.cell(row=row, column=7).value = task.due_date
         worksheet.cell(row=row, column=8).value = task.created_at
         worksheet.cell(row=row, column=9).value = task.updated_at

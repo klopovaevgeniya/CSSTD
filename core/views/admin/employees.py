@@ -1,7 +1,7 @@
 from django.db import connection
 from django.shortcuts import render, redirect, get_object_or_404
 from core.decorators import admin_required
-from core.models import Employee, Position, Department, Project, ProjectParticipant, ProjectTask
+from core.models import Employee, Position, Department, Project, ProjectParticipant, ProjectTask, TaskAssignee
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
@@ -205,8 +205,9 @@ def employee_delete(request, pk):
     managed_projects = Project.objects.filter(manager=employee)
     participated_projects = ProjectParticipant.objects.filter(employee=employee).select_related('project')
     assigned_tasks = ProjectTask.objects.filter(assigned_to=employee).select_related('project')
+    multi_assigned_tasks = TaskAssignee.objects.filter(employee=employee).select_related('task__project')
 
-    in_projects = managed_projects.exists() or participated_projects.exists() or assigned_tasks.exists()
+    in_projects = managed_projects.exists() or participated_projects.exists() or assigned_tasks.exists() or multi_assigned_tasks.exists()
     projects_list = set()
     if managed_projects:
         projects_list.update(managed_projects.values_list('name', flat=True))
@@ -214,12 +215,15 @@ def employee_delete(request, pk):
         projects_list.update(participated_projects.values_list('project__name', flat=True))
     if assigned_tasks:
         projects_list.update(assigned_tasks.values_list('project__name', flat=True))
+    if multi_assigned_tasks:
+        projects_list.update(multi_assigned_tasks.values_list('task__project__name', flat=True))
     projects_str = ', '.join(projects_list)
 
     if request.method == "POST":
         # Каскадное удаление связей
         Project.objects.filter(manager=employee).update(manager=None)
         ProjectTask.objects.filter(assigned_to=employee).update(assigned_to=None)
+        TaskAssignee.objects.filter(employee=employee).delete()
         ProjectParticipant.objects.filter(employee=employee).delete()
 
         # Удалить Employee (каскадно удалит связанного User благодаря on_delete=models.CASCADE)

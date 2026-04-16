@@ -17,7 +17,9 @@ def employee_profile(request):
         return redirect('access_denied')
 
     # Получаем все задачи сотрудника
-    all_tasks = ProjectTask.objects.filter(assigned_to=employee)
+    all_tasks = ProjectTask.objects.filter(
+        Q(assigned_to=employee) | Q(task_assignees__employee=employee, task_assignees__step_status__in=['active', 'completed'])
+    ).distinct()
     total_tasks = all_tasks.count()
 
     # Завершенные задачи
