@@ -3,7 +3,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from core.decorators import admin_required
 from core.models import Project, Employee, ProjectTask, Department, ProjectStatus
-from datetime import datetime, timedelta
+from decimal import Decimal
 import json
 
 
@@ -82,8 +82,15 @@ def statistics_dashboard(request):
     emp_load_counts = [e.active_task_count for e in employee_load]
     
     # Бюджет проектов
-    total_budget = sum(p.budget or 0 for p in Project.objects.all())
-    total_actual = sum(p.actual_cost or 0 for p in Project.objects.all())
+    total_budget = sum((p.budget or Decimal("0")) for p in Project.objects.all())
+    total_actual = sum((p.actual_cost or Decimal("0")) for p in Project.objects.all())
+    budget_delta = total_budget - total_actual
+    budget_usage_percent = int((total_actual / total_budget) * 100) if total_budget > 0 else 0
+    budget_usage_percent = max(0, min(budget_usage_percent, 999))
+
+    project_completion_percent = int((completed_projects / total_projects) * 100) if total_projects else 0
+    tasks_completion_percent = int((completed_tasks / total_tasks) * 100) if total_tasks else 0
+    employee_active_percent = int((active_employees / total_employees) * 100) if total_employees else 0
     
     context = {
         'total_projects': total_projects,
@@ -99,6 +106,11 @@ def statistics_dashboard(request):
         'employee_load': employee_load,
         'total_budget': f"{total_budget:,.2f}",
         'total_actual': f"{total_actual:,.2f}",
+        'budget_delta': f"{budget_delta:,.2f}",
+        'budget_usage_percent': budget_usage_percent,
+        'project_completion_percent': project_completion_percent,
+        'tasks_completion_percent': tasks_completion_percent,
+        'employee_active_percent': employee_active_percent,
         
         # Данные для графиков
         'dept_names': json.dumps(dept_names),

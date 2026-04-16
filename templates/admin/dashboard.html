@@ -1,68 +1,381 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Дашборд{% endblock %}
+{% block title %}Панель администратора{% endblock %}
 
 {% block content %}
-<div class="dashboard-header"Щ>
-    <h1 class="page-title">Панель администратора</h1>
-    <p class="dashboard-subtitle">Добро пожаловать в систему управления проектами АНО «ЦСУРТ»</p>
+<div class="dashboard-page">
+    <header class="dashboard-header">
+        <h1><i class="fa-solid fa-gauge-high"></i> Панель администратора</h1>
+        <p class="dashboard-subtitle">Ключевые показатели системы и быстрый доступ к основным разделам.</p>
+    </header>
+
+    <section class="kpi-grid">
+        <article class="kpi-card">
+            <div class="kpi-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <div>
+                <p class="kpi-label">Проекты</p>
+                <p class="kpi-value">{{ total_projects }}</p>
+                <p class="kpi-meta">Активные: {{ active_projects }} | Завершено: {{ completed_projects }}</p>
+            </div>
+        </article>
+
+        <article class="kpi-card">
+            <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+            <div>
+                <p class="kpi-label">Сотрудники</p>
+                <p class="kpi-value">{{ total_employees }}</p>
+                <p class="kpi-meta">Активные: {{ active_employees }} | Отделов: {{ total_departments }}</p>
+            </div>
+        </article>
+
+        <article class="kpi-card">
+            <div class="kpi-icon"><i class="fa-solid fa-list-check"></i></div>
+            <div>
+                <p class="kpi-label">Задачи</p>
+                <p class="kpi-value">{{ total_tasks }}</p>
+                <p class="kpi-meta">В работе: {{ in_progress_tasks }}</p>
+            </div>
+        </article>
+
+        <article class="kpi-card kpi-danger">
+            <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div>
+                <p class="kpi-label">Просроченные задачи</p>
+                <p class="kpi-value">{{ overdue_tasks }}</p>
+                <p class="kpi-meta">Требуют внимания администратора</p>
+            </div>
+        </article>
+    </section>
+
+    <section class="layout-grid">
+        <article class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-chart-line"></i> Оперативный контроль</h2>
+            </div>
+
+            <div class="progress-group">
+                <div class="progress-row">
+                    <div class="progress-title-row">
+                        <span>Активность проектов</span>
+                        <strong>{{ project_activity_percent }}%</strong>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ project_activity_percent }}%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-row">
+                    <div class="progress-title-row">
+                        <span>Активность сотрудников</span>
+                        <strong>{{ employee_activity_percent }}%</strong>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ employee_activity_percent }}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span>Проектов в работе</span>
+                    <strong>{{ active_projects }}</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Проектов завершено</span>
+                    <strong>{{ completed_projects }}</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Сотрудников активны</span>
+                    <strong>{{ active_employees }}</strong>
+                </div>
+                <div class="summary-item summary-danger">
+                    <span>Просроченные задачи</span>
+                    <strong>{{ overdue_tasks }}</strong>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-bolt"></i> Быстрые действия</h2>
+            </div>
+
+            <div class="quick-actions-grid">
+                <a href="{% url 'admin_employees' %}" class="quick-action-btn">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Сотрудники</span>
+                </a>
+                <a href="{% url 'employee_create' %}" class="quick-action-btn">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Добавить сотрудника</span>
+                </a>
+                <a href="{% url 'admin_projects' %}" class="quick-action-btn">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>Проекты</span>
+                </a>
+                <a href="{% url 'project_create' %}" class="quick-action-btn">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Создать проект</span>
+                </a>
+                <a href="{% url 'admin_statistics' %}" class="quick-action-btn">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Статистика</span>
+                </a>
+                <a href="{% url 'admin_reports' %}" class="quick-action-btn">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span>Отчеты</span>
+                </a>
+            </div>
+        </article>
+    </section>
 </div>
 
-<div class="dashboard-stats">
-    <div class="stat-card stat-projects">
-        <div class="stat-icon">
-            <i class="fa-solid fa-folder-open"></i>
-        </div>
-        <div class="stat-content">
-            <h3>Всего проектов</h3>
-            <div class="stat-number">{{ total_projects }}</div>
-        </div>
-    </div>
-    <div class="stat-card stat-active-projects">
-        <div class="stat-icon">
-            <i class="fa-solid fa-play-circle"></i>
-        </div>
-        <div class="stat-content">
-            <h3>Активных проектов</h3>
-            <div class="stat-number">{{ active_projects }}</div>
-        </div>
-    </div>
-    <div class="stat-card stat-employees">
-        <div class="stat-icon">
-            <i class="fa-solid fa-users"></i>
-        </div>
-        <div class="stat-content">
-            <h3>Всего сотрудников</h3>
-            <div class="stat-number">{{ total_employees }}</div>
-        </div>
-    </div>
-    <div class="stat-card stat-active-employees">
-        <div class="stat-icon">
-            <i class="fa-solid fa-user-check"></i>
-        </div>
-        <div class="stat-content">
-            <h3>Активных сотрудников</h3>
-            <div class="stat-number">{{ active_employees }}</div>
-        </div>
-    </div>
-</div>
+<style>
+    :root {
+        --primary: #2a9d8f;
+        --primary-dark: #1f7e73;
+        --secondary: #264653;
+        --danger: #e76f51;
+        --bg: #f3f7f9;
+        --card: #ffffff;
+        --text: #294556;
+        --line: #d9e5eb;
+    }
 
-<div class="dashboard-quick-actions">
-    <h2>Быстрый доступ</h2>
-    <div class="quick-actions-grid">
-        <a href="{% url 'admin_employees' %}" class="quick-action-btn">
-            <i class="fa-solid fa-users"></i>
-            <span>Сотрудники</span>
-        </a>
-        <a href="{% url 'admin_projects' %}" class="quick-action-btn">
-            <i class="fa-solid fa-folder-open"></i>
-            <span>Проекты</span>
-        </a>
-        <a href="{% url 'project_create' %}" class="quick-action-btn">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>Новый проект</span>
-        </a>
-    </div>
-</div>
+    .dashboard-page {
+        padding: 24px;
+        background: linear-gradient(160deg, var(--bg) 0%, #f9fcfd 100%);
+        display: grid;
+        gap: 16px;
+    }
 
+    .dashboard-header {
+        text-align: left;
+        animation: slideDownFade .45s ease;
+    }
+
+    .dashboard-header h1 {
+        margin: 0;
+        color: var(--secondary);
+        font-size: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .dashboard-header p {
+        margin: 8px 0 0;
+        color: #5f7a8a;
+        font-size: 1rem;
+    }
+
+    .kpi-grid,
+    .layout-grid {
+        animation: fadeInUp .55s ease .05s both;
+    }
+
+    @keyframes slideDownFade {
+        from { opacity: 0; transform: translateY(-16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .kpi-card {
+        background: var(--card);
+        border: 1px solid rgba(42, 157, 143, 0.14);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 8px 18px rgba(38, 70, 83, 0.08);
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .kpi-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(42, 157, 143, 0.12);
+        color: var(--primary-dark);
+        font-size: 1.1rem;
+    }
+
+    .kpi-card.kpi-danger .kpi-icon {
+        background: rgba(231, 111, 81, 0.14);
+        color: var(--danger);
+    }
+
+    .kpi-label {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.45px;
+        color: #56707f;
+        font-size: 0.73rem;
+        font-weight: 700;
+    }
+
+    .kpi-value {
+        margin: 4px 0;
+        font-size: 1.85rem;
+        color: var(--secondary);
+        font-weight: 800;
+        line-height: 1.05;
+    }
+
+    .kpi-meta {
+        margin: 0;
+        color: #607988;
+        font-size: 0.82rem;
+    }
+
+    .layout-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 6px 16px rgba(38, 70, 83, 0.07);
+    }
+
+    .panel-header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e7eef2;
+    }
+
+    .panel-header h2 {
+        margin: 0;
+        color: var(--secondary);
+        font-size: 1.04rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .progress-group {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .progress-title-row {
+        display: flex;
+        justify-content: space-between;
+        color: #506b7a;
+        font-size: 0.88rem;
+        margin-bottom: 6px;
+    }
+
+    .progress-track {
+        background: #e7eff3;
+        height: 9px;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .summary-item {
+        background: #f6fafc;
+        border: 1px solid #e2ecf2;
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #506a79;
+        font-size: 0.86rem;
+    }
+
+    .summary-item strong {
+        color: var(--secondary);
+        font-size: 1.03rem;
+    }
+
+    .summary-item.summary-danger strong {
+        color: var(--danger);
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .quick-action-btn {
+        border: 1px solid #d7e7ea;
+        border-radius: 11px;
+        padding: 12px;
+        background: #ffffff;
+        color: var(--text);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+    .quick-action-btn i {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(42, 157, 143, 0.12);
+        color: var(--primary-dark);
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        border-color: rgba(42, 157, 143, 0.35);
+        box-shadow: 0 10px 20px rgba(42, 157, 143, 0.12);
+        background: #fbfefe;
+    }
+
+    @media (max-width: 1280px) {
+        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 980px) {
+        .layout-grid,
+        .quick-actions-grid,
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-page { padding: 14px; }
+        .dashboard-header h1 { font-size: 1.55rem; }
+        .kpi-grid { grid-template-columns: 1fr; }
+    }
+</style>
 {% endblock %}
-

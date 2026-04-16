@@ -4,82 +4,72 @@
 {% block title %}Отчёты и выгрузки{% endblock %}
 
 {% block content %}
-<div class="admin-reports">
-    <div class="dashboard-header">
+<div class="reports-page">
+    <header class="reports-header">
         <h1><i class="fa-solid fa-download"></i> Отчёты и выгрузки</h1>
-        <p>Скачайте полные отчёты в различных форматах для анализа и документирования</p>
-    </div>
+        <p>Скачайте полные отчёты в нужном формате для анализа и документирования.</p>
+    </header>
 
-    <!-- ВЫГРУЗКА ОТЧЁТОВ -->
-    <section class="reports-section">
-        <div class="reports-subtitle">
-            <i class="fa-solid fa-file-export"></i> Экспорт данных
+    <section class="reports-panel">
+        <div class="panel-header">
+            <h2><i class="fa-solid fa-file-export"></i> Экспорт данных</h2>
         </div>
-        
+
         <div class="reports-grid">
-            <!-- Отчет: Проекты -->
-            <div class="report-card">
-                <div class="report-icon">
-                    <i class="fa-solid fa-folder-open"></i>
-                </div>
+            <article class="report-card">
+                <div class="report-icon"><i class="fa-solid fa-folder-open"></i></div>
                 <h3>Отчёт по проектам</h3>
-                <p class="report-desc">Полный список всех проектов со всеми показателями и статусами</p>
+                <p class="report-desc">Полный список проектов со статусами, сроками и ключевыми показателями.</p>
                 <div class="report-actions">
                     {% if excel_available %}
                     <a href="{% url 'export_projects_excel' %}" class="report-btn">
-                        <i class="fa-solid fa-download"></i> Excel
+                        <i class="fa-solid fa-file-excel"></i> Excel
                     </a>
                     {% endif %}
                     <a href="{% url 'export_projects_csv' %}" class="report-btn report-btn-secondary">
-                        <i class="fa-solid fa-download"></i> CSV
+                        <i class="fa-solid fa-file-csv"></i> CSV
                     </a>
                 </div>
-            </div>
-            
-            <!-- Отчет: Сотрудники -->
-            <div class="report-card">
-                <div class="report-icon">
-                    <i class="fa-solid fa-users"></i>
-                </div>
+            </article>
+
+            <article class="report-card">
+                <div class="report-icon"><i class="fa-solid fa-users"></i></div>
                 <h3>Отчёт по сотрудникам</h3>
-                <p class="report-desc">Информация о всех сотрудниках, их позициях и отделах</p>
+                <p class="report-desc">Список сотрудников, должностей, отделов и актуального статуса активности.</p>
                 <div class="report-actions">
                     {% if excel_available %}
                     <a href="{% url 'export_employees_excel' %}" class="report-btn">
-                        <i class="fa-solid fa-download"></i> Excel
+                        <i class="fa-solid fa-file-excel"></i> Excel
                     </a>
                     {% endif %}
                     <a href="{% url 'export_employees_csv' %}" class="report-btn report-btn-secondary">
-                        <i class="fa-solid fa-download"></i> CSV
+                        <i class="fa-solid fa-file-csv"></i> CSV
                     </a>
                 </div>
-            </div>
-            
-            <!-- Отчет: Задачи -->
-            <div class="report-card">
-                <div class="report-icon">
-                    <i class="fa-solid fa-tasks"></i>
-                </div>
+            </article>
+
+            <article class="report-card">
+                <div class="report-icon"><i class="fa-solid fa-list-check"></i></div>
                 <h3>Отчёт по задачам</h3>
-                <p class="report-desc">Детальный список всех задач с назначениями, статусами и сроками</p>
+                <p class="report-desc">Детальная выгрузка задач по проектам: статусы, приоритеты, сроки и исполнители.</p>
                 <div class="report-actions">
                     {% if excel_available %}
                     <a href="{% url 'export_tasks_excel' %}" class="report-btn">
-                        <i class="fa-solid fa-download"></i> Excel
+                        <i class="fa-solid fa-file-excel"></i> Excel
                     </a>
                     {% endif %}
                     <a href="{% url 'export_tasks_csv' %}" class="report-btn report-btn-secondary">
-                        <i class="fa-solid fa-download"></i> CSV
+                        <i class="fa-solid fa-file-csv"></i> CSV
                     </a>
                 </div>
-            </div>
+            </article>
         </div>
-        
+
         {% if not excel_available %}
         <div class="alert-box alert-info">
-            <i class="fa-solid fa-info-circle"></i>
+            <i class="fa-solid fa-circle-info"></i>
             <div>
-                <strong>Совет:</strong> Для экспорта в формате Excel установите пакет <code>openpyxl</code> с помощью команды <code>pip install openpyxl</code>
+                <strong>Подсказка:</strong> для экспорта в Excel установите <code>openpyxl</code> через <code>pip install openpyxl</code>.
             </div>
         </div>
         {% endif %}
@@ -89,106 +79,119 @@
 <style>
     :root {
         --primary: #2a9d8f;
+        --primary-dark: #1f7e73;
         --secondary: #264653;
-        --accent: #e9c46a;
-        --bg: #f4f7f8;
-        --card-bg: #ffffff;
-        --text: #264653;
+        --bg: #f2f6f8;
+        --card: #ffffff;
+        --text: #294556;
+        --line: #d8e4ea;
     }
 
-    html, body {
-        overflow-x: hidden;
+    .reports-page {
+        padding: 24px;
+        background: linear-gradient(160deg, #f2f6f8 0%, #f8fbfc 100%);
+        display: grid;
+        gap: 16px;
     }
 
-    .admin-reports {
-        padding: 32px;
+    .reports-header {
+        text-align: left;
+        animation: slideDownFade .45s ease;
     }
 
-    .dashboard-header {
-        margin-bottom: 40px;
-    }
-
-    .dashboard-header h1 {
-        margin: 0 0 8px 0;
-        font-size: 2.5em;
-        color: var(--secondary);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .dashboard-header p {
+    .reports-header h1 {
         margin: 0;
-        color: #666;
-        font-size: 1.1em;
-    }
-
-    /* ОТЧЁТЫ */
-    .reports-section {
-    }
-
-    .reports-subtitle {
-        margin: 0 0 24px 0;
         color: var(--secondary);
-        font-size: 1.2em;
+        font-size: 2rem;
         display: flex;
         align-items: center;
         gap: 10px;
-        font-weight: 600;
-        padding: 12px 16px;
-        background: rgba(42, 157, 143, 0.05);
-        border-radius: 8px;
-        border-left: 4px solid var(--primary);
+    }
+
+    .reports-header p {
+        margin: 8px 0 0;
+        color: #5c7686;
+        font-size: 1rem;
+    }
+
+    .reports-panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 6px 16px rgba(38, 70, 83, 0.07);
+        animation: fadeInUp .55s ease .05s both;
+    }
+
+    .panel-header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e7eef2;
+    }
+
+    .panel-header h2 {
+        margin: 0;
+        color: var(--secondary);
+        font-size: 1.06rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .reports-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 24px;
-        margin-bottom: 24px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
     }
 
     .report-card {
-        background: var(--card-bg);
-        padding: 28px;
+        background: #ffffff;
+        border: 1px solid rgba(42, 157, 143, 0.14);
         border-radius: 14px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(42, 157, 143, 0.05);
-        text-align: center;
-        transition: all 0.3s ease;
+        padding: 16px;
+        box-shadow: 0 8px 18px rgba(38, 70, 83, 0.08);
         display: flex;
         flex-direction: column;
+        gap: 8px;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
     }
 
     .report-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 32px rgba(42, 157, 143, 0.15);
-        border-color: rgba(42, 157, 143, 0.2);
+        transform: translateY(-3px);
+        box-shadow: 0 14px 26px rgba(42, 157, 143, 0.16);
+        border-color: rgba(42, 157, 143, 0.32);
     }
 
     .report-icon {
-        font-size: 3em;
-        color: var(--primary);
-        margin-bottom: 16px;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(42, 157, 143, 0.12);
+        color: var(--primary-dark);
+        font-size: 1.1rem;
     }
 
     .report-card h3 {
-        margin: 0 0 8px 0;
+        margin: 0;
         color: var(--secondary);
-        font-size: 1.2em;
+        font-size: 1.06rem;
     }
 
     .report-desc {
-        margin: 0 0 20px 0;
-        color: #666;
-        font-size: 0.9em;
-        flex: 1;
+        margin: 0;
+        color: #5f7887;
+        font-size: .9rem;
+        min-height: 54px;
     }
 
     .report-actions {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
 
     .report-btn {
@@ -196,110 +199,68 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-        color: white;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: #fff;
         border: none;
-        padding: 12px 24px;
+        padding: 10px 12px;
         border-radius: 10px;
         text-decoration: none;
         font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 0.95em;
-        flex: 1;
+        font-size: .9rem;
+        transition: transform .2s ease, box-shadow .2s ease;
     }
 
     .report-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(42, 157, 143, 0.35);
-    }
-
-    .report-btn:active {
-        transform: translateY(0);
+        box-shadow: 0 8px 18px rgba(42, 157, 143, 0.26);
     }
 
     .report-btn-secondary {
-        background: linear-gradient(135deg, #6c757d 0%, #868d96 100%);
+        background: linear-gradient(135deg, #5f7484 0%, #7b8f9c 100%);
     }
 
     .report-btn-secondary:hover {
-        box-shadow: 0 8px 20px rgba(108, 117, 125, 0.35);
+        box-shadow: 0 8px 18px rgba(95, 116, 132, 0.28);
     }
 
-    /* АЛЁРТЫ -->  */
     .alert-box {
-        padding: 16px 20px;
+        margin-top: 14px;
+        padding: 12px;
         border-radius: 10px;
-        border-left: 4px solid;
+        border: 1px solid rgba(37, 99, 235, 0.25);
+        background: rgba(59, 130, 246, 0.08);
         display: flex;
-        gap: 12px;
         align-items: flex-start;
-        margin-top: 24px;
-    }
-
-    .alert-box i {
-        font-size: 1.2em;
-        margin-top: 2px;
-        flex-shrink: 0;
-    }
-
-    .alert-box div {
-        flex: 1;
-    }
-
-    .alert-box p {
-        margin: 0;
-        font-size: 0.9em;
+        gap: 10px;
+        color: #1e3a8a;
+        font-size: .9rem;
     }
 
     .alert-box code {
-        background: rgba(0, 0, 0, 0.08);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.85em;
+        background: rgba(15, 23, 42, 0.08);
+        padding: 1px 6px;
+        border-radius: 6px;
     }
 
-    .alert-info {
-        background: rgba(33, 150, 243, 0.08);
-        border-left-color: #2196f3;
+    @keyframes slideDownFade {
+        from { opacity: 0; transform: translateY(-16px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    .alert-info i {
-        color: #2196f3;
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    .alert-info strong {
-        color: #1565c0;
-    }
-
-    /* АДАПТИВНОСТЬ */
-    @media (max-width: 1024px) {
-        .reports-grid {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        }
+    @media (max-width: 1200px) {
+        .reports-grid { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 768px) {
-        .admin-reports {
-            padding: 16px;
-        }
-
-        .dashboard-header h1 {
-            font-size: 1.8em;
-        }
-
-        .reports-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .report-actions {
-            flex-direction: column;
-        }
-
-        .report-btn {
-            flex: 1;
-        }
+        .reports-page { padding: 14px; }
+        .reports-header h1 { font-size: 1.55rem; }
+        .reports-grid,
+        .report-actions { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}

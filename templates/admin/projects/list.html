@@ -5,361 +5,102 @@
 <style>
     :root {
         --primary: #2a9d8f;
+        --primary-dark: #1f7e73;
         --secondary: #264653;
-        --accent: #e9c46a;
-        --bg: #f4f7f8;
+        --bg: #f2f6f8;
         --card-bg: #ffffff;
-        --text: #264653;
+        --text: #294556;
+        --line: #d8e4ea;
     }
+    html, body { overflow-x: hidden; }
+    .admin-container { padding: 24px; background: linear-gradient(160deg, var(--bg) 0%, #f8fbfc 100%); }
+    .page-header { margin-bottom: 16px; animation: slideDownFade 0.45s ease; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .page-header-main { min-width: 0; }
+    @keyframes slideDownFade { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+    .page-header h1 { margin: 0 0 8px 0; font-size: 2rem; color: var(--secondary); display: flex; align-items: center; gap: 12px; font-weight: 700; }
+    .page-header p { margin: 0; color: #666; font-size: 1.1em; }
+    .header-toolbar { margin-top: 0; display: flex; justify-content: flex-end; flex-shrink: 0; }
 
-    html, body {
-        overflow-x: hidden;
-    }
+    .btn-add { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: linear-gradient(135deg, var(--primary) 0%, rgba(42, 157, 143, 0.85) 100%); color: white; border: none; border-radius: 8px; font-size: 0.95em; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2); }
+    .btn-add:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(42, 157, 143, 0.35); }
 
-    .admin-container {
-        padding: 32px;
-        background: linear-gradient(135deg, var(--bg) 0%, #ffffff 100%);
-    }
+    .list-container { background: transparent; border: none; border-radius: 0; padding: 0; box-shadow: none; overflow: visible; animation: fadeInUp 0.6s ease 0.1s backwards; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ЗАГОЛОВОК */
-    .page-header {
-        margin-bottom: 40px;
-        animation: slideDownFade 0.5s ease;
-    }
+    .filter-panel { margin-bottom: 16px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: #ffffff; box-shadow: 0 6px 16px rgba(38, 70, 83, 0.07); display: grid; gap: 10px; grid-template-columns: 2fr 1fr 1fr 1fr auto; align-items: end; }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; }
+    .filter-group label { font-size: 0.78rem; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: .4px; }
+    .filter-panel input { border: 1px solid #cfd8dc; border-radius: 10px; padding: 10px 12px; background: #fff; font-size: 0.9rem; color: var(--text); transition: border-color .2s ease, box-shadow .2s ease; }
+    .filter-panel input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14); }
 
-    @keyframes slideDownFade {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+    .native-select-hidden { display: none !important; }
+    .ui-select { position: relative; }
+    .ui-select-trigger { width: 100%; border: 1px solid #cfd8dc; border-radius: 10px; background: #fff; color: var(--text); font-size: 0.95rem; padding: 10px 36px 10px 12px; text-align: left; cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease; }
+    .ui-select-trigger:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14); }
+    .ui-select::after { content: ''; position: absolute; right: 14px; top: 50%; width: 8px; height: 8px; border-right: 2px solid #4b5563; border-bottom: 2px solid #4b5563; transform: translateY(-60%) rotate(45deg); pointer-events: none; }
+    .ui-select.is-open::after { transform: translateY(-35%) rotate(-135deg); }
+    .ui-select-menu { position: absolute; z-index: 40; left: 0; right: 0; margin-top: 6px; background: #fff; border: 1px solid rgba(38, 70, 83, 0.18); border-radius: 12px; box-shadow: 0 14px 30px rgba(38, 70, 83, 0.14); padding: 6px; max-height: 240px; overflow-y: auto; display: none; }
+    .ui-select.is-open .ui-select-menu { display: block; }
+    .ui-select-option { display: block; width: 100%; border: 0; background: transparent; border-radius: 8px; padding: 9px 10px; text-align: left; cursor: pointer; color: var(--text); font-size: 0.95rem; }
+    .ui-select-option:hover { background: rgba(42, 157, 143, 0.1); }
+    .ui-select-option.is-selected { background: linear-gradient(135deg, var(--primary), rgba(42,157,143,0.86)); color: #fff; font-weight: 600; }
 
-    .page-header h1 {
-        margin: 0 0 8px 0;
-        font-size: 2.5em;
-        color: var(--secondary);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-weight: 700;
-    }
+    .result-meta { margin: 8px 0 14px; color: #6b7280; font-size: 0.86rem; }
+    .btn-clear { border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px; background: white; color: #374151; text-decoration: none; text-align: center; }
+    .btn-clear:hover { border-color: var(--primary); color: var(--primary); background: rgba(42,157,143,0.04); }
 
-    .page-header p {
-        margin: 0;
-        color: #666;
-        font-size: 1.1em;
-    }
+    .table-shell { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 6px 16px rgba(38, 70, 83, 0.07); }
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0; background: transparent; border-radius: 0; box-shadow: none; overflow: visible; }
+    .data-table thead { background: linear-gradient(135deg, #264653 0%, #2a9d8f 100%); }
+    .data-table th { background: transparent; padding: 14px 16px; text-align: left; font-size: .78rem; font-weight: 700; color: #ffffff; border-bottom: 2px solid rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: .35px; }
+    .data-table tr { transition: background-color 0.2s ease; }
+    .data-table tbody tr:hover { background: linear-gradient(90deg, rgba(42,157,143,0.02) 0%, rgba(42,157,143,0.05) 100%); }
+    .data-table td { padding: 16px; font-size: 0.9em; color: var(--text); border-bottom: 1px solid #edf2f4; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
 
-    .header-toolbar {
-        margin-top: 24px;
-        display: flex;
-        justify-content: flex-end;
-    }
+    .project-status-badge { display: inline-block; padding: 6px 12px; border-radius: 999px; font-size: 0.76em; font-weight: 700; color: white; }
 
-    /* КНОПКИ */
-    .btn-add {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 14px 28px;
-        background: linear-gradient(135deg, var(--primary) 0%, rgba(42, 157, 143, 0.85) 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 0.95em;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        text-decoration: none;
-        box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2);
-    }
+    .action-links { display: flex; gap: 12px; align-items: center; }
+    .action-links a { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; color: var(--primary); background: rgba(42,157,143,0.05); transition: all 0.2s ease; font-size: 0.9em; font-weight: 500; }
+    .action-links a:hover { background: rgba(42,157,143,0.15); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(42,157,143,0.2); }
+    .action-links a.delete-link { color: #f44336; background: rgba(244,67,54,0.05); }
+    .action-links a.delete-link:hover { background: rgba(244,67,54,0.15); color: #f44336; box-shadow: 0 4px 12px rgba(244,67,54,0.2); }
+    .text-muted { color: #6b7280 !important; font-size: 0.82rem !important; }
 
-    .btn-add:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 24px rgba(42, 157, 143, 0.35);
-    }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); animation: fadeIn 0.3s ease; }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal-content { background: var(--card-bg); padding: 0; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 420px; width: 90%; }
+    .modal-header { padding: 24px; border-bottom: 1px solid #e9ecef; background: linear-gradient(135deg, rgba(42,157,143,0.05) 0%, rgba(42,157,143,0.02) 100%); }
+    .modal-header h3 { margin: 0; color: var(--secondary); font-size: 1.3em; font-weight: 700; }
+    .modal-body { padding: 24px; }
+    .modal-body p { margin: 0 0 12px 0; color: var(--text); font-size: 0.95em; line-height: 1.6; }
+    .modal-footer { padding: 20px 24px; border-top: 1px solid #e9ecef; display: flex; gap: 12px; justify-content: flex-end; background: #f8f9fa; }
+    .btn { padding: 12px 24px; border: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-secondary { background: #e9ecef; color: var(--text); }
+    .btn-secondary:hover { background: #dee2e6; transform: translateY(-2px); }
+    .btn-danger { background: linear-gradient(135deg, #f44336 0%, rgba(244, 67, 54, 0.85) 100%); color: white; box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2); }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(244, 67, 54, 0.35); }
 
-    .btn-add:active {
-        transform: translateY(-1px);
-    }
-
-    /* ТАБЛИЦА КОНТЕЙНЕР */
-    .list-container {
-        background: var(--card-bg);
-        border-radius: 14px;
-        padding: 24px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(42, 157, 143, 0.1);
-        overflow-x: auto;
-        animation: fadeInUp 0.6s ease 0.1s backwards;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .data-table thead {
-        background: linear-gradient(135deg, var(--primary) 0%, rgba(42, 157, 143, 0.9) 100%);
-    }
-
-    .data-table th {
-        padding: 16px;
-        text-align: left;
-        font-size: 0.9em;
-        font-weight: 700;
-        color: #ffffff;
-        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .data-table tr {
-        transition: all 0.2s ease;
-    }
-
-    .data-table tbody tr {
-        border-bottom: 1px solid #e9ecef;
-    }
-
-    .data-table tbody tr:hover {
-        background: linear-gradient(90deg, rgba(42, 157, 143, 0.02) 0%, rgba(42, 157, 143, 0.05) 100%);
-        transform: scale(1.01);
-        box-shadow: inset 0 0 8px rgba(42, 157, 143, 0.08);
-    }
-
-    .data-table td {
-        padding: 16px;
-        font-size: 0.9em;
-        color: var(--text);
-    }
-
-    .project-status-badge {
-        display: inline-block;
-        padding: 6px 14px;
-        border-radius: 12px;
-        font-size: 0.8em;
-        font-weight: 600;
-        color: white;
-    }
-
-    .action-links {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .action-links a {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-        color: var(--primary);
-        background: rgba(42, 157, 143, 0.05);
-        transition: all 0.2s ease;
-        font-size: 0.9em;
-        font-weight: 500;
-    }
-
-    .action-links a:hover {
-        background: rgba(42, 157, 143, 0.15);
-        color: var(--primary);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2);
-    }
-
-    .action-links a.delete-link {
-        color: #f44336;
-        background: rgba(244, 67, 54, 0.05);
-    }
-
-    .action-links a.delete-link:hover {
-        background: rgba(244, 67, 54, 0.15);
-        color: #f44336;
-        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
-    }
-
-    /* МОДАЛЬНОЕ ОКНО */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        animation: fadeIn 0.3s ease;
-    }
-
-    .modal.show {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    .modal-content {
-        background: var(--card-bg);
-        padding: 0;
-        border-radius: 12px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        max-width: 420px;
-        width: 90%;
-        animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    @keyframes scaleUp {
-        from {
-            opacity: 0;
-            transform: scale(0.9);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    .modal-header {
-        padding: 24px;
-        border-bottom: 1px solid #e9ecef;
-        background: linear-gradient(135deg, rgba(42, 157, 143, 0.05) 0%, rgba(42, 157, 143, 0.02) 100%);
-    }
-
-    .modal-header h3 {
-        margin: 0;
-        color: var(--secondary);
-        font-size: 1.3em;
-        font-weight: 700;
-    }
-
-    .modal-body {
-        padding: 24px;
-    }
-
-    .modal-body p {
-        margin: 0 0 12px 0;
-        color: var(--text);
-        font-size: 0.95em;
-        line-height: 1.6;
-    }
-
-    .modal-body p:last-child {
-        margin-bottom: 0;
-    }
-
-    .text-muted {
-        color: #999 !important;
-        font-size: 0.85em !important;
-    }
-
-    .modal-footer {
-        padding: 20px 24px;
-        border-top: 1px solid #e9ecef;
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-        background: #f8f9fa;
-    }
-
-    .btn {
-        padding: 12px 24px;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.9em;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .btn-secondary {
-        background: #e9ecef;
-        color: var(--text);
-    }
-
-    .btn-secondary:hover {
-        background: #dee2e6;
-        transform: translateY(-2px);
-    }
-
-    .btn-danger {
-        background: linear-gradient(135deg, #f44336 0%, rgba(244, 67, 54, 0.85) 100%);
-        color: white;
-        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
-    }
-
-    .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(244, 67, 54, 0.35);
-    }
-
+    @media (max-width: 980px) { .filter-panel { grid-template-columns: 1fr; } }
     @media (max-width: 768px) {
-        .admin-container {
-            padding: 16px;
-        }
-
-        .page-header {
-            margin-bottom: 24px;
-        }
-
-        .page-header h1 {
-            font-size: 1.8em;
-        }
-
-        .header-toolbar {
-            margin-top: 16px;
-        }
-
-        .list-container {
-            padding: 16px;
-            overflow-x: auto;
-        }
-
-        .data-table {
-            font-size: 0.8em;
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 12px;
-        }
-
-        .action-links a {
-            width: 32px;
-            height: 32px;
-        }
+        .admin-container { padding: 16px; }
+        .page-header { margin-bottom: 16px; flex-direction: column; align-items: stretch; }
+        .page-header h1 { font-size: 1.8em; }
+        .header-toolbar { margin-top: 8px; }
+        .list-container { padding: 0; overflow-x: auto; }
+        .data-table { font-size: 0.8em; }
+        .data-table th, .data-table td { padding: 12px; }
+        .action-links a { width: 32px; height: 32px; }
     }
 </style>
 
 <div class="admin-container">
     <div class="page-header">
-        <h1><i class="fa-solid fa-folder"></i> Управление проектами</h1>
-        <p>Полное управление проектами и их статусами</p>
+        <div class="page-header-main">
+            <h1><i class="fa-solid fa-folder"></i> Управление проектами</h1>
+            <p>Полное управление проектами и их статусами</p>
+        </div>
         <div class="header-toolbar">
             <a href="{% url 'project_create' %}" class="btn-add">
                 <i class="fa-solid fa-plus"></i> Добавить проект
@@ -368,100 +109,91 @@
     </div>
 
     <div class="list-container">
-        <!-- Поиск и фильтрация (улучшено) -->
-        <form method="get" class="project-filter-form" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #f8f9fa; border-radius: 10px; padding: 12px 18px; box-shadow: 0 2px 8px rgba(42,157,143,0.07);">
-            <input type="text" name="q" id="q" value="{{ search_query }}" placeholder="Поиск по названию..." title="Поиск по названию проекта" style="padding:8px 12px; border-radius:6px; border:1px solid #ccc; min-width:180px; flex:1;" />
-            <select name="status" id="status" title="Статус" style="padding:8px 12px; border-radius:6px; border:1px solid #ccc; min-width:120px;">
-                <option value="">Статус</option>
-                {% for s in statuses %}
+        <form method="get" id="projectFilterForm" class="filter-panel">
+            <div class="filter-group">
+                <label for="q">Поиск</label>
+                <input type="text" name="q" id="q" value="{{ search_query }}" placeholder="Название, описание, руководитель...">
+            </div>
+            <div class="filter-group">
+                <label for="status">Статус</label>
+                <select name="status" id="status" class="js-styled-select">
+                    <option value="">Все</option>
+                    {% for s in statuses %}
                     <option value="{{ s.id }}" {% if status_id == s.id|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>
-                {% endfor %}
-            </select>
-            <select name="type" id="type" title="Тип" style="padding:8px 12px; border-radius:6px; border:1px solid #ccc; min-width:120px;">
-                <option value="">Тип</option>
-                {% for t in types %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="type">Тип</label>
+                <select name="type" id="type" class="js-styled-select">
+                    <option value="">Все</option>
+                    {% for t in types %}
                     <option value="{{ t.id }}" {% if type_id == t.id|stringformat:'s' %}selected{% endif %}>{{ t.name }}</option>
-                {% endfor %}
-            </select>
-            <select name="manager" id="manager" title="Руководитель" style="padding:8px 12px; border-radius:6px; border:1px solid #ccc; min-width:120px;">
-                <option value="">Руководитель</option>
-                {% for m in managers %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="manager">Руководитель</label>
+                <select name="manager" id="manager" class="js-styled-select">
+                    <option value="">Все</option>
+                    {% for m in managers %}
                     <option value="{{ m.id }}" {% if manager_id == m.id|stringformat:'s' %}selected{% endif %}>{{ m.last_name }} {{ m.first_name }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn" title="Найти" style="background:var(--primary);color:white;padding:8px 16px;display:flex;align-items:center;gap:6px;">
-                <i class="fa fa-search"></i>
-            </button>
-            <a href="?" class="btn btn-secondary" title="Сбросить фильтр" style="padding:8px 16px;display:flex;align-items:center;gap:6px;">
-                <i class="fa fa-times"></i>
-            </a>
+                    {% endfor %}
+                </select>
+            </div>
+            <a class="btn-clear" href="{% url 'admin_projects' %}">Сброс</a>
         </form>
+        <div class="result-meta">Найдено проектов: <strong>{{ projects_count }}</strong></div>
 
-        <style>
-        @media (max-width: 900px) {
-            .project-filter-form {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-            .project-filter-form input,
-            .project-filter-form select {
-                min-width: 100%;
-            }
-        }
-        </style>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Название проекта</th>
-                    <th>Статус</th>
-                    <th>Тип</th>
-                    <th>Руководитель</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in projects %}
-                <tr>
-                    <td><strong>{{ p.name }}</strong></td>
-                    <td>
-                        <span class="project-status-badge" style="background-color: {{ p.status.color_code|default:'#999' }};">{{ p.status.name }}</span>
-                    </td>
-                    <td>{{ p.type.name }}</td>
-                    <td>{% if p.manager %}<strong>{{ p.manager.last_name }} {{ p.manager.first_name }}</strong>{% else %}<span style="color: #999;">Не назначен</span>{% endif %}</td>
-                    <td>
-                        <div class="action-links">
-                            <a href="{% url 'project_detail' p.id %}" title="Просмотр" class="view-link">
-                                <i class="fa-solid fa-eye"></i>
-                            </a>
-                            <a href="{% url 'project_edit' p.id %}" title="Редактировать" class="edit-link">
-                                <i class="fa-solid fa-edit"></i>
-                            </a>
-                            <a href="#" onclick="openDeleteModal({{ p.id }}, '{{ p.name }}')" title="Удалить" class="delete-link">
-                                <i class="fa-solid fa-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
-                        <i class="fa-solid fa-inbox" style="font-size: 2em; margin-bottom: 12px;"></i><br>
-                        Нет проектов
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-shell">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Название проекта</th>
+                        <th>Статус</th>
+                        <th>Тип</th>
+                        <th>Руководитель</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in projects %}
+                    <tr>
+                        <td><strong>{{ p.name }}</strong></td>
+                        <td>
+                            {% if p.status %}
+                            <span class="project-status-badge" style="background-color: {{ p.status.color_code|default:'#999' }};">{{ p.status.name }}</span>
+                            {% else %}
+                            <span class="text-muted">Не указан</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.type.name|default:"Не указан" }}</td>
+                        <td>{% if p.manager %}<strong>{{ p.manager.last_name }} {{ p.manager.first_name }}</strong>{% else %}<span class="text-muted">Не назначен</span>{% endif %}</td>
+                        <td>
+                            <div class="action-links">
+                                <a href="{% url 'project_detail' p.id %}" title="Просмотр" class="view-link"><i class="fa-solid fa-eye"></i></a>
+                                <a href="{% url 'project_edit' p.id %}" title="Редактировать" class="edit-link"><i class="fa-solid fa-edit"></i></a>
+                                <a href="#" onclick="openDeleteModal({{ p.id }}, '{{ p.name }}')" title="Удалить" class="delete-link"><i class="fa-solid fa-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                            <i class="fa-solid fa-inbox" style="font-size: 2em; margin-bottom: 12px;"></i><br>
+                            Нет проектов
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<!-- Delete Modal -->
 <div id="deleteModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>Удаление проекта</h3>
-        </div>
+        <div class="modal-header"><h3>Удаление проекта</h3></div>
         <div class="modal-body">
             <p>Вы уверены, что хотите удалить проект <strong id="projectName"></strong>?</p>
             <p class="text-muted">Это действие нельзя отменить.</p>
@@ -470,9 +202,7 @@
             <button class="btn btn-secondary" onclick="closeDeleteModal()">Отмена</button>
             <form id="deleteForm" method="post" style="display: inline;">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger">
-                    <i class="fa-solid fa-trash"></i> Удалить
-                </button>
+                <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Удалить</button>
             </form>
         </div>
     </div>
@@ -484,16 +214,100 @@ function openDeleteModal(projectId, projectName) {
     document.getElementById('deleteForm').action = "{% url 'project_delete' 0 %}".replace('0', projectId);
     document.getElementById('deleteModal').classList.add('show');
 }
-
 function closeDeleteModal() {
     document.getElementById('deleteModal').classList.remove('show');
 }
-
-// Close modal when clicking outside
 document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDeleteModal();
-    }
+    if (e.target === this) closeDeleteModal();
 });
+
+(function () {
+    function initStyledSelects() {
+        const selects = document.querySelectorAll('select.js-styled-select');
+        const opened = new Set();
+
+        function closeAll(except) {
+            opened.forEach(function (node) {
+                if (node !== except) {
+                    node.classList.remove('is-open');
+                    opened.delete(node);
+                }
+            });
+        }
+
+        selects.forEach(function (select) {
+            if (select.dataset.enhanced === '1') return;
+            select.dataset.enhanced = '1';
+            select.classList.add('native-select-hidden');
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'ui-select';
+            const trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = 'ui-select-trigger';
+            const menu = document.createElement('div');
+            menu.className = 'ui-select-menu';
+
+            function render() {
+                const selectedOption = select.options[select.selectedIndex];
+                trigger.textContent = selectedOption ? selectedOption.textContent : 'Выберите';
+                menu.innerHTML = '';
+                Array.from(select.options).forEach(function (option) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'ui-select-option' + (option.selected ? ' is-selected' : '');
+                    btn.textContent = option.textContent;
+                    btn.addEventListener('click', function () {
+                        select.value = option.value;
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                        wrapper.classList.remove('is-open');
+                        opened.delete(wrapper);
+                        render();
+                    });
+                    menu.appendChild(btn);
+                });
+            }
+
+            trigger.addEventListener('click', function () {
+                const willOpen = !wrapper.classList.contains('is-open');
+                closeAll(wrapper);
+                wrapper.classList.toggle('is-open', willOpen);
+                if (willOpen) opened.add(wrapper); else opened.delete(wrapper);
+            });
+
+            select.addEventListener('change', render);
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(menu);
+            wrapper.appendChild(select);
+            render();
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.ui-select')) closeAll(null);
+        });
+    }
+
+    initStyledSelects();
+
+    const form = document.getElementById('projectFilterForm');
+    if (!form) return;
+    const qInput = document.getElementById('q');
+    const selectIds = ['status', 'type', 'manager'];
+    let timer = null;
+
+    if (qInput) {
+        qInput.addEventListener('input', function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () { form.submit(); }, 350);
+        });
+    }
+
+    selectIds.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('change', function () { form.submit(); });
+    });
+})();
 </script>
 {% endblock %}

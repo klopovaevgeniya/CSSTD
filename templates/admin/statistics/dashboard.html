@@ -4,690 +4,583 @@
 {% block title %}Статистика и аналитика{% endblock %}
 
 {% block content %}
-<div class="admin-dashboard">
-    <div class="dashboard-header">
-        <h1><i class="fa-solid fa-chart-bar"></i> Статистика и аналитика</h1>
-        <p>Полный обзор всех процессов в системе</p>
-    </div>
+<div class="stats-page">
+    <header class="stats-header">
+        <div>
+            <h1><i class="fa-solid fa-chart-column"></i> Статистика и аналитика</h1>
+            <p>Ключевые показатели, загрузка команды и структура проектов в одном экране.</p>
+        </div>
+    </header>
 
-    <div class="dashboard-content">
-    
-        <!-- ОСНОВНАЯ СТАТИСТИКА -->
-        <section class="stats-section">
-            <div class="stats-grid stats-primary">
-                <div class="stat-card stat-card-primary">
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-folder"></i>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Всего проектов</p>
-                        <div class="stat-number">{{ total_projects }}</div>
-                        <p class="stat-detail">
-                            <span class="badge badge-active">Активных: {{ active_projects }}</span>
-                            <span class="badge badge-completed">Завершено: {{ completed_projects }}</span>
-                        </p>
-                    </div>
+    <section class="kpi-grid">
+        <article class="kpi-card">
+            <div class="kpi-icon"><i class="fa-solid fa-folder-tree"></i></div>
+            <div>
+                <p class="kpi-label">Проекты</p>
+                <p class="kpi-value">{{ total_projects }}</p>
+                <p class="kpi-meta">Активные: {{ active_projects }} | Завершено: {{ completed_projects }} ({{ project_completion_percent }}%)</p>
+            </div>
+        </article>
+
+        <article class="kpi-card">
+            <div class="kpi-icon"><i class="fa-solid fa-list-check"></i></div>
+            <div>
+                <p class="kpi-label">Задачи</p>
+                <p class="kpi-value">{{ total_tasks }}</p>
+                <p class="kpi-meta">Выполнено: {{ completed_tasks }} ({{ tasks_completion_percent }}%) | В работе: {{ in_progress_tasks }}</p>
+            </div>
+        </article>
+
+        <article class="kpi-card">
+            <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+            <div>
+                <p class="kpi-label">Сотрудники</p>
+                <p class="kpi-value">{{ total_employees }}</p>
+                <p class="kpi-meta">Активные: {{ active_employees }} ({{ employee_active_percent }}%)</p>
+            </div>
+        </article>
+
+        <article class="kpi-card kpi-alert">
+            <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div>
+                <p class="kpi-label">Просроченные задачи</p>
+                <p class="kpi-value">{{ overdue_tasks }}</p>
+                <p class="kpi-meta">Требуют приоритезации и контроля сроков</p>
+            </div>
+        </article>
+    </section>
+
+    <section class="section-grid section-budget-workload">
+        <article class="panel budget-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-wallet"></i> Финансы</h2>
+            </div>
+            <div class="budget-tiles">
+                <div class="budget-tile budget-tile-positive">
+                    <p>Плановый бюджет</p>
+                    <strong>{{ total_budget }} ₽</strong>
                 </div>
-
-                <div class="stat-card stat-card-primary">
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Сотрудники</p>
-                        <div class="stat-number">{{ total_employees }}</div>
-                        <p class="stat-detail">Активных: {{ active_employees }}</p>
-                    </div>
+                <div class="budget-tile budget-tile-neutral">
+                    <p>Фактические затраты</p>
+                    <strong>{{ total_actual }} ₽</strong>
                 </div>
-
-                <div class="stat-card stat-card-primary">
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-tasks"></i>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Всего задач</p>
-                        <div class="stat-number">{{ total_tasks }}</div>
-                        <p class="stat-detail">
-                            <span class="badge badge-done">Выполнено: {{ completed_tasks }}</span>
-                            <span class="badge badge-active">В работе: {{ in_progress_tasks }}</span>
-                        </p>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-card-primary">
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-alarm-clock"></i>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Просроченные</p>
-                        <div class="stat-number">{{ overdue_tasks }}</div>
-                        <p class="stat-detail">Требуют внимания</p>
-                    </div>
+                <div class="budget-tile {% if budget_delta|slice:':1' == '-' %}budget-tile-negative{% else %}budget-tile-positive{% endif %}">
+                    <p>Отклонение</p>
+                    <strong>{{ budget_delta }} ₽</strong>
                 </div>
             </div>
-        </section>
-
-        <!-- ФИНАНСОВЫЕ ПОКАЗАТЕЛИ -->
-        <section class="budget-section">
-            <h2><i class="fa-solid fa-money-bill-wave"></i> Финансовые показатели</h2>
-            <div class="budget-cards">
-                <div class="budget-card budget-card-budget">
-                    <div class="budget-icon"><i class="fa-solid fa-piggy-bank"></i></div>
-                    <div class="budget-content">
-                        <p class="budget-label">Общий бюджет</p>
-                        <p class="budget-amount">{{ total_budget }} ₽</p>
-                    </div>
+            <div class="progress-block">
+                <div class="progress-head">
+                    <span>Использование бюджета</span>
+                    <span>{{ budget_usage_percent }}%</span>
                 </div>
-
-                <div class="budget-card budget-card-cost">
-                    <div class="budget-icon"><i class="fa-solid fa-receipt"></i></div>
-                    <div class="budget-content">
-                        <p class="budget-label">Реальные затраты</p>
-                        <p class="budget-amount">{{ total_actual }} ₽</p>
-                    </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: {% if budget_usage_percent > 100 %}100{% else %}{{ budget_usage_percent }}{% endif %}%;"></div>
                 </div>
             </div>
-        </section>
-    
-        <!-- ГРАФИКИ И ДИАГРАММЫ -->
-        <section class="charts-section">
-            <h2><i class="fa-solid fa-chart-line"></i> Графики и диаграммы</h2>
-            
-            <div class="charts-grid">
-                <!-- График: Распределение по отделам -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3><i class="fa-solid fa-building"></i> Распределение по отделам</h3>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="departmentsChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- График: Статусы проектов -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3><i class="fa-solid fa-folder-open"></i> Проекты по статусам</h3>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="projectStatusChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- График: Приоритеты задач -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3><i class="fa-solid fa-flag"></i> Задачи по приоритетам</h3>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="priorityChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- График: Статусы задач -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3><i class="fa-solid fa-list-check"></i> Задачи по статусам</h3>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-            </div>
+        </article>
 
-            <!-- График: Загрузка сотрудников (полная ширина) -->
-            <div class="chart-container full-width" style="margin-top: 24px;">
-                <div class="chart-header">
-                    <h3><i class="fa-solid fa-person-hiking"></i> Загрузка сотрудников (активные задачи)</h3>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="employeeLoadChart"></canvas>
-                    </div>
-                </div>
+        <article class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-people-group"></i> Загрузка сотрудников</h2>
             </div>
-        </section>
+            <div class="chart-box chart-box-tall">
+                <canvas id="employeeLoadChart"></canvas>
+            </div>
+        </article>
+    </section>
 
-        <!-- ТАБЛИЦЫ И ИНФОРМАЦИЯ -->
-        <section class="tables-section">
-            <h2><i class="fa-solid fa-table"></i> Информация в реальном времени</h2>
-            
-            <div class="tables-grid">
-                <!-- Топ сотрудников по задачам -->
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3><i class="fa-solid fa-ranking-star"></i> Топ сотрудников</h3>
-                    </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ФИО</th>
-                                <th>Должность</th>
-                                <th>Задач</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for employee in top_employees %}
-                            <tr>
-                                <td>{{ employee.last_name }} {{ employee.first_name }}</td>
-                                <td>{{ employee.position.name|default:"—" }}</td>
-                                <td><span class="badge badge-primary">{{ employee.task_count }}</span></td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" style="text-align: center; color: #999;">Нет данных</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Финансовая статистика -->
-                <div class="stats-card-detailed">
-                    <div class="table-header">
-                        <h3><i class="fa-solid fa-chart-pie"></i> Финансовая статистика</h3>
-                    </div>
-                    <div class="stats-rows">
-                        <div class="stats-row-item">
-                            <span class="stats-row-label">Завершено проектов:</span>
-                            <span class="stats-row-value">{{ completed_projects }}</span>
-                        </div>
-                        <div class="stats-row-item">
-                            <span class="stats-row-label">Завершено задач:</span>
-                            <span class="stats-row-value">{{ completed_tasks }}</span>
-                        </div>
-                        <div class="stats-row-item">
-                            <span class="stats-row-label">Активных проектов:</span>
-                            <span class="stats-row-value">{{ active_projects }}</span>
-                        </div>
-                        <div class="stats-row-item">
-                            <span class="stats-row-label">Активных задач:</span>
-                            <span class="stats-row-value">{{ in_progress_tasks }}</span>
-                        </div>
-                    </div>
-                </div>
+    <section class="section-grid section-main-charts">
+        <article class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-diagram-project"></i> Статусы проектов</h2>
             </div>
-        </section>
-    </div>
+            <div class="chart-box">
+                <canvas id="projectStatusChart"></canvas>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-chart-bar"></i> Статусы задач</h2>
+            </div>
+            <div class="chart-box">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <section class="section-grid section-secondary">
+        <article class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-building"></i> Отделы</h2>
+            </div>
+            <div class="chart-box">
+                <canvas id="departmentsChart"></canvas>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-flag"></i> Приоритеты задач</h2>
+            </div>
+            <div class="chart-box">
+                <canvas id="priorityChart"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <section class="section-grid section-secondary">
+        <article class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-ranking-star"></i> Топ сотрудников по задачам</h2>
+            </div>
+            <div class="table-shell">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Сотрудник</th>
+                            <th>Должность</th>
+                            <th>Задач</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee in top_employees %}
+                        <tr>
+                            <td>{{ employee.last_name }} {{ employee.first_name }}</td>
+                            <td>{{ employee.position.name|default:'—' }}</td>
+                            <td><span class="badge-pill">{{ employee.task_count }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="empty-cell">Нет данных для отображения</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="panel summary-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-gauge-high"></i> Сводка</h2>
+            </div>
+            <div class="summary-list">
+                <div class="summary-item"><span>Проектов завершено</span><strong>{{ completed_projects }}</strong></div>
+                <div class="summary-item"><span>Задач завершено</span><strong>{{ completed_tasks }}</strong></div>
+                <div class="summary-item"><span>Активных проектов</span><strong>{{ active_projects }}</strong></div>
+                <div class="summary-item"><span>Активных задач</span><strong>{{ in_progress_tasks }}</strong></div>
+                <div class="summary-item"><span>Просроченных задач</span><strong class="danger-value">{{ overdue_tasks }}</strong></div>
+            </div>
+        </article>
+    </section>
 </div>
 
-<!-- Chart.js библиотека -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    const chartColors = {
-        primary: '#366092',
-        success: '#28a745',
-        danger: '#dc3545',
-        warning: '#ffc107',
-        info: '#17a2b8',
-        light: '#e9ecef',
-        dark: '#343a40'
+(function () {
+    const palette = {
+        primary: '#2a9d8f',
+        primaryDark: '#1f7e73',
+        secondary: '#264653',
+        success: '#2e7d32',
+        warning: '#f4a261',
+        danger: '#e76f51',
+        info: '#3a86a8',
+        gray: '#8fa4b2'
     };
-    
-    // График: Отделы
-    const deptCtx = document.getElementById('departmentsChart').getContext('2d');
-    new Chart(deptCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {{ dept_names|safe }},
-            datasets: [{
-                data: {{ dept_counts|safe }},
-                backgroundColor: [
-                    '#366092', '#5b8fc7', '#8ab4f8', '#c1d3e0', 
-                    '#d4a574', '#9b7653', '#6c8aa1', '#a89968'
-                ],
-                borderColor: '#fff',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-    
-    // График: Статусы проектов
-    const projStatusCtx = document.getElementById('projectStatusChart').getContext('2d');
-    new Chart(projStatusCtx, {
-        type: 'pie',
-        data: {
-            labels: {{ project_status_labels|safe }},
-            datasets: [{
-                data: {{ project_status_counts|safe }},
-                backgroundColor: [
-                    '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6c757d'
-                ],
-                borderColor: '#fff',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-    
-    // График: Приоритеты
-    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-    new Chart(priorityCtx, {
-        type: 'bar',
-        data: {
-            labels: {{ priority_labels|safe }},
-            datasets: [{
-                label: 'Количество задач',
-                data: {{ priority_counts|safe }},
-                backgroundColor: '#2a9d8f',
-                borderColor: '#1f7a6d',
-                borderWidth: 1,
-                borderRadius: 6
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true
-                }
-            },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
-        }
-    });
 
-    // График: Статусы задач
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {{ status_labels|safe }},
-            datasets: [{
-                data: {{ status_counts|safe }},
-                backgroundColor: [
-                    '#2a9d8f', '#ffc107', '#dc3545', '#17a2b8', '#6c757d'
-                ],
-                borderColor: '#fff',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-    
-    // График: Загрузка сотрудников
-    const empLoadCtx = document.getElementById('employeeLoadChart').getContext('2d');
-    new Chart(empLoadCtx, {
-        type: 'bar',
-        data: {
-            labels: {{ emp_load_names|safe }},
-            datasets: [{
-                label: 'Активные задачи',
-                data: {{ emp_load_counts|safe }},
-                backgroundColor: function(context) {
-                    const value = context.raw;
-                    if (value > 5) return '#dc3545';
-                    if (value > 3) return '#ffc107';
-                    return '#28a745';
-                },
-                borderRadius: 4
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true
-                }
+    function hasDataset(arr) {
+        return Array.isArray(arr) && arr.length > 0;
+    }
+
+    function showEmpty(canvasId, text) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || !canvas.parentElement) return;
+        canvas.style.display = 'none';
+        const state = document.createElement('div');
+        state.className = 'empty-state';
+        state.textContent = text;
+        canvas.parentElement.appendChild(state);
+    }
+
+    const deptLabels = {{ dept_names|safe }};
+    const deptData = {{ dept_counts|safe }};
+    const projectStatusLabels = {{ project_status_labels|safe }};
+    const projectStatusData = {{ project_status_counts|safe }};
+    const priorityLabels = {{ priority_labels|safe }};
+    const priorityData = {{ priority_counts|safe }};
+    const taskStatusLabels = {{ status_labels|safe }};
+    const taskStatusData = {{ status_counts|safe }};
+    const empLoadLabels = {{ emp_load_names|safe }};
+    const empLoadData = {{ emp_load_counts|safe }};
+
+    if (hasDataset(projectStatusData)) {
+        new Chart(document.getElementById('projectStatusChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: projectStatusLabels,
+                datasets: [{
+                    data: projectStatusData,
+                    backgroundColor: [palette.primary, palette.info, palette.warning, palette.gray, palette.danger],
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
             },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '62%',
+                plugins: { legend: { position: 'bottom' } }
             }
-        }
-    });
+        });
+    } else {
+        showEmpty('projectStatusChart', 'Нет данных по статусам проектов');
+    }
+
+    if (hasDataset(taskStatusData)) {
+        new Chart(document.getElementById('statusChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: taskStatusLabels,
+                datasets: [{
+                    label: 'Количество задач',
+                    data: taskStatusData,
+                    backgroundColor: palette.primary,
+                    borderRadius: 8,
+                    maxBarThickness: 42
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    } else {
+        showEmpty('statusChart', 'Нет данных по статусам задач');
+    }
+
+    if (hasDataset(deptData)) {
+        new Chart(document.getElementById('departmentsChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: deptLabels,
+                datasets: [{
+                    data: deptData,
+                    backgroundColor: ['#2a9d8f', '#287271', '#2f5d80', '#5b8fc7', '#8ab4f8', '#e9c46a'],
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '58%',
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    } else {
+        showEmpty('departmentsChart', 'Нет данных по отделам');
+    }
+
+    if (hasDataset(priorityData)) {
+        new Chart(document.getElementById('priorityChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: priorityLabels,
+                datasets: [{
+                    label: 'Задач',
+                    data: priorityData,
+                    backgroundColor: ['#e76f51', '#f4a261', '#2a9d8f', '#5b8fc7', '#8fa4b2'],
+                    borderRadius: 8,
+                    maxBarThickness: 36
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    } else {
+        showEmpty('priorityChart', 'Нет данных по приоритетам задач');
+    }
+
+    if (hasDataset(empLoadData)) {
+        new Chart(document.getElementById('employeeLoadChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: empLoadLabels,
+                datasets: [{
+                    label: 'Активные задачи',
+                    data: empLoadData,
+                    backgroundColor: function (ctx) {
+                        const value = ctx.raw;
+                        if (value >= 6) return palette.danger;
+                        if (value >= 4) return palette.warning;
+                        return palette.success;
+                    },
+                    borderRadius: 8,
+                    maxBarThickness: 32
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    } else {
+        showEmpty('employeeLoadChart', 'Нет данных по загрузке сотрудников');
+    }
+})();
 </script>
 
 <style>
     :root {
         --primary: #2a9d8f;
+        --primary-dark: #1f7e73;
         --secondary: #264653;
-        --accent: #e9c46a;
-        --bg: #f4f7f8;
-        --card-bg: #ffffff;
-        --text: #264653;
+        --bg: #f2f6f8;
+        --card: #ffffff;
+        --text: #294556;
+        --line: #d8e4ea;
+        --danger: #e76f51;
     }
 
-    html, body {
-        overflow-x: hidden;
-    }
-
-    .admin-dashboard {
-        padding: 32px;
-    }
-
-    .dashboard-header {
-        margin-bottom: 32px;
-    }
-
-    .dashboard-header h1 {
-        margin: 0 0 8px 0;
-        font-size: 2.5em;
-        color: var(--secondary);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .dashboard-header p {
-        margin: 0;
-        color: #666;
-        font-size: 1.1em;
-    }
-
-    .dashboard-content {
-        display: grid;
-        gap: 32px;
-    }
-
-    /* ОСНОВНАЯ СТАТИСТИКА */
-    .stats-section {
-        margin-bottom: 0;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 20px;
-    }
-
-    .stat-card-primary {
-        display: flex;
-        align-items: center;
-        gap: 20px;
+    .stats-page {
         padding: 24px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border: 1px solid rgba(42, 157, 143, 0.1);
-        border-radius: 14px;
-        transition: all 0.3s ease;
-    }
-
-    .stat-card-primary:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 28px rgba(42, 157, 143, 0.12);
-        border-color: rgba(42, 157, 143, 0.2);
-    }
-
-    .stat-icon {
-        font-size: 2.2em;
-        color: var(--primary);
-        opacity: 0.9;
-    }
-
-    .stat-content {
-        flex: 1;
-    }
-
-    .stat-label {
-        margin: 0;
-        color: #666;
-        font-size: 0.85em;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-    }
-
-    .stat-card-primary .stat-number {
-        margin: 6px 0;
-        font-size: 2em;
-        color: var(--secondary);
-        font-weight: 700;
-    }
-
-    .stat-detail {
-        margin: 8px 0 0 0;
-        font-size: 0.8em;
-        color: #999;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.75em;
-        font-weight: 600;
-        margin-right: 6px;
-    }
-
-    .badge-primary {
-        background: rgba(42, 157, 143, 0.15);
-        color: var(--primary);
-    }
-
-    .badge-active {
-        background: rgba(231, 111, 81, 0.15);
-        color: #e76f51;
-    }
-
-    .badge-completed {
-        background: rgba(76, 175, 80, 0.15);
-        color: #4caf50;
-    }
-
-    .badge-done {
-        background: rgba(76, 175, 80, 0.15);
-        color: #4caf50;
-    }
-
-    /* БЮДЖЕТ */
-    .budget-section {
-        margin-bottom: 0;
-    }
-
-    .budget-section h2 {
-        margin: 0 0 24px 0;
-        color: var(--secondary);
-        font-size: 1.5em;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .budget-cards {
+        background: linear-gradient(160deg, #f2f6f8 0%, #f8fbfc 100%);
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-    }
-
-    .budget-card {
-        display: flex;
-        align-items: center;
         gap: 16px;
-        padding: 20px;
-        border-radius: 14px;
-        background: var(--card-bg);
-        border: 1px solid rgba(54, 96, 146, 0.05);
-        transition: all 0.3s ease;
     }
 
-    .budget-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    .stats-header {
+        text-align: left;
+        animation: slideDownFade .45s ease;
     }
 
-    .budget-card-budget {
-        background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.04) 100%);
-        border-color: rgba(76, 175, 80, 0.2);
-    }
-
-    .budget-card-cost {
-        background: linear-gradient(135deg, rgba(244, 67, 54, 0.08) 0%, rgba(244, 67, 54, 0.04) 100%);
-        border-color: rgba(244, 67, 54, 0.2);
-    }
-
-    .budget-icon {
-        font-size: 2em;
-    }
-
-    .budget-card-budget .budget-icon {
-        color: #4caf50;
-    }
-
-    .budget-card-cost .budget-icon {
-        color: #f44336;
-    }
-
-    .budget-content {
-        flex: 1;
-    }
-
-    .budget-label {
+    .stats-header h1 {
         margin: 0;
-        color: #666;
-        font-size: 0.85em;
+        color: var(--secondary);
+        font-size: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .stats-header p {
+        margin: 8px 0 0;
+        color: #5c7686;
+        font-size: 1rem;
+    }
+
+    .kpi-grid,
+    .section-budget-workload,
+    .section-main-charts,
+    .section-secondary {
+        animation: fadeInUp .55s ease .05s both;
+    }
+
+    @keyframes slideDownFade {
+        from { opacity: 0; transform: translateY(-16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .kpi-card {
+        background: var(--card);
+        border: 1px solid rgba(42, 157, 143, 0.14);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 8px 18px rgba(38, 70, 83, 0.08);
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .kpi-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(42, 157, 143, 0.12);
+        color: var(--primary-dark);
+        font-size: 1.1rem;
+    }
+
+    .kpi-alert .kpi-icon {
+        background: rgba(231, 111, 81, 0.14);
+        color: var(--danger);
+    }
+
+    .kpi-label {
+        margin: 0;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .budget-amount {
-        margin: 4px 0 0 0;
-        font-size: 1.6em;
+        letter-spacing: .45px;
+        color: #56707f;
+        font-size: .73rem;
         font-weight: 700;
+    }
+
+    .kpi-value {
+        margin: 4px 0;
+        font-size: 1.8rem;
         color: var(--secondary);
+        font-weight: 800;
+        line-height: 1.05;
     }
 
-    /* ГРАФИКИ */
-    .charts-section {
-        margin-bottom: 0;
+    .kpi-meta {
+        margin: 0;
+        color: #5f7887;
+        font-size: .82rem;
     }
 
-    .charts-section h2 {
-        margin: 0 0 24px 0;
-        color: var(--secondary);
-        font-size: 1.5em;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .charts-grid {
+    .section-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 24px;
-        margin-bottom: 24px;
-    }
-    
-    @media (max-width: 1200px) {
-        .charts-grid {
-            grid-template-columns: 1fr;
-        }
+        gap: 14px;
     }
 
-    .chart-container {
-        background: var(--card-bg);
-        padding: 24px;
+    .section-budget-workload,
+    .section-main-charts,
+    .section-secondary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
         border-radius: 14px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(54, 96, 146, 0.05);
+        padding: 14px;
+        box-shadow: 0 6px 16px rgba(38, 70, 83, 0.07);
+        min-height: 100%;
     }
 
-    .chart-container.full-width {
-        grid-column: 1 / -1;
+    .panel-header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e7eef2;
     }
 
-    .chart-header {
-        margin-bottom: 16px;
-        border-bottom: 2px solid #f0f0f0;
-        padding-bottom: 12px;
-    }
-
-    .chart-header h3 {
+    .panel-header h2 {
         margin: 0;
         color: var(--secondary);
-        font-size: 1.1em;
+        font-size: 1.06rem;
         display: flex;
         align-items: center;
         gap: 8px;
-        font-weight: 600;
     }
 
-    .chart-wrapper {
+    .budget-tiles {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .budget-tile {
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid transparent;
+    }
+
+    .budget-tile p {
+        margin: 0;
+        color: #4b6979;
+        font-size: .8rem;
+    }
+
+    .budget-tile strong {
+        margin-top: 4px;
+        display: block;
+        color: var(--secondary);
+        font-size: 1.05rem;
+    }
+
+    .budget-tile-positive {
+        background: rgba(42, 157, 143, 0.10);
+        border-color: rgba(42, 157, 143, 0.24);
+    }
+
+    .budget-tile-neutral {
+        background: rgba(58, 134, 168, 0.10);
+        border-color: rgba(58, 134, 168, 0.24);
+    }
+
+    .budget-tile-negative {
+        background: rgba(231, 111, 81, 0.11);
+        border-color: rgba(231, 111, 81, 0.24);
+    }
+
+    .progress-block {
+        margin-top: 12px;
+    }
+
+    .progress-head {
+        display: flex;
+        justify-content: space-between;
+        color: #4d6a79;
+        font-size: .85rem;
+        margin-bottom: 6px;
+    }
+
+    .progress-track {
+        background: #e6eff3;
+        height: 9px;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2a9d8f 0%, #1f7e73 100%);
+    }
+
+    .chart-box {
+        height: 280px;
         position: relative;
-        height: 300px;
     }
 
-    .chart-container.full-width .chart-wrapper {
-        height: 350px;
+    .chart-box-tall {
+        height: 320px;
     }
 
-    /* ТАБЛИЦЫ */
-    .tables-section {
-        margin-bottom: 0;
-    }
-
-    .tables-section h2 {
-        margin: 0 0 24px 0;
-        color: var(--secondary);
-        font-size: 1.5em;
+    .empty-state {
+        height: 100%;
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
+        text-align: center;
+        color: #6d8492;
+        background: #f7fafc;
+        border: 1px dashed #cddde6;
+        border-radius: 10px;
+        font-size: .92rem;
+        padding: 12px;
     }
 
-    .tables-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-        gap: 24px;
-    }
-
-    .table-container,
-    .stats-card-detailed {
-        background: var(--card-bg);
-        border-radius: 14px;
-        padding: 24px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(54, 96, 146, 0.05);
-    }
-
-    .table-header {
-        margin-bottom: 16px;
-        border-bottom: 2px solid #f0f0f0;
-        padding-bottom: 12px;
-    }
-
-    .table-header h3 {
-        margin: 0;
-        color: var(--secondary);
-        font-size: 1.1em;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
+    .table-shell {
+        border: 1px solid rgba(42, 157, 143, 0.14);
+        border-radius: 12px;
+        overflow: hidden;
     }
 
     .data-table {
@@ -695,90 +588,88 @@
         border-collapse: collapse;
     }
 
-    .data-table thead {
-        background-color: #f8f9fa;
-    }
-
     .data-table th {
-        padding: 12px;
         text-align: left;
-        font-size: 0.9em;
-        font-weight: 600;
+        padding: 12px;
+        font-size: .78rem;
         color: #ffffff;
-        background-color: var(--primary);
-        border-bottom: 2px solid #f0f0f0;
+        background: linear-gradient(135deg, #264653 0%, #2a9d8f 100%);
+        text-transform: uppercase;
+        letter-spacing: .35px;
     }
 
     .data-table td {
         padding: 12px;
-        border-bottom: 1px solid #e9ecef;
-        font-size: 0.9em;
+        border-top: 1px solid #e9f0f4;
         color: var(--text);
+        font-size: .88rem;
     }
 
-    /* СТАТИСТИЧЕСКИЕ СТРОКИ */
-    .stats-rows {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 24px;
+        border-radius: 999px;
+        font-weight: 700;
+        color: #1f7e73;
+        background: rgba(42, 157, 143, 0.15);
     }
 
-    .stats-row-item {
+    .empty-cell {
+        text-align: center;
+        color: #768f9d;
+    }
+
+    .summary-panel .summary-list {
+        display: grid;
+        gap: 9px;
+    }
+
+    .summary-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border-left: 4px solid var(--primary);
+        background: #f6fafc;
+        border: 1px solid #e2ecf2;
+        border-radius: 10px;
+        padding: 11px 12px;
+        color: #4f6978;
+        font-size: .9rem;
     }
 
-    .stats-row-label {
-        color: #666;
-        font-size: 0.9em;
-        font-weight: 500;
+    .summary-item strong {
+        color: var(--secondary);
+        font-size: 1.05rem;
     }
 
-    .stats-row-value {
-        color: var(--primary);
-        font-weight: 700;
-        font-size: 1.2em;
+    .summary-item .danger-value {
+        color: var(--danger);
     }
 
-    /* АДАПТИВНОСТЬ */
-    @media (max-width: 1400px) {
-        .charts-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    @media (max-width: 1300px) {
+        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    @media (max-width: 900px) {
-        .charts-grid {
+    @media (max-width: 980px) {
+        .section-budget-workload,
+        .section-main-charts,
+        .section-secondary,
+        .budget-tiles {
             grid-template-columns: 1fr;
         }
 
-        .tables-grid {
-            grid-template-columns: 1fr;
+        .chart-box,
+        .chart-box-tall {
+            height: 260px;
         }
     }
 
     @media (max-width: 768px) {
-        .admin-dashboard {
-            padding: 16px;
-        }
-
-        .dashboard-header h1 {
-            font-size: 1.8em;
-        }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .chart-wrapper {
-            height: 250px;
-        }
+        .stats-page { padding: 14px; }
+        .stats-header h1 { font-size: 1.55rem; }
+        .kpi-grid { grid-template-columns: 1fr; }
     }
 </style>
-
 {% endblock %}

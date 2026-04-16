@@ -7,31 +7,128 @@
 <style>
     :root {
         --primary: #2a9d8f;
+        --primary-dark: #1f7e73;
         --secondary: #264653;
-        --accent: #e9c46a;
-        --bg: #f4f7f8;
+        --bg: #f2f6f8;
         --card-bg: #ffffff;
-        --text: #264653;
+        --text: #294556;
+        --line: #d8e4ea;
     }
     html, body { overflow-x: hidden; }
-    .admin-container { padding: 32px; background: linear-gradient(135deg, var(--bg) 0%, #ffffff 100%); }
-    .page-header { margin-bottom: 40px; animation: slideDownFade 0.5s ease; }
-    @keyframes slideDownFade { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-    .page-header h1 { margin: 0 0 8px 0; font-size: 2.5em; color: var(--secondary); display: flex; align-items: center; gap: 12px; font-weight: 700; }
+    .admin-container { padding: 24px; background: linear-gradient(160deg, var(--bg) 0%, #f8fbfc 100%); }
+    .page-header { margin-bottom: 16px; animation: slideDownFade 0.45s ease; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .page-header-main { min-width: 0; }
+    @keyframes slideDownFade { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+    .page-header h1 { margin: 0 0 8px 0; font-size: 2rem; color: var(--secondary); display: flex; align-items: center; gap: 12px; font-weight: 700; }
     .page-header p { margin: 0; color: #666; font-size: 1.1em; }
-    .header-toolbar { margin-top: 24px; display: flex; justify-content: flex-end; }
+    .header-toolbar { margin-top: 0; display: flex; justify-content: flex-end; flex-shrink: 0; }
     .btn-add { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: linear-gradient(135deg, var(--primary) 0%, rgba(42, 157, 143, 0.85) 100%); color: white; border: none; border-radius: 8px; font-size: 0.95em; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2); }
     .btn-add:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(42, 157, 143, 0.35); }
     .btn-add:active { transform: translateY(-1px); }
-    .list-container { background: var(--card-bg); border-radius: 14px; padding: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid rgba(42, 157, 143, 0.1); overflow-x: auto; animation: fadeInUp 0.6s ease 0.1s backwards; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .data-table { width: 100%; border-collapse: collapse; }
-    .data-table thead { background: linear-gradient(135deg, var(--primary) 0%, rgba(42, 157, 143, 0.9) 100%); }
-    .data-table th { padding: 16px; text-align: left; font-size: 0.9em; font-weight: 700; color: #ffffff; border-bottom: 2px solid rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: 0.5px; }
-    .data-table tr { transition: all 0.2s ease; }
+    .list-container { background: transparent; border: none; border-radius: 0; padding: 0; box-shadow: none; overflow: visible; animation: fadeInUp .55s ease .05s both; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .table-shell {
+        border: none;
+        border-radius: 0;
+        overflow: hidden;
+        background: transparent;
+        box-shadow: none;
+    }
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0; }
+    .data-table thead { background: linear-gradient(135deg, #264653 0%, #2a9d8f 100%); }
+    .data-table th { background: transparent; padding: 14px 16px; text-align: left; font-size: .78rem; font-weight: 700; color: #ffffff; border-bottom: 2px solid rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: .35px; }
+    .data-table tr { transition: background-color 0.2s ease; }
     .data-table tbody tr { border-bottom: 1px solid #e9ecef; }
-    .data-table tbody tr:hover { background: linear-gradient(90deg, rgba(42,157,143,0.02) 0%, rgba(42,157,143,0.05) 100%); transform: scale(1.01); box-shadow: inset 0 0 8px rgba(42,157,143,0.08); }
-    .data-table td { padding: 16px; font-size: 0.9em; color: var(--text); }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: linear-gradient(90deg, rgba(42,157,143,0.02) 0%, rgba(42,157,143,0.05) 100%); }
+    .data-table td { padding: 16px; font-size: 0.9em; color: var(--text); border-bottom: 1px solid #edf2f4; }
+    .filter-panel { margin-bottom: 16px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: #ffffff; box-shadow: 0 6px 16px rgba(38, 70, 83, 0.07); display: grid; gap: 10px; grid-template-columns: 2fr 1fr 1fr 1fr auto; align-items: end; }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; }
+    .filter-group label { font-size: 0.78rem; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: .4px; }
+    .filter-panel input, .filter-panel select {
+        border: 1px solid #cfd8dc;
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: #fff;
+        font-size: 0.9rem;
+        color: var(--text);
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .filter-panel input:focus, .filter-panel select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14);
+        background: #ffffff;
+    }
+    .native-select-hidden { display: none !important; }
+    .ui-select { position: relative; }
+    .ui-select-trigger {
+        width: 100%;
+        border: 1px solid #cfd8dc;
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text);
+        font-size: 0.95rem;
+        padding: 10px 36px 10px 12px;
+        text-align: left;
+        cursor: pointer;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .ui-select-trigger:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14);
+    }
+    .ui-select::after {
+        content: '';
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #4b5563;
+        border-bottom: 2px solid #4b5563;
+        transform: translateY(-60%) rotate(45deg);
+        pointer-events: none;
+    }
+    .ui-select.is-open::after { transform: translateY(-35%) rotate(-135deg); }
+    .ui-select-menu {
+        position: absolute;
+        z-index: 40;
+        left: 0;
+        right: 0;
+        margin-top: 6px;
+        background: #fff;
+        border: 1px solid rgba(38, 70, 83, 0.18);
+        border-radius: 12px;
+        box-shadow: 0 14px 30px rgba(38, 70, 83, 0.14);
+        padding: 6px;
+        max-height: 240px;
+        overflow-y: auto;
+        display: none;
+    }
+    .ui-select.is-open .ui-select-menu { display: block; }
+    .ui-select-option {
+        display: block;
+        width: 100%;
+        border: 0;
+        background: transparent;
+        border-radius: 8px;
+        padding: 9px 10px;
+        text-align: left;
+        cursor: pointer;
+        color: var(--text);
+        font-size: 0.95rem;
+    }
+    .ui-select-option:hover { background: rgba(42, 157, 143, 0.1); }
+    .ui-select-option.is-selected {
+        background: linear-gradient(135deg, var(--primary), rgba(42,157,143,0.86));
+        color: #fff;
+        font-weight: 600;
+    }
+    .result-meta { margin: 8px 0 14px; color: #6b7280; font-size: 0.86rem; }
+    .btn-clear { border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px; background: white; color: #374151; text-decoration: none; text-align: center; }
+    .btn-clear:hover { border-color: var(--primary); color: var(--primary); background: rgba(42,157,143,0.04); }
     .action-links { display: flex; gap: 12px; align-items: center; }
     .action-links a { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; color: var(--primary); background: rgba(42,157,143,0.05); transition: all 0.2s ease; font-size: 0.9em; font-weight: 500; }
     .action-links a:hover { background: rgba(42,157,143,0.15); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(42,157,143,0.2); }
@@ -54,13 +151,30 @@
     .btn-secondary:hover { background: #dee2e6; transform: translateY(-2px); }
     .btn-danger { background: linear-gradient(135deg, #f44336 0%, rgba(244,67,54,0.85) 100%); color: white; box-shadow: 0 4px 12px rgba(244,67,54,0.2); }
     .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(244,67,54,0.35); }
-    @media (max-width: 768px) { .admin-container { padding: 16px; } .page-header { margin-bottom: 24px; } .page-header h1 { font-size: 1.8em; } .header-toolbar { margin-top: 16px; } .list-container { padding: 16px; overflow-x: auto; } .data-table { font-size: 0.8em; } .data-table th, .data-table td { padding: 12px; } .action-links a { width: 32px; height: 32px; } }
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: .2px;
+        white-space: nowrap;
+    }
+    .badge-primary { background: rgba(16, 185, 129, 0.15); color: #057a55; }
+    .badge-completed { background: rgba(239, 68, 68, 0.14); color: #b42318; }
+    .badge-active { background: rgba(100, 116, 139, 0.14); color: #334155; }
+    @media (max-width: 980px) { .filter-panel { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .admin-container { padding: 16px; } .page-header { margin-bottom: 16px; flex-direction: column; align-items: stretch; } .page-header h1 { font-size: 1.8em; } .header-toolbar { margin-top: 8px; } .list-container { padding: 0; overflow-x: auto; } .data-table { font-size: 0.8em; } .data-table th, .data-table td { padding: 12px; } .action-links a { width: 32px; height: 32px; } }
 </style>
 
 <div class="admin-container">
     <div class="page-header">
-        <h1><i class="fa-solid fa-users"></i> Управление сотрудниками</h1>
-        <p>Добавляйте, редактируйте и удаляйте сотрудников компании</p>
+        <div class="page-header-main">
+            <h1><i class="fa-solid fa-users"></i> Управление сотрудниками</h1>
+            <p>Добавляйте, редактируйте и удаляйте сотрудников компании</p>
+        </div>
         <div class="header-toolbar">
             <a href="{% url 'employee_create' %}" class="btn-add">
                 <i class="fa-solid fa-plus"></i> Добавить сотрудника
@@ -68,6 +182,42 @@
         </div>
     </div>
     <div class="list-container">
+        <form method="get" id="employeeFilterForm" class="filter-panel">
+            <div class="filter-group">
+                <label for="q">Поиск</label>
+                <input type="text" id="q" name="q" value="{{ search_query }}" placeholder="ФИО, email, телефон, должность, отдел">
+            </div>
+            <div class="filter-group">
+                <label for="position">Должность</label>
+                <select id="position" name="position" class="js-styled-select">
+                    <option value="">Все</option>
+                    {% for pos in positions %}
+                    <option value="{{ pos.id }}" {% if position_filter == pos.id|stringformat:'s' %}selected{% endif %}>{{ pos.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="department">Отдел</label>
+                <select id="department" name="department" class="js-styled-select">
+                    <option value="">Все</option>
+                    {% for dep in departments %}
+                    <option value="{{ dep.id }}" {% if department_filter == dep.id|stringformat:'s' %}selected{% endif %}>{{ dep.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="status">Статус</label>
+                <select id="status" name="status" class="js-styled-select">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Все</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Активные</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Неактивные</option>
+                </select>
+            </div>
+            <a class="btn-clear" href="{% url 'admin_employees' %}">Сброс</a>
+        </form>
+        <div class="result-meta">Найдено сотрудников: <strong>{{ employees_count }}</strong></div>
+
+        <div class="table-shell">
         <table class="data-table">
             <thead>
                 <tr>
@@ -132,6 +282,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -171,5 +322,101 @@ document.getElementById('deleteModal').addEventListener('click', function(e) {
         closeDeleteModal();
     }
 });
+
+(function () {
+    function initStyledSelects() {
+        const selects = document.querySelectorAll('select.js-styled-select');
+        const opened = new Set();
+
+        function closeAll(except) {
+            opened.forEach(function (node) {
+                if (node !== except) {
+                    node.classList.remove('is-open');
+                    opened.delete(node);
+                }
+            });
+        }
+
+        selects.forEach(function (select) {
+            if (select.dataset.enhanced === '1') return;
+            select.dataset.enhanced = '1';
+            select.classList.add('native-select-hidden');
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'ui-select';
+
+            const trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = 'ui-select-trigger';
+
+            const menu = document.createElement('div');
+            menu.className = 'ui-select-menu';
+
+            function render() {
+                const selectedOption = select.options[select.selectedIndex];
+                trigger.textContent = selectedOption ? selectedOption.textContent : 'Выберите';
+                menu.innerHTML = '';
+                Array.from(select.options).forEach(function (option) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'ui-select-option' + (option.selected ? ' is-selected' : '');
+                    btn.textContent = option.textContent;
+                    btn.dataset.value = option.value;
+                    btn.addEventListener('click', function () {
+                        select.value = option.value;
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                        wrapper.classList.remove('is-open');
+                        opened.delete(wrapper);
+                        render();
+                    });
+                    menu.appendChild(btn);
+                });
+            }
+
+            trigger.addEventListener('click', function () {
+                const willOpen = !wrapper.classList.contains('is-open');
+                closeAll(wrapper);
+                wrapper.classList.toggle('is-open', willOpen);
+                if (willOpen) opened.add(wrapper); else opened.delete(wrapper);
+            });
+
+            select.addEventListener('change', render);
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(menu);
+            wrapper.appendChild(select);
+            render();
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.ui-select')) closeAll(null);
+        });
+    }
+
+    initStyledSelects();
+
+    const form = document.getElementById('employeeFilterForm');
+    if (!form) return;
+    const qInput = document.getElementById('q');
+    const selectIds = ['position', 'department', 'status'];
+    let timer = null;
+
+    if (qInput) {
+        qInput.addEventListener('input', function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                form.submit();
+            }, 350);
+        });
+    }
+
+    selectIds.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('change', function () {
+            form.submit();
+        });
+    });
+})();
 </script>
 {% endblock %}

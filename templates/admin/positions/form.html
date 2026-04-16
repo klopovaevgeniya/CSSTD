@@ -2,6 +2,159 @@
 {% block title %}{% if mode == "edit" %}Редактировать должность{% else %}Добавить должность{% endif %}{% endblock %}
 
 {% block content %}
+<style>
+    :root {
+        --primary: #2a9d8f;
+        --primary-dark: #1f7e73;
+        --secondary: #264653;
+        --bg: #f2f6f8;
+        --card: #ffffff;
+        --text: #294556;
+        --line: #d8e4ea;
+    }
+    .form-container {
+        max-width: 860px;
+        padding: 24px;
+        background: linear-gradient(160deg, var(--bg) 0%, #f8fbfc 100%);
+        border-radius: 14px;
+    }
+    .form-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 6px 16px rgba(38, 70, 83, 0.07);
+        overflow: visible;
+        animation: fadeInUp .55s ease .05s both;
+    }
+    .form-card .page-title {
+        margin: 0 0 14px 0;
+        font-size: 2rem;
+        color: var(--secondary);
+        background: none;
+        -webkit-text-fill-color: currentColor;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .form-group label {
+        margin-bottom: 8px;
+        color: #3f5462;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        letter-spacing: 0.5px;
+    }
+    .form-group input,
+    .form-group select {
+        border-radius: 10px;
+        border: 1px solid #cfd8dc;
+        background: #fff;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14);
+        outline: none;
+    }
+
+    .native-select-hidden { display: none !important; }
+    .ui-select { position: relative; }
+    .ui-select-trigger {
+        width: 100%;
+        border: 1px solid #cfd8dc;
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text);
+        font-size: 0.95rem;
+        padding: 12px 38px 12px 14px;
+        text-align: left;
+        cursor: pointer;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .ui-select-trigger:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14);
+    }
+    .ui-select.has-error .ui-select-trigger {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+        background: #fff5f5;
+    }
+    .ui-select::after {
+        content: '';
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #4b5563;
+        border-bottom: 2px solid #4b5563;
+        transform: translateY(-60%) rotate(45deg);
+        pointer-events: none;
+    }
+    .ui-select.is-open::after { transform: translateY(-35%) rotate(-135deg); }
+    .ui-select-menu {
+        position: absolute;
+        z-index: 60;
+        left: 0;
+        right: 0;
+        margin-top: 6px;
+        background: #fff;
+        border: 1px solid rgba(38, 70, 83, 0.18);
+        border-radius: 12px;
+        box-shadow: 0 14px 30px rgba(38, 70, 83, 0.14);
+        padding: 6px;
+        max-height: 240px;
+        overflow-y: auto;
+        display: none;
+    }
+    .ui-select.is-open .ui-select-menu { display: block; }
+    .ui-select-option {
+        display: block;
+        width: 100%;
+        border: 0;
+        background: transparent;
+        border-radius: 8px;
+        padding: 9px 10px;
+        text-align: left;
+        cursor: pointer;
+        color: var(--text);
+        font-size: 0.95rem;
+    }
+    .ui-select-option:hover { background: rgba(42, 157, 143, 0.1); }
+    .ui-select-option.is-selected {
+        background: linear-gradient(135deg, var(--primary), rgba(42,157,143,0.86));
+        color: #fff;
+        font-weight: 600;
+    }
+    .form-group input.is-invalid,
+    .form-group select.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+        background: #fff5f5;
+    }
+    .field-error {
+        margin-top: 6px;
+        font-size: 0.82rem;
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    @media (max-width: 900px) {
+        .form-row { grid-template-columns: 1fr; }
+    }
+</style>
+
 <div class="form-container">
     <div class="form-card">
         <h1 class="page-title">{% if mode == "edit" %}Редактировать должность{% else %}Добавить должность{% endif %}</h1>
@@ -9,9 +162,23 @@
         <form method="post">
             {% csrf_token %}
 
-            <div class="form-group">
-                <label for="name">Название *</label>
-                <input type="text" id="name" name="name" value="{{ position.name|default:'' }}" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Название *</label>
+                    <input type="text" id="name" name="name" value="{{ form_data.name|default:'' }}" class="{% if form_errors.name %}is-invalid{% endif %}" required>
+                    {% if form_errors.name %}<div class="field-error">{{ form_errors.name }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Отдел *</label>
+                    <select id="department" name="department" class="js-styled-select {% if form_errors.department %}is-invalid{% endif %}" required>
+                        <option value="">-- Выберите отдел --</option>
+                        {% for dep in departments %}
+                        <option value="{{ dep.id }}" {% if form_data.department == dep.id|stringformat:'s' %}selected{% endif %}>{{ dep.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form_errors.department %}<div class="field-error">{{ form_errors.department }}</div>{% endif %}
+                </div>
             </div>
 
             <div class="form-actions">
@@ -23,4 +190,77 @@
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    const selects = document.querySelectorAll('select.js-styled-select');
+    const opened = new Set();
+
+    function closeAll(except) {
+        opened.forEach(function (node) {
+            if (node !== except) {
+                node.classList.remove('is-open');
+                opened.delete(node);
+            }
+        });
+    }
+
+    selects.forEach(function (select) {
+        if (select.dataset.enhanced === '1') return;
+        select.dataset.enhanced = '1';
+        select.classList.add('native-select-hidden');
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'ui-select';
+        if (select.classList.contains('is-invalid')) {
+            wrapper.classList.add('has-error');
+        }
+
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'ui-select-trigger';
+
+        const menu = document.createElement('div');
+        menu.className = 'ui-select-menu';
+
+        function render() {
+            const selectedOption = select.options[select.selectedIndex];
+            trigger.textContent = selectedOption ? selectedOption.textContent : 'Выберите';
+            menu.innerHTML = '';
+            Array.from(select.options).forEach(function (option) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ui-select-option' + (option.selected ? ' is-selected' : '');
+                btn.textContent = option.textContent;
+                btn.addEventListener('click', function () {
+                    select.value = option.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    wrapper.classList.remove('is-open');
+                    opened.delete(wrapper);
+                    render();
+                });
+                menu.appendChild(btn);
+            });
+        }
+
+        trigger.addEventListener('click', function () {
+            const willOpen = !wrapper.classList.contains('is-open');
+            closeAll(wrapper);
+            wrapper.classList.toggle('is-open', willOpen);
+            if (willOpen) opened.add(wrapper); else opened.delete(wrapper);
+        });
+
+        select.addEventListener('change', render);
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(trigger);
+        wrapper.appendChild(menu);
+        wrapper.appendChild(select);
+        render();
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('.ui-select')) closeAll(null);
+    });
+})();
+</script>
 {% endblock %}

@@ -56,11 +56,13 @@ body {
 
 /* логотип */
 .sidebar .logo {
+    display: block;
     padding: 28px 24px;
     font-size: 1.3em;
     font-weight: 600;
     color: var(--primary);
     letter-spacing: 1px;
+    text-decoration: none;
 }
 
 /* навигация */
@@ -438,18 +440,6 @@ input:focus, select:focus, textarea:focus {
 
 .dashboard-header .project-title .project-code {
     margin: 5px 0 0 0;
-}
-
-.dashboard-header::before {
-    content: '';
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-    border-radius: 2px;
 }
 
 .dashboard-subtitle {

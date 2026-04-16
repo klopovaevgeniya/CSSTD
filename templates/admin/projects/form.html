@@ -2,6 +2,150 @@
 {% block title %}{% if mode == "edit" %}Редактировать проект{% else %}Добавить проект{% endif %}{% endblock %}
 
 {% block content %}
+<style>
+    :root {
+        --primary: #2a9d8f;
+        --primary-dark: #1f7e73;
+        --secondary: #264653;
+        --bg: #f2f6f8;
+        --card: #ffffff;
+        --text: #294556;
+        --line: #d8e4ea;
+    }
+    .form-container {
+        max-width: 980px;
+        padding: 24px;
+        background: linear-gradient(160deg, var(--bg) 0%, #f8fbfc 100%);
+        border-radius: 14px;
+    }
+    .form-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 6px 16px rgba(38, 70, 83, 0.07);
+        overflow: visible;
+        animation: fadeInUp .55s ease .05s both;
+    }
+    .form-card .page-title {
+        margin: 0 0 14px 0;
+        font-size: 2rem;
+        color: var(--secondary);
+        background: none;
+        -webkit-text-fill-color: currentColor;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group label {
+        margin-bottom: 8px;
+        color: #3f5462;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        letter-spacing: 0.5px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        border-radius: 10px;
+        border: 1px solid #cfd8dc;
+        background: #fff;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .form-group textarea { min-height: 112px; resize: vertical; }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14);
+        outline: none;
+    }
+    .form-group input.is-invalid,
+    .form-group select.is-invalid,
+    .form-group textarea.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+        background: #fff5f5;
+    }
+    .field-error {
+        margin-top: 6px;
+        font-size: 0.82rem;
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    .native-select-hidden { display: none !important; }
+    .ui-select { position: relative; }
+    .ui-select-trigger {
+        width: 100%; border: 1px solid #cfd8dc; border-radius: 10px; background: #fff; color: var(--text);
+        font-size: 0.95rem; padding: 12px 38px 12px 14px; text-align: left; cursor: pointer;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .ui-select-trigger:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14); }
+    .ui-select.has-error .ui-select-trigger {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+        background: #fff5f5;
+    }
+    .ui-select::after {
+        content: ''; position: absolute; right: 14px; top: 50%; width: 8px; height: 8px;
+        border-right: 2px solid #4b5563; border-bottom: 2px solid #4b5563;
+        transform: translateY(-60%) rotate(45deg); pointer-events: none;
+    }
+    .ui-select.is-open::after { transform: translateY(-35%) rotate(-135deg); }
+    .ui-select-menu {
+        position: absolute; z-index: 60; left: 0; right: 0; margin-top: 6px; background: #fff;
+        border: 1px solid rgba(38, 70, 83, 0.18); border-radius: 12px; box-shadow: 0 14px 30px rgba(38, 70, 83, 0.14);
+        padding: 6px; max-height: 240px; overflow-y: auto; display: none;
+    }
+    .ui-select.is-open .ui-select-menu { display: block; }
+    .ui-select-option {
+        display: block; width: 100%; border: 0; background: transparent; border-radius: 8px;
+        padding: 9px 10px; text-align: left; cursor: pointer; color: var(--text); font-size: 0.95rem;
+    }
+    .ui-select-option:hover { background: rgba(42, 157, 143, 0.1); }
+    .ui-select-option.is-selected { background: linear-gradient(135deg, var(--primary), rgba(42,157,143,0.86)); color: #fff; font-weight: 600; }
+
+    .ui-date { position: relative; }
+    .ui-date-input {
+        width: 100%; border: 1px solid #cfd8dc; border-radius: 10px; background: #fff; color: var(--text);
+        font-size: 0.95rem; padding: 12px 42px 12px 14px; cursor: pointer;
+    }
+    .ui-date-toggle {
+        position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+        border: 0; background: transparent; color: #4b5563; cursor: pointer; font-size: 1rem;
+    }
+    .ui-date-panel {
+        position: absolute; z-index: 70; left: 0; bottom: calc(100% + 6px); width: 300px; max-width: 100%;
+        background: #fff; border: 1px solid rgba(38, 70, 83, 0.18); border-radius: 12px;
+        box-shadow: 0 14px 30px rgba(38, 70, 83, 0.16); padding: 10px; display: none;
+    }
+    .ui-date.is-open .ui-date-panel { display: block; }
+    .ui-date-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .ui-date-title { font-weight: 700; color: var(--secondary); font-size: 0.95rem; }
+    .ui-date-nav { border: 0; background: rgba(42, 157, 143, 0.08); color: var(--secondary); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; }
+    .ui-date-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .ui-date-weekday { text-align: center; font-size: 0.72rem; font-weight: 700; color: #64748b; padding: 4px 0; }
+    .ui-date-day { border: 0; background: transparent; border-radius: 8px; height: 34px; cursor: pointer; color: var(--text); font-size: 0.9rem; }
+    .ui-date-day:hover { background: rgba(42, 157, 143, 0.12); }
+    .ui-date-day.is-today { border: 1px solid rgba(42, 157, 143, 0.45); }
+    .ui-date-day.is-selected { background: linear-gradient(135deg, var(--primary), rgba(42,157,143,0.86)); color: #fff; font-weight: 700; }
+    .ui-date-day.is-empty { visibility: hidden; pointer-events: none; }
+    .ui-date-footer { display: flex; justify-content: space-between; margin-top: 10px; }
+    .ui-date-action { border: 0; background: transparent; color: var(--primary); font-weight: 600; cursor: pointer; padding: 4px 2px; }
+    .ui-date.has-error .ui-date-input {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+        background: #fff5f5;
+    }
+
+    @media (max-width: 900px) { .form-row { grid-template-columns: 1fr; } }
+</style>
+
 <div class="form-container">
     <div class="form-card">
         <h1 class="page-title">{% if mode == "edit" %}Редактировать проект{% else %}Добавить проект{% endif %}</h1>
@@ -11,62 +155,102 @@
 
             <div class="form-group">
                 <label for="name">Название проекта *</label>
-                <input type="text" id="name" name="name" value="{{ project.name|default:'' }}" required>
+                <input type="text" id="name" name="name" value="{{ form_data.name|default:'' }}" class="{% if form_errors.name %}is-invalid{% endif %}" required>
+                {% if form_errors.name %}<div class="field-error">{{ form_errors.name }}</div>{% endif %}
             </div>
 
             <div class="form-group">
                 <label for="description">Описание</label>
-                <textarea id="description" name="description">{{ project.description|default:'' }}</textarea>
+                <textarea id="description" name="description" class="{% if form_errors.description %}is-invalid{% endif %}">{{ form_data.description|default:'' }}</textarea>
+                {% if form_errors.description %}<div class="field-error">{{ form_errors.description }}</div>{% endif %}
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="start_date">Дата начала</label>
-                    <input type="date" id="start_date" name="start_date" value="{{ project.start_date|date:'Y-m-d'|default:'' }}">
+                    <label for="start_date_display">Дата начала</label>
+                    <div class="ui-date {% if form_errors.start_date %}has-error{% endif %}" id="start_date_picker">
+                        <input type="text" id="start_date_display" class="ui-date-input" placeholder="Выберите дату" readonly>
+                        <button type="button" class="ui-date-toggle" aria-label="Открыть календарь"><i class="fa-regular fa-calendar"></i></button>
+                        <input type="hidden" id="start_date" name="start_date" value="{{ form_data.start_date|default:'' }}">
+                        <div class="ui-date-panel">
+                            <div class="ui-date-header">
+                                <button type="button" class="ui-date-nav" data-action="prev"><i class="fa-solid fa-chevron-left"></i></button>
+                                <div class="ui-date-title"></div>
+                                <button type="button" class="ui-date-nav" data-action="next"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                            <div class="ui-date-grid"></div>
+                            <div class="ui-date-footer">
+                                <button type="button" class="ui-date-action" data-action="clear">Очистить</button>
+                                <button type="button" class="ui-date-action" data-action="today">Сегодня</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form_errors.start_date %}<div class="field-error">{{ form_errors.start_date }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label for="end_date">Дата окончания</label>
-                    <input type="date" id="end_date" name="end_date" value="{{ project.end_date|date:'Y-m-d'|default:'' }}">
+                    <label for="end_date_display">Дата окончания</label>
+                    <div class="ui-date {% if form_errors.end_date %}has-error{% endif %}" id="end_date_picker">
+                        <input type="text" id="end_date_display" class="ui-date-input" placeholder="Выберите дату" readonly>
+                        <button type="button" class="ui-date-toggle" aria-label="Открыть календарь"><i class="fa-regular fa-calendar"></i></button>
+                        <input type="hidden" id="end_date" name="end_date" value="{{ form_data.end_date|default:'' }}">
+                        <div class="ui-date-panel">
+                            <div class="ui-date-header">
+                                <button type="button" class="ui-date-nav" data-action="prev"><i class="fa-solid fa-chevron-left"></i></button>
+                                <div class="ui-date-title"></div>
+                                <button type="button" class="ui-date-nav" data-action="next"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                            <div class="ui-date-grid"></div>
+                            <div class="ui-date-footer">
+                                <button type="button" class="ui-date-action" data-action="clear">Очистить</button>
+                                <button type="button" class="ui-date-action" data-action="today">Сегодня</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form_errors.end_date %}<div class="field-error">{{ form_errors.end_date }}</div>{% endif %}
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="budget">Бюджет</label>
-                    <input type="number" id="budget" name="budget" step="0.01" value="{{ project.budget|default:'' }}">
+                    <input type="text" id="budget" name="budget" value="{{ form_data.budget|default:'' }}" class="{% if form_errors.budget %}is-invalid{% endif %}" placeholder="Например: 1500000.00">
+                    {% if form_errors.budget %}<div class="field-error">{{ form_errors.budget }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label for="status">Статус</label>
-                    <select id="status" name="status">
+                    <label for="status">Статус *</label>
+                    <select id="status" name="status" class="js-styled-select {% if form_errors.status %}is-invalid{% endif %}">
                         <option value="">Выберите статус</option>
                         {% for status in statuses %}
-                            <option value="{{ status.id }}" {% if project.status_id == status.id %}selected{% endif %}>{{ status.name }}</option>
+                        <option value="{{ status.id }}" {% if form_data.status == status.id|stringformat:'s' %}selected{% endif %}>{{ status.name }}</option>
                         {% endfor %}
                     </select>
+                    {% if form_errors.status %}<div class="field-error">{{ form_errors.status }}</div>{% endif %}
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="type">Тип проекта</label>
-                    <select id="type" name="type">
+                    <label for="type">Тип проекта *</label>
+                    <select id="type" name="type" class="js-styled-select {% if form_errors.type %}is-invalid{% endif %}">
                         <option value="">Выберите тип</option>
                         {% for type in types %}
-                            <option value="{{ type.id }}" {% if project.type_id == type.id %}selected{% endif %}>{{ type.name }}</option>
+                        <option value="{{ type.id }}" {% if form_data.type == type.id|stringformat:'s' %}selected{% endif %}>{{ type.name }}</option>
                         {% endfor %}
                     </select>
+                    {% if form_errors.type %}<div class="field-error">{{ form_errors.type }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
                     <label for="manager">Руководитель</label>
-                    <select id="manager" name="manager">
+                    <select id="manager" name="manager" class="js-styled-select {% if form_errors.manager %}is-invalid{% endif %}">
                         <option value="">Выберите руководителя</option>
                         {% for manager in managers %}
-                            <option value="{{ manager.id }}" {% if project.manager_id == manager.id %}selected{% endif %}>{{ manager.last_name }} {{ manager.first_name }}</option>
+                        <option value="{{ manager.id }}" {% if form_data.manager == manager.id|stringformat:'s' %}selected{% endif %}>{{ manager.last_name }} {{ manager.first_name }}</option>
                         {% endfor %}
                     </select>
+                    {% if form_errors.manager %}<div class="field-error">{{ form_errors.manager }}</div>{% endif %}
                 </div>
             </div>
 
@@ -79,4 +263,211 @@
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    const selects = document.querySelectorAll('select.js-styled-select');
+    const opened = new Set();
+
+    function closeAll(except) {
+        opened.forEach(function (node) {
+            if (node !== except) {
+                node.classList.remove('is-open');
+                opened.delete(node);
+            }
+        });
+    }
+
+    selects.forEach(function (select) {
+        if (select.dataset.enhanced === '1') return;
+        select.dataset.enhanced = '1';
+        select.classList.add('native-select-hidden');
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'ui-select';
+        if (select.classList.contains('is-invalid')) wrapper.classList.add('has-error');
+
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'ui-select-trigger';
+
+        const menu = document.createElement('div');
+        menu.className = 'ui-select-menu';
+
+        function render() {
+            const selectedOption = select.options[select.selectedIndex];
+            trigger.textContent = selectedOption ? selectedOption.textContent : 'Выберите';
+            menu.innerHTML = '';
+            Array.from(select.options).forEach(function (option) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ui-select-option' + (option.selected ? ' is-selected' : '');
+                btn.textContent = option.textContent;
+                btn.addEventListener('click', function () {
+                    select.value = option.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    wrapper.classList.remove('is-open');
+                    opened.delete(wrapper);
+                    render();
+                });
+                menu.appendChild(btn);
+            });
+        }
+
+        trigger.addEventListener('click', function () {
+            const willOpen = !wrapper.classList.contains('is-open');
+            closeAll(wrapper);
+            wrapper.classList.toggle('is-open', willOpen);
+            if (willOpen) opened.add(wrapper); else opened.delete(wrapper);
+        });
+
+        select.addEventListener('change', render);
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(trigger);
+        wrapper.appendChild(menu);
+        wrapper.appendChild(select);
+        render();
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('.ui-select')) closeAll(null);
+    });
+})();
+
+(function () {
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+    function parseIso(value) {
+        if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+        const parts = value.split('-').map(Number);
+        const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+        if (dt.getFullYear() !== parts[0] || dt.getMonth() !== parts[1] - 1 || dt.getDate() !== parts[2]) return null;
+        return dt;
+    }
+    function toIso(dt) {
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth() + 1).padStart(2, '0');
+        const d = String(dt.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    function toDisplay(dt) {
+        const d = String(dt.getDate()).padStart(2, '0');
+        const m = String(dt.getMonth() + 1).padStart(2, '0');
+        const y = dt.getFullYear();
+        return `${d}.${m}.${y}`;
+    }
+
+    function initDatePicker(key) {
+        const picker = document.getElementById(`${key}_picker`);
+        if (!picker) return;
+
+        const hiddenInput = document.getElementById(key);
+        const displayInput = document.getElementById(`${key}_display`);
+        const panel = picker.querySelector('.ui-date-panel');
+        const titleEl = picker.querySelector('.ui-date-title');
+        const gridEl = picker.querySelector('.ui-date-grid');
+        const toggleBtn = picker.querySelector('.ui-date-toggle');
+
+        let selectedDate = parseIso(hiddenInput.value);
+        const base = selectedDate || new Date();
+        let viewYear = base.getFullYear();
+        let viewMonth = base.getMonth();
+
+        function sync() {
+            hiddenInput.value = selectedDate ? toIso(selectedDate) : '';
+            displayInput.value = selectedDate ? toDisplay(selectedDate) : '';
+        }
+
+        function render() {
+            titleEl.textContent = `${monthNames[viewMonth]} ${viewYear}`;
+            gridEl.innerHTML = '';
+
+            weekDays.forEach(function (name) {
+                const wd = document.createElement('div');
+                wd.className = 'ui-date-weekday';
+                wd.textContent = name;
+                gridEl.appendChild(wd);
+            });
+
+            const firstDay = new Date(viewYear, viewMonth, 1);
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            const offset = (firstDay.getDay() + 6) % 7;
+
+            for (let i = 0; i < offset; i += 1) {
+                const empty = document.createElement('button');
+                empty.type = 'button';
+                empty.className = 'ui-date-day is-empty';
+                empty.textContent = '0';
+                gridEl.appendChild(empty);
+            }
+
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day += 1) {
+                const dt = new Date(viewYear, viewMonth, day);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ui-date-day';
+                btn.textContent = String(day);
+
+                if (dt.getFullYear() === today.getFullYear() && dt.getMonth() === today.getMonth() && dt.getDate() === today.getDate()) {
+                    btn.classList.add('is-today');
+                }
+                if (selectedDate && dt.getFullYear() === selectedDate.getFullYear() && dt.getMonth() === selectedDate.getMonth() && dt.getDate() === selectedDate.getDate()) {
+                    btn.classList.add('is-selected');
+                }
+                btn.addEventListener('click', function () {
+                    selectedDate = dt;
+                    sync();
+                    render();
+                    picker.classList.remove('is-open');
+                });
+                gridEl.appendChild(btn);
+            }
+        }
+
+        toggleBtn.addEventListener('click', function () {
+            picker.classList.toggle('is-open', !picker.classList.contains('is-open'));
+        });
+        displayInput.addEventListener('click', function () {
+            picker.classList.add('is-open');
+        });
+
+        panel.querySelector('[data-action="prev"]').addEventListener('click', function () {
+            viewMonth -= 1;
+            if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
+            render();
+        });
+        panel.querySelector('[data-action="next"]').addEventListener('click', function () {
+            viewMonth += 1;
+            if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
+            render();
+        });
+        panel.querySelector('[data-action="clear"]').addEventListener('click', function () {
+            selectedDate = null;
+            sync();
+            render();
+            picker.classList.remove('is-open');
+        });
+        panel.querySelector('[data-action="today"]').addEventListener('click', function () {
+            selectedDate = new Date();
+            viewYear = selectedDate.getFullYear();
+            viewMonth = selectedDate.getMonth();
+            sync();
+            render();
+            picker.classList.remove('is-open');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!picker.contains(event.target)) picker.classList.remove('is-open');
+        });
+
+        sync();
+        render();
+    }
+
+    initDatePicker('start_date');
+    initDatePicker('end_date');
+})();
+</script>
 {% endblock %}

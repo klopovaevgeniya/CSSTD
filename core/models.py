@@ -47,6 +47,16 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
+
+class PositionDepartment(models.Model):
+    position = models.OneToOneField(Position, models.CASCADE, related_name='department_link')
+    department = models.ForeignKey(Department, models.CASCADE, related_name='position_links')
+
+    class Meta:
+        managed = True
+        db_table = 'position_departments'
+
+
 class Employee(models.Model):
     employee_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee', blank=True, null=True)
     last_name = models.CharField(max_length=100)

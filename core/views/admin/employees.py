@@ -1,13 +1,31 @@
-from django.db import connection
-from django.shortcuts import render, redirect, get_object_or_404
-from core.decorators import admin_required
-from core.models import Employee, Position, Department, Project, ProjectParticipant, ProjectTask, TaskAssignee
-from django.contrib.auth.models import User
-from django.contrib import messages
-from django.core.mail import EmailMultiAlternatives
-from django.conf import settings
+import json
 import random
+import re
 import string
+from datetime import date
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives
+from django.core.validators import validate_email
+from django.db import connection
+from django.db.models import Count
+from django.db.models import Q
+from django.shortcuts import render, redirect, get_object_or_404
+
+from core.decorators import admin_required
+from core.models import (
+    Department,
+    Employee,
+    Position,
+    PositionDepartment,
+    Project,
+    ProjectParticipant,
+    ProjectTask,
+    TaskAssignee,
+)
 
 def transliterate(text):
     translit_dict = {
@@ -27,83 +45,303 @@ def transliterate(text):
         result += translit_dict.get(char, char)
     return result
 
+
+def _get_position_department_map():
+    """
+    Возвращает соответствие должность -> отдел.
+    В приоритете явная связь из position_departments, fallback — по текущим сотрудникам.
+    """
+    explicit_map = {
+        link.position_id: link.department_id
+        for link in PositionDepartment.objects.all().only('position_id', 'department_id')
+    }
+
+    fallback_map = {}
+    fallback_rows = (
+        Employee.objects
+        .filter(position_id__isnull=False, department_id__isnull=False)
+        .values('position_id', 'department_id')
+        .annotate(cnt=Count('id'))
+        .order_by('position_id', '-cnt', 'department_id')
+    )
+    for row in fallback_rows:
+        position_id = row['position_id']
+        if position_id not in fallback_map:
+            fallback_map[position_id] = row['department_id']
+
+    fallback_map.update(explicit_map)
+    return fallback_map
+
+
+def _resolve_role(position_id):
+    if not position_id:
+        return "employee"
+    position = Position.objects.filter(id=position_id).first()
+    if not position:
+        return "employee"
+    if position.name == "Руководитель проекта":
+        return "project_manager"
+    if position.name == "Администратор":
+        return "admin"
+    return "employee"
+
+
+def _empty_employee_form_data():
+    return {
+        "last_name": "",
+        "first_name": "",
+        "middle_name": "",
+        "position": "",
+        "department": "",
+        "email": "",
+        "phone": "",
+        "hire_date": "",
+        "is_active": "true",
+    }
+
+
+def _employee_to_form_data(employee):
+    return {
+        "last_name": employee.last_name or "",
+        "first_name": employee.first_name or "",
+        "middle_name": employee.middle_name or "",
+        "position": str(employee.position_id) if employee.position_id else "",
+        "department": str(employee.department_id) if employee.department_id else "",
+        "email": employee.email or "",
+        "phone": employee.phone or "",
+        "hire_date": employee.hire_date.isoformat() if employee.hire_date else "",
+        "is_active": "true" if employee.is_active else "false",
+    }
+
+
+def _validate_employee_form(post_data, position_department_map, current_employee=None):
+    errors = {}
+    form_data = {
+        "last_name": (post_data.get("last_name") or "").strip(),
+        "first_name": (post_data.get("first_name") or "").strip(),
+        "middle_name": (post_data.get("middle_name") or "").strip(),
+        "position": (post_data.get("position") or "").strip(),
+        "department": (post_data.get("department") or "").strip(),
+        "email": (post_data.get("email") or "").strip(),
+        "phone": (post_data.get("phone") or "").strip(),
+        "hire_date": (post_data.get("hire_date") or "").strip(),
+        "is_active": "false" if (post_data.get("is_active") or "").strip() == "false" else "true",
+    }
+    cleaned = {
+        "last_name": None,
+        "first_name": None,
+        "middle_name": None,
+        "position_id": None,
+        "department_id": None,
+        "email": None,
+        "phone": None,
+        "hire_date": None,
+        "is_active": form_data["is_active"] == "true",
+    }
+
+    name_regex = r"^[A-Za-zА-Яа-яЁё\-\s]+$"
+
+    if not form_data["last_name"]:
+        errors["last_name"] = "Укажите фамилию."
+    elif not re.match(name_regex, form_data["last_name"]):
+        errors["last_name"] = "Фамилия может содержать только буквы, пробел и дефис."
+    else:
+        cleaned["last_name"] = form_data["last_name"]
+
+    if not form_data["first_name"]:
+        errors["first_name"] = "Укажите имя."
+    elif not re.match(name_regex, form_data["first_name"]):
+        errors["first_name"] = "Имя может содержать только буквы, пробел и дефис."
+    else:
+        cleaned["first_name"] = form_data["first_name"]
+
+    if form_data["middle_name"]:
+        if not re.match(name_regex, form_data["middle_name"]):
+            errors["middle_name"] = "Отчество может содержать только буквы, пробел и дефис."
+        else:
+            cleaned["middle_name"] = form_data["middle_name"]
+    else:
+        cleaned["middle_name"] = None
+
+    if not form_data["position"]:
+        errors["position"] = "Выберите должность."
+    elif not form_data["position"].isdigit():
+        errors["position"] = "Некорректная должность."
+    else:
+        position_id = int(form_data["position"])
+        if not Position.objects.filter(id=position_id).exists():
+            errors["position"] = "Выбранная должность не найдена."
+        else:
+            cleaned["position_id"] = position_id
+            mapped_department_id = position_department_map.get(position_id)
+            if not mapped_department_id:
+                errors["position"] = "Для выбранной должности не задан отдел."
+                errors["department"] = "Отдел не найден для выбранной должности."
+            else:
+                cleaned["department_id"] = mapped_department_id
+                form_data["department"] = str(mapped_department_id)
+
+    if not form_data["email"]:
+        errors["email"] = "Укажите email."
+    else:
+        try:
+            validate_email(form_data["email"])
+        except ValidationError:
+            errors["email"] = "Введите корректный email."
+        else:
+            email_qs = Employee.objects.filter(email__iexact=form_data["email"])
+            if current_employee:
+                email_qs = email_qs.exclude(pk=current_employee.pk)
+            if email_qs.exists():
+                errors["email"] = "Сотрудник с таким email уже существует."
+            else:
+                cleaned["email"] = form_data["email"]
+
+    if form_data["phone"]:
+        if not re.match(r"^\+?[0-9()\-\s]{7,20}$", form_data["phone"]):
+            errors["phone"] = "Введите корректный телефон."
+        else:
+            cleaned["phone"] = form_data["phone"]
+    else:
+        cleaned["phone"] = None
+
+    if form_data["hire_date"]:
+        try:
+            parsed_date = date.fromisoformat(form_data["hire_date"])
+        except ValueError:
+            errors["hire_date"] = "Введите корректную дату."
+        else:
+            if parsed_date > date.today():
+                errors["hire_date"] = "Дата приема не может быть в будущем."
+            else:
+                cleaned["hire_date"] = parsed_date
+    else:
+        cleaned["hire_date"] = None
+
+    for field_name in errors:
+        form_data[field_name] = ""
+
+    return cleaned, form_data, errors
+
+
+def _employee_form_context(mode, position_department_map, employee=None, form_data=None, form_errors=None):
+    if form_data is None:
+        form_data = _employee_to_form_data(employee) if employee else _empty_employee_form_data()
+    return {
+        "mode": mode,
+        "employee": employee,
+        "positions": Position.objects.order_by("name"),
+        "departments": Department.objects.order_by("name"),
+        "position_department_map_json": json.dumps(position_department_map),
+        "form_data": form_data,
+        "form_errors": form_errors or {},
+    }
+
+
 @admin_required
 def employee_list(request):
-    employees = Employee.objects.select_related('employee_user', 'position', 'department').order_by('last_name')
+    search_query = (request.GET.get("q") or "").strip()
+    position_filter = (request.GET.get("position") or "").strip()
+    department_filter = (request.GET.get("department") or "").strip()
+    status_filter = (request.GET.get("status") or "all").strip()
+
+    employees = Employee.objects.select_related("employee_user", "position", "department").order_by("last_name", "first_name")
+    if search_query:
+        employees = employees.filter(
+            Q(last_name__icontains=search_query)
+            | Q(first_name__icontains=search_query)
+            | Q(middle_name__icontains=search_query)
+            | Q(email__icontains=search_query)
+            | Q(phone__icontains=search_query)
+            | Q(position__name__icontains=search_query)
+            | Q(department__name__icontains=search_query)
+        )
+
+    if position_filter.isdigit():
+        employees = employees.filter(position_id=int(position_filter))
+    if department_filter.isdigit():
+        employees = employees.filter(department_id=int(department_filter))
+    if status_filter == "active":
+        employees = employees.filter(is_active=True)
+    elif status_filter == "inactive":
+        employees = employees.filter(is_active=False)
+
     return render(request, "admin/employees/list.html", {
-        "employees": employees
+        "employees": employees,
+        "positions": Position.objects.order_by("name"),
+        "departments": Department.objects.order_by("name"),
+        "search_query": search_query,
+        "position_filter": position_filter,
+        "department_filter": department_filter,
+        "status_filter": status_filter,
+        "employees_count": employees.count(),
     })
+
 
 @admin_required
 def employee_create(request):
+    position_department_map = _get_position_department_map()
+
     if request.method == "POST":
-        last_name = request.POST.get("last_name")
-        first_name = request.POST.get("first_name")
-        middle_name = request.POST.get("middle_name")
-        position_id = request.POST.get("position") or None
-        department_id = request.POST.get("department") or None
-        email = request.POST.get("email")
-        phone = request.POST.get("phone")
-        hire_date = request.POST.get("hire_date") or None
-        is_active = request.POST.get("is_active") == "true"
+        cleaned, form_data, form_errors = _validate_employee_form(
+            request.POST, position_department_map
+        )
 
-        if not last_name or not first_name or not email:
-            messages.error(request, "Фамилия, имя и email обязательны")
-        else:
-            # Генерация username
-            username = transliterate(last_name).lower()
-            counter = 1
-            original_username = username
-            while True:
-                # Проверка существования в User и users
-                user_exists = User.objects.filter(username=username).exists()
-                from django.db import connection
-                with connection.cursor() as cursor:
-                    cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s", [username])
-                    users_count = cursor.fetchone()[0]
-                if not user_exists and users_count == 0:
-                    break
-                username = f"{original_username}{counter}"
-                counter += 1
-
-            # Generate random password
-            password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-
-            # Create User
-            user = User.objects.create_user(username=username, email=email, password=password)
-
-            # Create Employee
-            employee = Employee.objects.create(
-                employee_user=user,
-                last_name=last_name,
-                first_name=first_name,
-                middle_name=middle_name,
-                position_id=position_id,
-                department_id=department_id,
-                email=email,
-                phone=phone,
-                hire_date=hire_date,
-                is_active=is_active
+        if form_errors:
+            messages.error(request, "Исправьте поля, выделенные красным.")
+            return render(
+                request,
+                "admin/employees/form.html",
+                _employee_form_context(
+                    mode="create",
+                    position_department_map=position_department_map,
+                    form_data=form_data,
+                    form_errors=form_errors,
+                ),
             )
 
-            # Determine role based on position
-            role = 'employee'
-            if position_id:
-                position = Position.objects.get(id=position_id)
-                if position.name == "Руководитель проекта":
-                    role = 'project_manager'
-
-            # Insert into users table for authentication logging
+        username = transliterate(cleaned["last_name"]).lower()
+        counter = 1
+        original_username = username
+        while True:
+            user_exists = User.objects.filter(username=username).exists()
             with connection.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO users (id, username, password_hash, role, is_active)
-                    VALUES (%s, %s, crypt(%s, gen_salt('bf')), %s, %s)
-                """, [user.id, username, password, role, is_active])
+                cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s", [username])
+                users_count = cursor.fetchone()[0]
+            if not user_exists and users_count == 0:
+                break
+            username = f"{original_username}{counter}"
+            counter += 1
 
-            # Send email
-            subject = 'Добро пожаловать в ЦСУРТ!'
-            text_content = f'Добро пожаловать! Ваш логин: {username}, Ваш пароль: {password}. Легкой и успешной работы!'
-            html_content = f"""
+        password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+        user = User.objects.create_user(username=username, email=cleaned["email"], password=password)
+
+        Employee.objects.create(
+            employee_user=user,
+            last_name=cleaned["last_name"],
+            first_name=cleaned["first_name"],
+            middle_name=cleaned["middle_name"],
+            position_id=cleaned["position_id"],
+            department_id=cleaned["department_id"],
+            email=cleaned["email"],
+            phone=cleaned["phone"],
+            hire_date=cleaned["hire_date"],
+            is_active=cleaned["is_active"],
+        )
+
+        role = _resolve_role(cleaned["position_id"])
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO users (id, username, password_hash, role, is_active)
+                VALUES (%s, %s, crypt(%s, gen_salt('bf')), %s, %s)
+                """,
+                [user.id, username, password, role, cleaned["is_active"]],
+            )
+
+        subject = 'Добро пожаловать в ЦСУРТ!'
+        text_content = f'Добро пожаловать! Ваш логин: {username}, Ваш пароль: {password}. Легкой и успешной работы!'
+        html_content = f"""
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -122,80 +360,78 @@ def employee_create(request):
 </body>
 </html>
 """
-            print(f"Created user: {username}, password: {password}, role: {role}")  # Для тестирования
-            msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [email])
-            msg.attach_alternative(html_content, "text/html")
-            try:
-                msg.send()
-            except Exception as e:
-                messages.warning(request, f"Сотрудник создан, но email не отправлен: {str(e)}")
+        msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [cleaned["email"]])
+        msg.attach_alternative(html_content, "text/html")
+        try:
+            msg.send()
+        except Exception as e:
+            messages.warning(request, f"Сотрудник создан, но email не отправлен: {str(e)}")
 
-            messages.success(request, "Сотрудник создан")
-            return redirect("admin_employees")
+        messages.success(request, "Сотрудник создан")
+        return redirect("admin_employees")
 
-    positions = Position.objects.all()
-    departments = Department.objects.all()
-    return render(request, "admin/employees/form.html", {
-        "mode": "create",
-        "positions": positions,
-        "departments": departments
-    })
+    return render(
+        request,
+        "admin/employees/form.html",
+        _employee_form_context(mode="create", position_department_map=position_department_map),
+    )
+
 
 @admin_required
 def employee_edit(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
+    position_department_map = _get_position_department_map()
 
     if request.method == "POST":
-        last_name = request.POST.get("last_name")
-        first_name = request.POST.get("first_name")
-        middle_name = request.POST.get("middle_name")
-        position_id = request.POST.get("position")
-        department_id = request.POST.get("department")
-        email = request.POST.get("email")
-        phone = request.POST.get("phone")
-        hire_date = request.POST.get("hire_date") or None
-        is_active = request.POST.get("is_active") == "true"
+        cleaned, form_data, form_errors = _validate_employee_form(
+            request.POST, position_department_map, current_employee=employee
+        )
+        if form_errors:
+            messages.error(request, "Исправьте поля, выделенные красным.")
+            return render(
+                request,
+                "admin/employees/form.html",
+                _employee_form_context(
+                    mode="edit",
+                    employee=employee,
+                    position_department_map=position_department_map,
+                    form_data=form_data,
+                    form_errors=form_errors,
+                ),
+            )
 
-        if not last_name or not first_name or not email:
-            messages.error(request, "Фамилия, имя и email обязательны")
-        else:
-            employee.last_name = last_name
-            employee.first_name = first_name
-            employee.middle_name = middle_name
-            employee.position_id = position_id
-            employee.department_id = department_id
-            employee.email = email
-            employee.phone = phone
-            employee.hire_date = hire_date
-            employee.is_active = is_active
-            employee.save()
+        employee.last_name = cleaned["last_name"]
+        employee.first_name = cleaned["first_name"]
+        employee.middle_name = cleaned["middle_name"]
+        employee.position_id = cleaned["position_id"]
+        employee.department_id = cleaned["department_id"]
+        employee.email = cleaned["email"]
+        employee.phone = cleaned["phone"]
+        employee.hire_date = cleaned["hire_date"]
+        employee.is_active = cleaned["is_active"]
+        employee.save()
 
-            # Update user email and active status if changed
-            if employee.employee_user:
-                employee.employee_user.email = email
-                employee.employee_user.is_active = is_active
-                employee.employee_user.save()
+        if employee.employee_user:
+            employee.employee_user.email = cleaned["email"]
+            employee.employee_user.is_active = cleaned["is_active"]
+            employee.employee_user.save()
 
-                # Update role in users table based on new position
-                role = 'employee'
-                if position_id:
-                    position = Position.objects.get(id=position_id)
-                    if position.name == "Руководитель проекта":
-                        role = 'project_manager'
-                with connection.cursor() as cursor:
-                    cursor.execute("UPDATE users SET role = %s WHERE id = %s", [role, employee.employee_user.id])
+            role = _resolve_role(cleaned["position_id"])
+            with connection.cursor() as cursor:
+                cursor.execute("UPDATE users SET role = %s, is_active = %s WHERE id = %s", [role, cleaned["is_active"], employee.employee_user.id])
 
-            messages.success(request, "Сотрудник обновлен")
-            return redirect("admin_employees")
+        messages.success(request, "Сотрудник обновлен")
+        return redirect("admin_employees")
 
-    positions = Position.objects.all()
-    departments = Department.objects.all()
-    return render(request, "admin/employees/form.html", {
-        "employee": employee,
-        "mode": "edit",
-        "positions": positions,
-        "departments": departments
-    })
+    return render(
+        request,
+        "admin/employees/form.html",
+        _employee_form_context(
+            mode="edit",
+            employee=employee,
+            position_department_map=position_department_map,
+        ),
+    )
 
 @admin_required
 def employee_delete(request, pk):

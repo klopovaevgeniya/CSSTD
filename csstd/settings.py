@@ -4,7 +4,6 @@ try:
     from dotenv import load_dotenv
     load_dotenv()
 except Exception:
-    # python-dotenv не установлен в окружении — продолжаем без .env
     pass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
