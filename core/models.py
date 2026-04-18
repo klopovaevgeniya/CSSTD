@@ -229,6 +229,64 @@ class Project(models.Model):
         db_table = 'projects'
 
 
+class ProjectExpenseRequest(models.Model):
+    STATUS_PENDING_MANAGER = 'pending_manager'
+    STATUS_NEEDS_ADMIN_REVIEW = 'needs_admin_review'
+    STATUS_APPROVED = 'approved'
+    STATUS_REJECTED = 'rejected'
+    STATUS_CHOICES = [
+        (STATUS_PENDING_MANAGER, 'Ожидает руководителя'),
+        (STATUS_NEEDS_ADMIN_REVIEW, 'Передано администратору'),
+        (STATUS_APPROVED, 'Подтверждено'),
+        (STATUS_REJECTED, 'Отклонено'),
+    ]
+
+    project = models.ForeignKey(Project, models.CASCADE, related_name='expense_requests')
+    requested_by = models.ForeignKey(Employee, models.CASCADE, related_name='created_expense_requests')
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    expense_date = models.DateField()
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING_MANAGER)
+    manager_comment = models.TextField(blank=True, null=True)
+    admin_comment = models.TextField(blank=True, null=True)
+    manager_decision_at = models.DateTimeField(blank=True, null=True)
+    admin_decision_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = True
+        db_table = 'project_expense_requests'
+        ordering = ['-created_at']
+
+
+class ProjectClosureRequest(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_APPROVED = 'approved'
+    STATUS_REJECTED = 'rejected'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Ожидает решения администратора'),
+        (STATUS_APPROVED, 'Подтверждено администратором'),
+        (STATUS_REJECTED, 'Отклонено администратором'),
+    ]
+
+    project = models.ForeignKey(Project, models.CASCADE, related_name='closure_requests')
+    requested_by = models.ForeignKey(Employee, models.CASCADE, related_name='created_closure_requests')
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    manager_comment = models.TextField(blank=True, null=True)
+    admin_comment = models.TextField(blank=True, null=True)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(blank=True, null=True)
+    seen_by_manager = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = True
+        db_table = 'project_closure_requests'
+        ordering = ['-requested_at']
+
+
 class ManagerProjectNotification(models.Model):
     """Уведомление о новом проекте для руководителя."""
     manager = models.ForeignKey(Employee, models.CASCADE, blank=True, null=True)
@@ -338,6 +396,20 @@ class TaskChatAttachment(models.Model):
     class Meta:
         managed = True
         db_table = 'task_chat_attachments'
+
+
+class TaskChatMessageNotification(models.Model):
+    """Уведомление о новом сообщении в чате задачи."""
+    task = models.ForeignKey(ProjectTask, models.CASCADE, related_name='task_chat_notifications')
+    employee = models.ForeignKey(Employee, models.CASCADE, related_name='task_chat_notifications')
+    message = models.ForeignKey(TaskChatMessage, models.CASCADE, related_name='notifications')
+    seen = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = True
+        db_table = 'task_chat_message_notifications'
+        unique_together = (('task', 'employee', 'message'),)
 
 
 class ResourceType(models.Model):

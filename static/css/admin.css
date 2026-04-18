@@ -87,6 +87,28 @@ body {
     background: rgba(42, 157, 143, 0.08);
 }
 
+.sidebar nav a {
+    position: relative;
+}
+
+.sidebar nav a .notification-dot {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.08);
+    animation: admin-notification-pulse 1.8s infinite;
+}
+
+@keyframes admin-notification-pulse {
+    0%, 100% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.08); }
+    50% { box-shadow: 0 0 0 11px rgba(239, 68, 68, 0.14); }
+}
+
 /* ACTIVE */
 .sidebar nav a.active {
     background: rgba(42, 157, 143, 0.15);

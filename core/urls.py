@@ -6,11 +6,20 @@ from .views.auth import login_view, logout_view, change_password_view
 from . import views
 from core.views.admin import dashboard, projects, employees, audit, positions, departments, reports, statistics
 from core.views.manager import projects as manager_projects_views, chat as manager_chat_views, calendar as manager_calendar_views, statistics as manager_statistics_views
+from core.views.manager import notifications as manager_notifications_views
 from core.views import task_chat as task_chat_views
-from .views.employee.dashboard import employee_dashboard, employee_projects, employee_project_detail, employee_tasks, employee_task_detail
+from .views.employee.dashboard import (
+    employee_dashboard,
+    employee_project_detail,
+    employee_projects,
+    employee_projects_archive,
+    employee_tasks,
+    employee_task_detail,
+)
 from .views.employee import chat as employee_chat_views
 from .views.employee.calendar import employee_calendar
 from .views.employee.profile import employee_profile
+from .views.employee import notifications as employee_notifications_views
 from .views.dashboard import (
     admin_dashboard,
     readonly_dashboard,
@@ -27,6 +36,7 @@ urlpatterns = [
 
     path("admin/", dashboard.admin_dashboard, name="admin_dashboard"),
     path('admin/projects/', projects.project_list, name='admin_projects'),
+    path('admin/projects/archive/', projects.project_archive_list, name='admin_projects_archive'),
     path('admin/projects/create/', projects.project_create, name='project_create'),
     path('admin/projects/<int:pk>/edit/', projects.project_edit, name='project_edit'),
     path('admin/projects/<int:pk>/detail/', projects.project_detail, name='project_detail'),
@@ -58,6 +68,7 @@ urlpatterns = [
     path('admin/statistics/', statistics.statistics_dashboard, name='admin_statistics'),
 
     path('manager/projects/', manager_projects_views.manager_projects_list, name='manager_projects'),
+    path('manager/projects/archive/', manager_projects_views.manager_projects_archive, name='manager_projects_archive'),
     path('manager/projects/<int:pk>/detail/', manager_projects_views.manager_project_detail, name='manager_project_detail'),
     path('manager/projects/<int:project_id>/create-task/', manager_projects_views.manager_create_task, name='manager_create_task'),
     path('manager/tasks/', manager_projects_views.manager_tasks, name='manager_tasks'),
@@ -70,6 +81,7 @@ urlpatterns = [
     path('manager/projects/<int:pk>/chat/edit/<int:message_id>/', manager_chat_views.manager_edit_chat_message, name='manager_edit_chat_message'),
 
     path('manager/calendar/', manager_calendar_views.manager_calendar, name='manager_calendar'),
+    path('manager/notifications/', manager_notifications_views.manager_notifications, name='manager_notifications'),
 
     path('manager/statistics/', manager_statistics_views.manager_statistics, name='manager_statistics'),
     path('manager/statistics/export/projects/excel/', manager_statistics_views.export_manager_projects_excel, name='manager_export_projects_excel'),
@@ -83,6 +95,7 @@ urlpatterns = [
     path('dashboard/employee/tasks/<int:task_id>/', employee_task_detail, name='employee_task_detail'),
     path('dashboard/employee/tasks/<int:task_id>/chat/', task_chat_views.task_chat_view, name='employee_task_chat'),
     path('dashboard/employee/projects/', employee_projects, name='employee_projects'),
+    path('dashboard/employee/projects/archive/', employee_projects_archive, name='employee_projects_archive'),
     path('dashboard/employee/projects/<int:pk>/', employee_project_detail, name='employee_project_detail'),
     path('dashboard/employee/projects/<int:pk>/chat/', employee_chat_views.employee_project_chat, name='employee_project_chat'),
     path('dashboard/employee/projects/<int:pk>/chat/send/', employee_chat_views.employee_project_chat_send, name='employee_project_chat_send'),
@@ -90,6 +103,7 @@ urlpatterns = [
     path('dashboard/employee/projects/<int:pk>/chat/edit/<int:message_id>/', employee_chat_views.employee_edit_chat_message, name='employee_edit_chat_message'),
 
     path('dashboard/employee/calendar/', employee_calendar, name='employee_calendar'),
+    path('dashboard/employee/notifications/', employee_notifications_views.employee_notifications, name='employee_notifications'),
 
     path('dashboard/readonly/', readonly_dashboard, name='readonly_dashboard'),
 

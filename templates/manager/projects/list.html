@@ -9,6 +9,283 @@
         margin: 0 auto;
         animation: fadeInUp 0.6s ease-out;
     }
+    .projects-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .archive-toggle-btn {
+        border: 1px solid #d8dfe5;
+        background: #fff;
+        color: #334155;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .projects-filters {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 10px;
+        margin-top: 18px;
+        margin-bottom: 12px;
+    }
+
+    .projects-filters input,
+    .projects-filters .custom-select-trigger,
+    .projects-filters .date-picker-trigger {
+        width: 100%;
+        height: 48px;
+        border: 1px solid #d8dfe5;
+        border-radius: 12px;
+        background-color: #fff;
+        color: #334155;
+        font-size: 0.95em;
+        font-weight: 500;
+        padding: 11px 14px;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .projects-filters input::placeholder {
+        color: #90a0af;
+    }
+
+    .projects-filters input:focus,
+    .projects-filters .custom-select.open .custom-select-trigger,
+    .projects-filters .date-picker.open .date-picker-trigger {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.16);
+    }
+
+    .projects-filters .custom-select { position: relative; }
+    .projects-filters .native-select {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .projects-filters .custom-select-trigger {
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+        padding-right: 42px;
+        font-family: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .projects-filters .custom-select-trigger::after {
+        content: '';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #6b7280;
+        border-bottom: 2px solid #6b7280;
+        transform: translateY(-65%) rotate(45deg);
+        transition: transform 0.2s ease;
+    }
+
+    .projects-filters .custom-select.open .custom-select-trigger::after {
+        transform: translateY(-35%) rotate(-135deg);
+    }
+
+    .projects-filters .custom-select-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        max-height: 240px;
+        overflow-y: auto;
+        padding: 6px;
+        z-index: 30;
+        display: none;
+    }
+
+    .projects-filters .custom-select.open .custom-select-menu {
+        display: block;
+        animation: dropdownReveal 0.18s ease-out;
+    }
+
+    @keyframes dropdownReveal {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .projects-filters .custom-select-option {
+        width: 100%;
+        border: none;
+        background: transparent;
+        text-align: left;
+        padding: 10px 12px;
+        border-radius: 9px;
+        color: #334155;
+        cursor: pointer;
+        font-size: 0.95em;
+        font-weight: 500;
+    }
+
+    .projects-filters .custom-select-option:hover { background: #f4f7fb; }
+    .projects-filters .custom-select-option.active {
+        background: linear-gradient(135deg, rgba(231, 111, 81, 0.16), rgba(244, 162, 97, 0.16));
+        color: #1f3c5a;
+        font-weight: 600;
+    }
+
+    .projects-filters .date-picker { position: relative; }
+    .projects-filters .date-picker-trigger {
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+        padding-right: 42px;
+        font-family: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .projects-filters .date-picker-trigger::after {
+        content: '';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #6b7280;
+        border-bottom: 2px solid #6b7280;
+        transform: translateY(-65%) rotate(45deg);
+        transition: transform 0.2s ease;
+    }
+
+    .projects-filters .date-picker.open .date-picker-trigger::after {
+        transform: translateY(-35%) rotate(-135deg);
+    }
+
+    .projects-filters .date-picker-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: auto;
+        right: 0;
+        min-width: 280px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+        padding: 8px;
+        z-index: 40;
+        display: none;
+    }
+
+    .projects-filters .date-picker.open .date-picker-panel {
+        display: block;
+        animation: dropdownReveal 0.18s ease-out;
+    }
+
+    .projects-filters .date-picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .projects-filters .date-picker-nav {
+        width: 30px;
+        height: 30px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        color: #334155;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+
+    .projects-filters .date-picker-month {
+        margin: 0;
+        font-size: 0.92em;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .projects-filters .date-picker-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        margin-bottom: 5px;
+        color: #64748b;
+        font-size: 0.74em;
+        text-align: center;
+    }
+
+    .projects-filters .date-picker-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+
+    .projects-filters .date-day {
+        width: 100%;
+        height: 30px;
+        border: none;
+        border-radius: 7px;
+        background: transparent;
+        color: #334155;
+        font-size: 0.84em;
+        cursor: pointer;
+    }
+
+    .projects-filters .date-day:hover { background: #eef3f9; }
+    .projects-filters .date-day.selected {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff;
+        font-weight: 700;
+    }
+    .projects-filters .date-day.today { border: 1px solid rgba(231, 111, 81, 0.45); }
+    .projects-filters .date-day.muted { visibility: hidden; pointer-events: none; }
+
+    .projects-filters .date-picker-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .projects-filters .date-picker-action {
+        border: none;
+        border-radius: 9px;
+        padding: 7px 9px;
+        font-size: 0.8em;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .projects-filters .date-picker-action-clear { background: #f1f5f9; color: #475569; }
+    .projects-filters .date-picker-action-today { background: rgba(231, 111, 81, 0.14); color: #b45309; }
+
+    .projects-filters-meta {
+        margin: 6px 0 10px;
+        color: #758391;
+        font-size: 0.9em;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .projects-filters-reset {
+        text-decoration: none;
+        color: var(--primary);
+        font-weight: 600;
+    }
 
     .projects-grid {
         display: grid;
@@ -25,6 +302,9 @@
 
     @media (max-width: 768px) {
         .projects-grid {
+            grid-template-columns: 1fr;
+        }
+        .projects-filters {
             grid-template-columns: 1fr;
         }
     }
@@ -152,6 +432,18 @@
         animation: slideDownFade 0.5s ease-out;
     }
 
+    .project-expense-notification {
+        color: #7c3aed;
+        font-size: 0.85em;
+        margin: 8px 0 12px;
+        font-weight: 600;
+        padding: 10px 12px;
+        background: rgba(124, 58, 237, 0.1);
+        border-left: 3px solid #7c3aed;
+        border-radius: 6px;
+        animation: slideDownFade 0.5s ease-out;
+    }
+
     .project-card .btn {
         background: linear-gradient(135deg, var(--primary), var(--accent));
         color: white;
@@ -213,11 +505,71 @@
 </style>
 
 <div class="dashboard-header">
-    <h1><i class="fa-solid fa-briefcase"></i> Мои проекты</h1>
-    <p>Управляйте вашими проектами и командой</p>
+    <div class="projects-title-row">
+        <h1><i class="fa-solid fa-briefcase"></i> {% if archive_mode %}Архив проектов{% else %}Мои проекты{% endif %}</h1>
+        <a href="{% if archive_mode %}{% url 'manager_projects' %}{% else %}{% url 'manager_projects_archive' %}{% endif %}" class="archive-toggle-btn">
+            <i class="fa-solid fa-box-archive"></i> {% if archive_mode %}К активным{% else %}Архив{% endif %}
+        </a>
+    </div>
+    <p>{% if archive_mode %}Просмотр закрытых и выполненных проектов{% else %}Управляйте вашими проектами и командой{% endif %}</p>
 </div>
 
 <div class="projects-container">
+    <form method="get" class="projects-filters" id="projectsFiltersForm">
+        <input type="text" name="project_search" value="{{ project_search }}" placeholder="Поиск: название, описание, код">
+
+        <div class="custom-select" data-custom-select>
+            <select name="project_status" class="native-select">
+                <option value="">Все статусы</option>
+                {% for option in project_status_options %}
+                    <option value="{{ option.status_id }}" {% if project_status == option.status_id|stringformat:'s' %}selected{% endif %}>{{ option.status__name }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="custom-select-trigger"></button>
+            <div class="custom-select-menu"></div>
+        </div>
+
+        <div class="custom-select" data-custom-select>
+            <select name="project_type" class="native-select">
+                <option value="">Все типы</option>
+                {% for option in project_type_options %}
+                    <option value="{{ option.type_id }}" {% if project_type == option.type_id|stringformat:'s' %}selected{% endif %}>{{ option.type__name }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="custom-select-trigger"></button>
+            <div class="custom-select-menu"></div>
+        </div>
+
+        <div class="date-picker" data-date-picker>
+            <input type="hidden" name="project_start_date" value="{{ project_start_date }}">
+            <button type="button" class="date-picker-trigger" aria-label="Фильтр проектов по дате старта"></button>
+            <div class="date-picker-panel">
+                <div class="date-picker-header">
+                    <button type="button" class="date-picker-nav" data-date-prev aria-label="Предыдущий месяц">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <p class="date-picker-month" data-date-month></p>
+                    <button type="button" class="date-picker-nav" data-date-next aria-label="Следующий месяц">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="date-picker-weekdays">
+                    <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+                </div>
+                <div class="date-picker-days" data-date-days></div>
+                <div class="date-picker-actions">
+                    <button type="button" class="date-picker-action date-picker-action-clear" data-date-clear>Все даты</button>
+                    <button type="button" class="date-picker-action date-picker-action-today" data-date-today>Сегодня</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="projects-filters-meta">
+        <span>Найдено проектов: <strong>{{ projects_data|length }}</strong></span>
+        <a href="{% if archive_mode %}{% url 'manager_projects_archive' %}{% else %}{% url 'manager_projects' %}{% endif %}" class="projects-filters-reset">Сбросить фильтры</a>
+    </div>
+
     {% if projects_data %}
         <div class="projects-grid">
             {% for item in projects_data %}
@@ -256,6 +608,12 @@
                         </div>
                     {% endif %}
 
+                    {% if item.pending_expense_requests > 0 %}
+                        <div class="project-expense-notification">
+                            <i class="fa-solid fa-receipt"></i> Ожидают подтверждения трат: {{ item.pending_expense_requests }}
+                        </div>
+                    {% endif %}
+
                     <a href="{% url 'manager_project_detail' item.project.id %}" class="btn">
                         <i class="fa-solid fa-arrow-right"></i> Подробнее
                     </a>
@@ -263,15 +621,276 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty-state">
-            <i class="fa-solid fa-inbox"></i>
-            <p>У вас пока нет назначенных проектов.</p>
-            <p>Обратитесь к администратору для добавления проектов</p>
-        </div>
+        {% if archive_mode %}
+            <p>нет проектов</p>
+        {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-inbox"></i>
+                <p>У вас пока нет назначенных проектов.</p>
+                <p>Обратитесь к администратору для добавления проектов</p>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 
 <script>
+    const projectsFiltersForm = document.getElementById('projectsFiltersForm');
+    if (projectsFiltersForm) {
+        const searchInput = projectsFiltersForm.querySelector('input[name="project_search"]');
+        const filterSelects = projectsFiltersForm.querySelectorAll('select');
+        const customSelectBlocks = projectsFiltersForm.querySelectorAll('[data-custom-select]');
+        const datePicker = projectsFiltersForm.querySelector('[data-date-picker]');
+        let searchDebounceTimer = null;
+
+        function submitProjectsFilters() {
+            if (projectsFiltersForm.requestSubmit) {
+                projectsFiltersForm.requestSubmit();
+                return;
+            }
+            projectsFiltersForm.submit();
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(function () {
+                    submitProjectsFilters();
+                }, 350);
+            });
+        }
+
+        filterSelects.forEach(function (select) {
+            select.addEventListener('change', function () {
+                submitProjectsFilters();
+            });
+        });
+
+        function closeAllCustomSelects(exceptSelect) {
+            customSelectBlocks.forEach(function (block) {
+                if (block !== exceptSelect) {
+                    block.classList.remove('open');
+                }
+            });
+        }
+
+        function closeDatePicker() {
+            if (datePicker) {
+                datePicker.classList.remove('open');
+            }
+        }
+
+        customSelectBlocks.forEach(function (block) {
+            const nativeSelect = block.querySelector('select');
+            const trigger = block.querySelector('.custom-select-trigger');
+            const menu = block.querySelector('.custom-select-menu');
+            if (!nativeSelect || !trigger || !menu) {
+                return;
+            }
+
+            function selectedOptionText() {
+                const selected = nativeSelect.options[nativeSelect.selectedIndex];
+                return selected ? selected.textContent.trim() : '';
+            }
+
+            function buildMenuOptions() {
+                menu.innerHTML = '';
+                Array.from(nativeSelect.options).forEach(function (option) {
+                    const optionButton = document.createElement('button');
+                    optionButton.type = 'button';
+                    optionButton.className = 'custom-select-option' + (option.selected ? ' active' : '');
+                    optionButton.textContent = option.textContent.trim();
+                    optionButton.dataset.value = option.value;
+
+                    optionButton.addEventListener('click', function () {
+                        nativeSelect.value = option.value;
+                        trigger.textContent = selectedOptionText();
+                        buildMenuOptions();
+                        block.classList.remove('open');
+                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
+                    menu.appendChild(optionButton);
+                });
+            }
+
+            trigger.textContent = selectedOptionText();
+            buildMenuOptions();
+
+            trigger.addEventListener('click', function () {
+                const isOpen = block.classList.contains('open');
+                closeDatePicker();
+                closeAllCustomSelects(block);
+                if (!isOpen) {
+                    block.classList.add('open');
+                }
+            });
+        });
+
+        if (datePicker) {
+            const monthNames = [
+                'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+            ];
+            const dateValueInput = datePicker.querySelector('input[name="project_start_date"]');
+            const trigger = datePicker.querySelector('.date-picker-trigger');
+            const monthLabel = datePicker.querySelector('[data-date-month]');
+            const daysContainer = datePicker.querySelector('[data-date-days]');
+            const prevButton = datePicker.querySelector('[data-date-prev]');
+            const nextButton = datePicker.querySelector('[data-date-next]');
+            const clearButton = datePicker.querySelector('[data-date-clear]');
+            const todayButton = datePicker.querySelector('[data-date-today]');
+
+            function parseIsoDate(value) {
+                if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                    return null;
+                }
+                const parts = value.split('-').map(Number);
+                const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                return Number.isNaN(dateObj.getTime()) ? null : dateObj;
+            }
+
+            function toIsoDate(dateObj) {
+                const y = dateObj.getFullYear();
+                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const d = String(dateObj.getDate()).padStart(2, '0');
+                return y + '-' + m + '-' + d;
+            }
+
+            function toDisplayDate(dateObj) {
+                const d = String(dateObj.getDate()).padStart(2, '0');
+                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                return d + '.' + m + '.' + dateObj.getFullYear();
+            }
+
+            function sameDay(a, b) {
+                return a && b
+                    && a.getFullYear() === b.getFullYear()
+                    && a.getMonth() === b.getMonth()
+                    && a.getDate() === b.getDate();
+            }
+
+            let selectedDate = parseIsoDate(dateValueInput.value);
+            const initialDate = selectedDate || new Date();
+            let viewYear = initialDate.getFullYear();
+            let viewMonth = initialDate.getMonth();
+
+            function updateDateTrigger() {
+                trigger.textContent = selectedDate ? ('Старт: ' + toDisplayDate(selectedDate)) : 'По дате старта';
+            }
+
+            function renderDateGrid() {
+                monthLabel.textContent = monthNames[viewMonth] + ' ' + viewYear;
+                daysContainer.innerHTML = '';
+
+                const firstDay = new Date(viewYear, viewMonth, 1);
+                const dayOffset = (firstDay.getDay() + 6) % 7;
+                const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+                const todayDate = new Date();
+                todayDate.setHours(0, 0, 0, 0);
+
+                for (let i = 0; i < dayOffset; i += 1) {
+                    const spacer = document.createElement('div');
+                    spacer.className = 'date-day muted';
+                    daysContainer.appendChild(spacer);
+                }
+
+                for (let day = 1; day <= daysInMonth; day += 1) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'date-day';
+                    btn.textContent = day;
+
+                    const dateObj = new Date(viewYear, viewMonth, day);
+                    dateObj.setHours(0, 0, 0, 0);
+
+                    if (sameDay(dateObj, selectedDate)) {
+                        btn.classList.add('selected');
+                    }
+                    if (sameDay(dateObj, todayDate)) {
+                        btn.classList.add('today');
+                    }
+
+                    btn.addEventListener('click', function () {
+                        selectedDate = new Date(viewYear, viewMonth, day);
+                        selectedDate.setHours(0, 0, 0, 0);
+                        dateValueInput.value = toIsoDate(selectedDate);
+                        updateDateTrigger();
+                        renderDateGrid();
+                        closeDatePicker();
+                        submitProjectsFilters();
+                    });
+
+                    daysContainer.appendChild(btn);
+                }
+            }
+
+            trigger.addEventListener('click', function () {
+                const isOpen = datePicker.classList.contains('open');
+                closeAllCustomSelects(null);
+                if (isOpen) {
+                    closeDatePicker();
+                    return;
+                }
+                datePicker.classList.add('open');
+                renderDateGrid();
+            });
+
+            prevButton.addEventListener('click', function () {
+                viewMonth -= 1;
+                if (viewMonth < 0) {
+                    viewMonth = 11;
+                    viewYear -= 1;
+                }
+                renderDateGrid();
+            });
+
+            nextButton.addEventListener('click', function () {
+                viewMonth += 1;
+                if (viewMonth > 11) {
+                    viewMonth = 0;
+                    viewYear += 1;
+                }
+                renderDateGrid();
+            });
+
+            clearButton.addEventListener('click', function () {
+                selectedDate = null;
+                dateValueInput.value = '';
+                updateDateTrigger();
+                closeDatePicker();
+                submitProjectsFilters();
+            });
+
+            todayButton.addEventListener('click', function () {
+                const now = new Date();
+                selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                viewYear = selectedDate.getFullYear();
+                viewMonth = selectedDate.getMonth();
+                dateValueInput.value = toIsoDate(selectedDate);
+                updateDateTrigger();
+                closeDatePicker();
+                submitProjectsFilters();
+            });
+
+            updateDateTrigger();
+            renderDateGrid();
+        }
+
+        document.addEventListener('click', function (event) {
+            if (!projectsFiltersForm.contains(event.target)) {
+                closeAllCustomSelects(null);
+                closeDatePicker();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeAllCustomSelects(null);
+                closeDatePicker();
+            }
+        });
+    }
+
     // Убираем выделение новых проектов через 7 секунд
     document.addEventListener('DOMContentLoaded', function () {
         setTimeout(function () {

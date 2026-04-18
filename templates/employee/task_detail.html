@@ -73,7 +73,7 @@
 <div class="task-page">
     <div class="task-topbar">
         <div class="task-title-wrap">
-            <a href="{% url 'employee_tasks' %}" class="breadcrumb-link">← Назад к задачам</a>
+            <a href="{{ back_to_project_tasks_url }}" class="breadcrumb-link">← Назад к задачам проекта</a>
             <h1>{{ task.name }}</h1>
         </div>
         <div class="task-top-actions">

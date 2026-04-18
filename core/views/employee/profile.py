@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from core.decorators import role_required
 from core.models import (
     Employee, ProjectTask, ProjectParticipant, EmployeeProjectAssignmentNotification,
-    ProjectChatMessageNotification, EmployeeTaskAssignmentNotification
+    ProjectChatMessageNotification, EmployeeTaskAssignmentNotification, TaskChatMessageNotification
 )
 from django.db.models import Count, Q
-from datetime import date, timedelta
+from datetime import timedelta
+from django.utils import timezone
+from core.utils.project_archive import archived_project_q
 
 
 @role_required(['employee'])
@@ -19,6 +21,8 @@ def employee_profile(request):
     # Получаем все задачи сотрудника
     all_tasks = ProjectTask.objects.filter(
         Q(assigned_to=employee) | Q(task_assignees__employee=employee, task_assignees__step_status__in=['active', 'completed'])
+    ).exclude(
+        archived_project_q(prefix='project')
     ).distinct()
     total_tasks = all_tasks.count()
 
@@ -29,7 +33,7 @@ def employee_profile(request):
     active_tasks = all_tasks.exclude(status__icontains='завершена').count()
 
     # Задачи на сегодня
-    today = date.today()
+    today = timezone.localdate()
     today_tasks = all_tasks.filter(
         Q(due_date=today) | Q(created_at__date=today)
     ).exclude(status__icontains='завершена').count()
@@ -38,7 +42,9 @@ def employee_profile(request):
     overdue_tasks = all_tasks.filter(due_date__lt=today).exclude(status__icontains='завершена').count()
 
     # Проекты сотрудника
-    employee_projects = ProjectParticipant.objects.filter(employee=employee).select_related('project')
+    employee_projects = ProjectParticipant.objects.filter(employee=employee).exclude(
+        archived_project_q(prefix='project')
+    ).select_related('project')
     total_projects = employee_projects.count()
 
     # Активные проекты
@@ -64,7 +70,7 @@ def employee_profile(request):
             avg_completion_time = 7.0  # дней
 
     # Задачи за последний месяц
-    last_month = today - timedelta(days=30)
+    last_month = timezone.now() - timedelta(days=30)
     tasks_last_month = all_tasks.filter(
         created_at__gte=last_month
     ).count()
@@ -80,7 +86,10 @@ def employee_profile(request):
     ).count()
     
     # Непрочитанные сообщения в чатах
-    employee_new_chat_count = ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+    employee_new_chat_count = (
+        ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+        + TaskChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+    )
     
     # Получаем количество новых уведомлений о назначении на проекты
     new_assignment_notifications = EmployeeProjectAssignmentNotification.objects.filter(

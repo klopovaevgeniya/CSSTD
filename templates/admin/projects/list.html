@@ -23,6 +23,7 @@
 
     .btn-add { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: linear-gradient(135deg, var(--primary) 0%, rgba(42, 157, 143, 0.85) 100%); color: white; border: none; border-radius: 8px; font-size: 0.95em; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2); }
     .btn-add:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(42, 157, 143, 0.35); }
+    .btn-archive-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px solid #d1dbe3; border-radius: 8px; text-decoration: none; color: #334155; font-weight: 700; background: #fff; margin-right: 8px; }
 
     .list-container { background: transparent; border: none; border-radius: 0; padding: 0; box-shadow: none; overflow: visible; animation: fadeInUp 0.6s ease 0.1s backwards; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -55,6 +56,36 @@
     .data-table th { background: transparent; padding: 14px 16px; text-align: left; font-size: .78rem; font-weight: 700; color: #ffffff; border-bottom: 2px solid rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: .35px; }
     .data-table tr { transition: background-color 0.2s ease; }
     .data-table tbody tr:hover { background: linear-gradient(90deg, rgba(42,157,143,0.02) 0%, rgba(42,157,143,0.05) 100%); }
+    .data-table tbody tr.has-expense-alert { background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 100%); }
+    .data-table tbody tr.has-expense-alert td:first-child { border-left: 4px solid #f59e0b; }
+    .data-table tbody tr.has-closure-alert { background: linear-gradient(90deg, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.02) 100%); }
+    .data-table tbody tr.has-closure-alert td:first-child { border-left: 4px solid #2563eb; }
+    .expense-row-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 10px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        background: rgba(245, 158, 11, 0.14);
+        color: #92400e;
+        vertical-align: middle;
+    }
+    .closure-row-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 10px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        background: rgba(37, 99, 235, 0.14);
+        color: #1d4ed8;
+        vertical-align: middle;
+    }
     .data-table td { padding: 16px; font-size: 0.9em; color: var(--text); border-bottom: 1px solid #edf2f4; }
     .data-table tbody tr:last-child td { border-bottom: none; }
 
@@ -98,13 +129,18 @@
 <div class="admin-container">
     <div class="page-header">
         <div class="page-header-main">
-            <h1><i class="fa-solid fa-folder"></i> Управление проектами</h1>
-            <p>Полное управление проектами и их статусами</p>
+            <h1><i class="fa-solid fa-folder"></i> {% if archive_mode %}Архив проектов{% else %}Управление проектами{% endif %}</h1>
+            <p>{% if archive_mode %}Просмотр закрытых и выполненных проектов{% else %}Полное управление проектами и их статусами{% endif %}</p>
         </div>
         <div class="header-toolbar">
-            <a href="{% url 'project_create' %}" class="btn-add">
-                <i class="fa-solid fa-plus"></i> Добавить проект
+            <a href="{% if archive_mode %}{% url 'admin_projects' %}{% else %}{% url 'admin_projects_archive' %}{% endif %}" class="btn-archive-toggle">
+                <i class="fa-solid fa-box-archive"></i> {% if archive_mode %}К активным{% else %}Архив{% endif %}
             </a>
+            {% if not archive_mode %}
+                <a href="{% url 'project_create' %}" class="btn-add">
+                    <i class="fa-solid fa-plus"></i> Добавить проект
+                </a>
+            {% endif %}
         </div>
     </div>
 
@@ -141,7 +177,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <a class="btn-clear" href="{% url 'admin_projects' %}">Сброс</a>
+            <a class="btn-clear" href="{% if archive_mode %}{% url 'admin_projects_archive' %}{% else %}{% url 'admin_projects' %}{% endif %}">Сброс</a>
         </form>
         <div class="result-meta">Найдено проектов: <strong>{{ projects_count }}</strong></div>
 
@@ -158,8 +194,16 @@
                 </thead>
                 <tbody>
                     {% for p in projects %}
-                    <tr>
-                        <td><strong>{{ p.name }}</strong></td>
+                    <tr class="{% if p.id in pending_expense_project_ids %}has-expense-alert{% endif %} {% if p.id in pending_closure_project_ids %}has-closure-alert{% endif %}">
+                        <td>
+                            <strong>{{ p.name }}</strong>
+                            {% if p.id in pending_expense_project_ids %}
+                                <span class="expense-row-badge"><i class="fa-solid fa-receipt"></i> есть заявки на решение</span>
+                            {% endif %}
+                            {% if p.id in pending_closure_project_ids %}
+                                <span class="closure-row-badge"><i class="fa-solid fa-lock"></i> запрос на закрытие</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if p.status %}
                             <span class="project-status-badge" style="background-color: {{ p.status.color_code|default:'#999' }};">{{ p.status.name }}</span>
@@ -172,8 +216,10 @@
                         <td>
                             <div class="action-links">
                                 <a href="{% url 'project_detail' p.id %}" title="Просмотр" class="view-link"><i class="fa-solid fa-eye"></i></a>
-                                <a href="{% url 'project_edit' p.id %}" title="Редактировать" class="edit-link"><i class="fa-solid fa-edit"></i></a>
-                                <a href="#" onclick="openDeleteModal({{ p.id }}, '{{ p.name }}')" title="Удалить" class="delete-link"><i class="fa-solid fa-trash"></i></a>
+                                {% if not archive_mode %}
+                                    <a href="{% url 'project_edit' p.id %}" title="Редактировать" class="edit-link"><i class="fa-solid fa-edit"></i></a>
+                                    <a href="#" onclick="openDeleteModal({{ p.id }}, '{{ p.name }}')" title="Удалить" class="delete-link"><i class="fa-solid fa-trash"></i></a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

@@ -5,6 +5,7 @@ from core.decorators import admin_required
 from core.models import Project, Employee, ProjectTask, Department, ProjectStatus
 from decimal import Decimal
 import json
+from core.utils.project_archive import archived_project_q
 
 
 @admin_required
@@ -12,11 +13,12 @@ def statistics_dashboard(request):
     """Дашборд со статистикой"""
     
     # Статистика проектов
-    total_projects = Project.objects.count()
-    active_projects = Project.objects.filter(
+    projects_qs = Project.objects.exclude(archived_project_q())
+    total_projects = projects_qs.count()
+    active_projects = projects_qs.filter(
         status__name__icontains='актив'
     ).count()
-    completed_projects = Project.objects.filter(
+    completed_projects = projects_qs.filter(
         status__name__icontains='завершён'
     ).count()
     
@@ -25,10 +27,11 @@ def statistics_dashboard(request):
     active_employees = Employee.objects.filter(is_active=True).count()
     
     # Статистика задач
-    total_tasks = ProjectTask.objects.count()
-    completed_tasks = ProjectTask.objects.filter(status__icontains='завершён').count()
-    in_progress_tasks = ProjectTask.objects.filter(status__icontains='работе').count()
-    overdue_tasks = ProjectTask.objects.filter(
+    tasks_qs = ProjectTask.objects.exclude(archived_project_q(prefix='project'))
+    total_tasks = tasks_qs.count()
+    completed_tasks = tasks_qs.filter(status__icontains='завершён').count()
+    in_progress_tasks = tasks_qs.filter(status__icontains='работе').count()
+    overdue_tasks = tasks_qs.filter(
         due_date__lt=timezone.now().date(),
         status__icontains='работе'
     ).count()
@@ -39,12 +42,12 @@ def statistics_dashboard(request):
     ).filter(employee_count__gt=0).values('name', 'employee_count')
     
     # Статистика по приоритетам задач
-    priority_stats = ProjectTask.objects.values('priority').annotate(
+    priority_stats = tasks_qs.values('priority').annotate(
         count=Count('id')
     ).exclude(priority__isnull=True)
     
     # Статистика статусов задач
-    status_stats = ProjectTask.objects.values('status').annotate(
+    status_stats = tasks_qs.values('status').annotate(
         count=Count('id')
     ).exclude(status__isnull=True)
     # Топ сотрудников по количеству назначенных задач
@@ -54,14 +57,14 @@ def statistics_dashboard(request):
     
     # Статистика проектов по статусам
     project_status_stats = ProjectStatus.objects.annotate(
-        project_count=Count('project')
+        project_count=Count('project', filter=~archived_project_q(prefix='project'))
     ).filter(project_count__gt=0)
     
     # График загрузки сотрудников (количество активных задач)
     employee_load = Employee.objects.annotate(
         active_task_count=Count(
             'projecttask',
-            filter=Q(projecttask__status__icontains='работе')
+            filter=Q(projecttask__status__icontains='работе') & ~archived_project_q(prefix='projecttask__project')
         )
     ).order_by('-active_task_count')[:10]
     
@@ -82,8 +85,8 @@ def statistics_dashboard(request):
     emp_load_counts = [e.active_task_count for e in employee_load]
     
     # Бюджет проектов
-    total_budget = sum((p.budget or Decimal("0")) for p in Project.objects.all())
-    total_actual = sum((p.actual_cost or Decimal("0")) for p in Project.objects.all())
+    total_budget = sum((p.budget or Decimal("0")) for p in projects_qs)
+    total_actual = sum((p.actual_cost or Decimal("0")) for p in projects_qs)
     budget_delta = total_budget - total_actual
     budget_usage_percent = int((total_actual / total_budget) * 100) if total_budget > 0 else 0
     budget_usage_percent = max(0, min(budget_usage_percent, 999))

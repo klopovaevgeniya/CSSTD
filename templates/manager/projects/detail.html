@@ -50,6 +50,7 @@
     .header-actions {
         display: flex;
         gap: 8px;
+        align-items: center;
     }
 
     .btn-action {
@@ -75,11 +76,38 @@
     .btn-chat {
         background: linear-gradient(135deg, var(--primary), var(--accent));
     }
+    .btn-closure {
+        background: linear-gradient(135deg, #2563eb, #0ea5e9);
+        border: none;
+        cursor: pointer;
+    }
+    .closure-state {
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    .closure-state-pending { background: #dbeafe; color: #1d4ed8; }
+    .closure-state-approved { background: #dcfce7; color: #166534; }
+    .closure-state-rejected { background: #fee2e2; color: #991b1b; }
 
     .tabs {
         display: flex;
         gap: 10px;
+        margin: 0;
+        flex-wrap: wrap;
+    }
+    .tabs-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
         margin-bottom: 24px;
+    }
+    .tab-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
     }
 
     .tab-link {
@@ -539,6 +567,92 @@
         gap: 12px;
     }
 
+    .expenses-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .expense-card {
+        border: 1px solid #edf0f2;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+    }
+
+    .expense-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .expense-title {
+        margin: 0;
+        color: var(--secondary);
+    }
+
+    .expense-status {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.78em;
+        font-weight: 600;
+    }
+
+    .expense-status-pending_manager { background: #fff3cd; color: #946200; }
+    .expense-status-needs_admin_review { background: #e9d5ff; color: #6b21a8; }
+    .expense-status-approved { background: #dcfce7; color: #166534; }
+    .expense-status-rejected { background: #fee2e2; color: #991b1b; }
+
+    .expense-meta {
+        color: #667085;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .expense-actions {
+        display: grid;
+        gap: 8px;
+    }
+
+    .expense-actions textarea {
+        min-height: 72px;
+        resize: vertical;
+    }
+
+    .expense-actions-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .expense-btn {
+        border: none;
+        border-radius: 8px;
+        padding: 9px 12px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .expense-btn-approve { background: #16a34a; }
+    .expense-btn-reject { background: #dc2626; }
+    .expense-btn-escalate { background: #7c3aed; }
+
+    .expense-alert {
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 14px;
+        font-weight: 600;
+    }
+
+    .expense-alert-success { background: #dcfce7; color: #166534; }
+    .expense-alert-error { background: #fee2e2; color: #991b1b; }
+
     .task-item {
         display: block;
         text-decoration: none;
@@ -700,6 +814,13 @@
         .project-detail-header {
             flex-direction: column;
         }
+        .tabs-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .tab-actions {
+            justify-content: flex-start;
+        }
 
         .tasks-filters {
             grid-template-columns: 1fr 1fr;
@@ -713,7 +834,7 @@
     }
 </style>
 
-<a href="{% url 'manager_projects' %}" class="project-detail-back">
+<a href="{% if is_archived %}{% url 'manager_projects_archive' %}{% else %}{% url 'manager_projects' %}{% endif %}" class="project-detail-back">
     <i class="fa-solid fa-arrow-left"></i> Вернуться к проектам
 </a>
 
@@ -728,23 +849,53 @@
         {% endif %}
     </div>
     <div class="header-actions">
-        <a href="{% url 'manager_create_task' project_id=project.id %}" class="btn-action btn-create-task">
-            <i class="fa-solid fa-plus"></i> Создать задачу
+        {% if is_archived %}
+            <span class="closure-state closure-state-approved">Проект в архиве</span>
+        {% elif latest_closure_request and latest_closure_request.status == 'pending' %}
+            <span class="closure-state closure-state-pending">Запрос на закрытие отправлен</span>
+        {% elif latest_closure_request and latest_closure_request.status == 'approved' %}
+            <span class="closure-state closure-state-approved">Закрытие подтверждено</span>
+        {% else %}
+            <form method="post" style="margin:0;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="request_project_closure">
+                <button type="submit" class="btn-action btn-closure"><i class="fa-solid fa-paper-plane"></i> Закрыть проект</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="tabs-row">
+    <div class="tabs">
+        <a href="{% url 'manager_project_detail' pk=project.id %}?tab=info" class="tab-link {% if selected_tab == 'info' %}active{% endif %}">
+            <i class="fa-solid fa-circle-info"></i> О проекте
         </a>
+        <a href="{% url 'manager_project_detail' pk=project.id %}?tab=tasks" class="tab-link {% if selected_tab == 'tasks' %}active{% endif %}">
+            <i class="fa-solid fa-list-check"></i> Задачи проекта
+        </a>
+        <a href="{% url 'manager_project_detail' pk=project.id %}?tab=expenses" class="tab-link {% if selected_tab == 'expenses' %}active{% endif %}">
+            <i class="fa-solid fa-receipt"></i> Траты
+            {% if pending_expense_requests_count > 0 %}({{ pending_expense_requests_count }}){% endif %}
+        </a>
+    </div>
+    <div class="tab-actions">
+        {% if not is_archived %}
+            <a href="{% url 'manager_create_task' project_id=project.id %}" class="btn-action btn-create-task">
+                <i class="fa-solid fa-plus"></i> Создать задачу
+            </a>
+        {% endif %}
         <a href="{% url 'manager_project_chat' pk=project.id %}" class="btn-action btn-chat" title="Открыть чат проекта">
             <i class="fa-solid fa-comments"></i>
         </a>
     </div>
 </div>
 
-<div class="tabs">
-    <a href="{% url 'manager_project_detail' pk=project.id %}?tab=info" class="tab-link {% if selected_tab == 'info' %}active{% endif %}">
-        <i class="fa-solid fa-circle-info"></i> О проекте
-    </a>
-    <a href="{% url 'manager_project_detail' pk=project.id %}?tab=tasks" class="tab-link {% if selected_tab == 'tasks' %}active{% endif %}">
-        <i class="fa-solid fa-list-check"></i> Задачи проекта
-    </a>
-</div>
+{% if closure_success %}
+    <div class="expense-alert expense-alert-success">{{ closure_success }}</div>
+{% endif %}
+{% if closure_error %}
+    <div class="expense-alert expense-alert-error">{{ closure_error }}</div>
+{% endif %}
 
 {% if selected_tab == 'tasks' %}
 <div class="tab-content-card">
@@ -864,6 +1015,73 @@
         </div>
     {% endif %}
 </div>
+{% elif selected_tab == 'expenses' %}
+<div class="tab-content-card">
+    {% if expense_success %}
+        <div class="expense-alert expense-alert-success">{{ expense_success }}</div>
+    {% endif %}
+    {% if expense_error %}
+        <div class="expense-alert expense-alert-error">{{ expense_error }}</div>
+    {% endif %}
+
+    <div class="expenses-stats">
+        <div class="tasks-stat-card">
+            <p>Всего запросов</p>
+            <strong>{{ expense_requests|length }}</strong>
+        </div>
+        <div class="tasks-stat-card">
+            <p>Ожидают решения</p>
+            <strong>{{ pending_expense_requests_count }}</strong>
+        </div>
+        <div class="tasks-stat-card">
+            <p>Подтверждено</p>
+            <strong>{{ approved_expense_total|floatformat:2 }} ₽</strong>
+        </div>
+        <div class="tasks-stat-card">
+            <p>Фактические траты проекта</p>
+            <strong>{{ project.actual_cost|default:0|floatformat:2 }} ₽</strong>
+        </div>
+    </div>
+
+    {% if expense_requests %}
+        {% for expense in expense_requests %}
+            <div class="expense-card">
+                <div class="expense-head">
+                    <h3 class="expense-title">{{ expense.title }}</h3>
+                    <span class="expense-status expense-status-{{ expense.status }}">{{ expense.get_status_display }}</span>
+                </div>
+                <div class="expense-meta">
+                    <span><i class="fa-solid fa-user"></i> {{ expense.requested_by.first_name }} {{ expense.requested_by.last_name }}</span>
+                    <span><i class="fa-solid fa-calendar"></i> {{ expense.expense_date|date:"d.m.Y" }}</span>
+                    <span><i class="fa-solid fa-ruble-sign"></i> {{ expense.amount|floatformat:2 }} ₽</span>
+                </div>
+                {% if expense.description %}
+                    <p>{{ expense.description }}</p>
+                {% endif %}
+                {% if expense.status == 'pending_manager' and not is_archived %}
+                    <form method="post" class="expense-actions">
+                        {% csrf_token %}
+                        <input type="hidden" name="expense_id" value="{{ expense.id }}">
+                        <textarea name="manager_comment" placeholder="Комментарий руководителя (необязательно)"></textarea>
+                        <div class="expense-actions-row">
+                            <button type="submit" name="expense_action" value="approve" class="expense-btn expense-btn-approve">Подтвердить</button>
+                            <button type="submit" name="expense_action" value="reject" class="expense-btn expense-btn-reject">Отклонить</button>
+                            <button type="submit" name="expense_action" value="escalate" class="expense-btn expense-btn-escalate">Передать администратору</button>
+                        </div>
+                    </form>
+                {% else %}
+                    {% if expense.manager_comment %}<p><strong>Комментарий руководителя:</strong> {{ expense.manager_comment }}</p>{% endif %}
+                    {% if expense.admin_comment %}<p><strong>Комментарий администратора:</strong> {{ expense.admin_comment }}</p>{% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-inbox"></i>
+            <p>Запросов на траты пока нет.</p>
+        </div>
+    {% endif %}
+</div>
 {% else %}
 <div class="tab-content-card">
     <div class="project-content">
@@ -907,6 +1125,13 @@
                 <div class="info-value">{{ project.actual_cost|floatformat:2 }} ₽</div>
             </div>
             {% endif %}
+
+            {% if latest_closure_request and latest_closure_request.admin_comment %}
+                <div class="info-item">
+                    <div class="info-label">Комментарий администратора по закрытию</div>
+                    <div class="info-value">{{ latest_closure_request.admin_comment }}</div>
+                </div>
+            {% endif %}
         </div>
 
         <div>
@@ -920,9 +1145,11 @@
                                 <p class="participant-name">{{ participant.employee.first_name }} {{ participant.employee.last_name }}</p>
                                 <p class="participant-role">{{ participant.employee.position.name|default:"Без должности" }}</p>
                             </div>
-                            <button class="participant-remove" onclick="removeParticipant({{ participant.id }}, '{{ participant.employee.first_name }} {{ participant.employee.last_name }}')">
-                                Удалить
-                            </button>
+                            {% if not is_archived %}
+                                <button class="participant-remove" onclick="removeParticipant({{ participant.id }}, '{{ participant.employee.first_name }} {{ participant.employee.last_name }}')">
+                                    Удалить
+                                </button>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
@@ -933,7 +1160,7 @@
                 </div>
             {% endif %}
 
-            {% if available_employees %}
+            {% if available_employees and not is_archived %}
                 <form method="post" class="add-employee-form">
                     {% csrf_token %}
                     <h3><i class="fa-solid fa-user-plus"></i> Добавить сотрудника</h3>
@@ -951,7 +1178,7 @@
             {% else %}
                 <div class="empty-state">
                     <i class="fa-solid fa-check-circle"></i>
-                    <p>Все активные сотрудники уже в проекте.</p>
+                    <p>{% if is_archived %}Архивный проект доступен только для просмотра.{% else %}Все активные сотрудники уже в проекте.{% endif %}</p>
                 </div>
             {% endif %}
         </div>

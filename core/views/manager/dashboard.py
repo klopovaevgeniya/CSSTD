@@ -2,6 +2,7 @@ from django.shortcuts import render
 from core.decorators import role_required
 from core.models import Employee, Project, ProjectTask, ProjectParticipant
 from datetime import date
+from core.utils.project_archive import archived_project_q
 
 
 @role_required(['project_manager'])
@@ -11,19 +12,27 @@ def manager_dashboard(request):
     
     if not employee:
         # Если нет вязи с Employee, используем User напрямую
-        projects = Project.objects.filter(manager__employee_user=request.user).select_related('status', 'type')
+        projects = Project.objects.filter(manager__employee_user=request.user).exclude(
+            archived_project_q()
+        ).select_related('status', 'type')
     else:
         # Получаем все проекты, где текущий пользователь является руководителем
-        projects = Project.objects.filter(manager=employee).select_related('status', 'type')
+        projects = Project.objects.filter(manager=employee).exclude(
+            archived_project_q()
+        ).select_related('status', 'type')
     
     # Активные проекты (исключаем завершённые)
     active_projects = projects.exclude(status__name__icontains='завершён')
     
     # Получаем все задачи для проектов руководителя
     if employee:
-        all_tasks = ProjectTask.objects.filter(project__manager=employee).prefetch_related('task_assignees__employee')
+        all_tasks = ProjectTask.objects.filter(project__manager=employee).exclude(
+            archived_project_q(prefix='project')
+        ).prefetch_related('task_assignees__employee')
     else:
-        all_tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user).prefetch_related('task_assignees__employee')
+        all_tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user).exclude(
+            archived_project_q(prefix='project')
+        ).prefetch_related('task_assignees__employee')
     
     # Задачи на сегодня (не завершённые)
     today_tasks = all_tasks.filter(
@@ -34,10 +43,14 @@ def manager_dashboard(request):
     if employee:
         team_members = ProjectParticipant.objects.filter(
             project__manager=employee
+        ).exclude(
+            archived_project_q(prefix='project')
         ).values('employee').distinct().count()
     else:
         team_members = ProjectParticipant.objects.filter(
             project__manager__employee_user=request.user
+        ).exclude(
+            archived_project_q(prefix='project')
         ).values('employee').distinct().count()
     
     # Последние проекты для отображения на дашборде
@@ -47,7 +60,9 @@ def manager_dashboard(request):
     recent_tasks = all_tasks.exclude(status__icontains='завершена').order_by('-due_date')[:5]
     # Количество созданных этим менеджером задач
     if employee:
-        manager_tasks_count = ProjectTask.objects.filter(created_by=employee, project__manager=employee).count()
+        manager_tasks_count = ProjectTask.objects.filter(created_by=employee, project__manager=employee).exclude(
+            archived_project_q(prefix='project')
+        ).count()
     else:
         manager_tasks_count = 0
     

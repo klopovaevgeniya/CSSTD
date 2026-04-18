@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from core.decorators import role_required
 from core.models import Employee, Project
+from core.utils.project_archive import archived_project_q
 
 
 @role_required(['project_manager'])
@@ -10,9 +11,9 @@ def manager_calendar(request):
 
     if employee:
         # Проекты, где текущий пользователь указан как менеджер
-        projects = Project.objects.filter(manager=employee)
+        projects = Project.objects.filter(manager=employee).exclude(archived_project_q())
     else:
-        projects = Project.objects.filter(manager__employee_user=request.user)
+        projects = Project.objects.filter(manager__employee_user=request.user).exclude(archived_project_q())
 
     # Только проекты с датой окончания
     projects_with_deadline = projects.exclude(end_date__isnull=True)

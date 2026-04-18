@@ -165,6 +165,12 @@ html, body {
     border-radius: 50%;
     box-shadow: 0 0 0 6px rgba(230,57,70,0.04);
     display: inline-block;
+    animation: manager-notification-pulse 1.8s infinite;
+}
+
+@keyframes manager-notification-pulse {
+    0%, 100% { box-shadow: 0 0 0 6px rgba(230,57,70,0.04); }
+    50% { box-shadow: 0 0 0 11px rgba(230,57,70,0.09); }
 }
 
 /* Visually hidden but accessible */

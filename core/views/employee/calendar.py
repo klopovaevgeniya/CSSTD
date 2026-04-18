@@ -8,7 +8,9 @@ from core.models import (
     EmployeeTaskAssignmentNotification,
     EmployeeProjectAssignmentNotification,
     ProjectChatMessageNotification,
+    TaskChatMessageNotification,
 )
+from core.utils.project_archive import archived_project_q
 
 
 @role_required(['employee'])
@@ -21,17 +23,24 @@ def employee_calendar(request):
     # Уведомления для бокового меню
     new_task_notifications = EmployeeTaskAssignmentNotification.objects.filter(employee=employee, seen=False).count()
     new_assignment_notifications = EmployeeProjectAssignmentNotification.objects.filter(employee=employee, seen=False).count()
-    employee_new_chat_count = ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+    employee_new_chat_count = (
+        ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+        + TaskChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+    )
 
     # Проекты, где сотрудник является участником
     project_participants = ProjectParticipant.objects.filter(employee=employee).select_related(
         'project', 'project__status', 'project__type', 'project__manager'
+    ).exclude(
+        archived_project_q(prefix='project')
     )
     projects = [p.project for p in project_participants if p.project]
 
     # Задачи сотрудника
     tasks = ProjectTask.objects.filter(
         Q(assigned_to=employee) | Q(task_assignees__employee=employee, task_assignees__step_status__in=['active', 'completed'])
+    ).exclude(
+        archived_project_q(prefix='project')
     ).select_related('project').distinct()
 
     # Подготовка данных для календаря

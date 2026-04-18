@@ -22,6 +22,9 @@
             <a href="{% url 'admin_projects' %}"
                class="{% if 'project' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="fa-solid fa-folder-open"></i> Проекты
+                {% if admin_pending_expense_requests_count and admin_pending_expense_requests_count > 0 or admin_pending_closure_requests_count and admin_pending_closure_requests_count > 0 %}
+                    <span class="notification-dot" title="Есть новые запросы по тратам и закрытию проектов"></span>
+                {% endif %}
             </a>
 
             <a href="{% url 'admin_employees' %}"

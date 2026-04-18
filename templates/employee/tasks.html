@@ -209,6 +209,11 @@
         background: linear-gradient(180deg, #e63946, #ff6b7a);
     }
 
+    .task-card.has-unread-chat {
+        border: 1px solid rgba(0, 132, 212, 0.35);
+        box-shadow: 0 8px 28px rgba(0, 132, 212, 0.2);
+    }
+
     .task-card.completed {
         opacity: 0.75;
     }
@@ -244,6 +249,19 @@
         font-weight: 700;
         margin-right: 6px;
         flex-shrink: 0;
+    }
+
+    .task-chat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0, 132, 212, 0.12);
+        color: #075985;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.74em;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .task-meta-row {
@@ -523,7 +541,7 @@
                 <div class="tasks-list">
                     {% for item in tasks_data %}
                     <a href="{% url 'employee_task_detail' item.task.id %}" style="text-decoration: none; color: inherit;">
-                    <div class="task-card {% if item.is_new %}new{% endif %}{% if item.task.status == 'завершена' %} completed{% endif %}{% if item.is_overdue %} overdue{% endif %}" 
+                    <div class="task-card {% if item.is_new %}new{% endif %}{% if item.task.status == 'завершена' %} completed{% endif %}{% if item.is_overdue %} overdue{% endif %}{% if item.unread_task_chat_messages > 0 %} has-unread-chat{% endif %}" 
                          data-status="{% if item.task.status == 'завершена' %}completed{% elif item.is_overdue %}overdue{% else %}active{% endif %}"
                          style="animation-delay: {% cycle '0s' '0.05s' '0.1s' '0.15s' '0.2s' %};">
                         
@@ -534,6 +552,9 @@
                                 {% endif %}
                                 <h3 class="task-title">{{ item.task.name }}</h3>
                             </div>
+                            {% if item.unread_task_chat_messages > 0 %}
+                                <span class="task-chat-badge"><i class="fa-solid fa-comments"></i> {{ item.unread_task_chat_messages }} нов.</span>
+                            {% endif %}
                         </div>
 
                         <div class="task-meta-row">

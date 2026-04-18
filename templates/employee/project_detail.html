@@ -113,7 +113,7 @@
         border-radius: 4px;
     }
 
-    .progress-text {
+    .project-progress-text {
         font-size: 0.85em;
         color: #666;
         margin-top: 6px;
@@ -225,6 +225,298 @@
         gap: 12px;
     }
 
+    .expense-form {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .expense-form input,
+    .expense-form textarea {
+        width: 100%;
+        border: 1px solid #cfe1ee;
+        border-radius: 12px;
+        background: #fff;
+        color: #334155;
+        font-size: 0.95em;
+        font-weight: 500;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .expense-form input {
+        height: 46px;
+        padding: 10px 14px;
+    }
+
+    .expense-form input:focus,
+    .expense-form textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.16);
+    }
+
+    .expense-form input::placeholder,
+    .expense-form textarea::placeholder {
+        color: #90a0af;
+    }
+
+    .expense-form textarea {
+        min-height: 110px;
+        padding: 12px 14px;
+        resize: vertical;
+    }
+
+    .expense-form .date-picker {
+        position: relative;
+        max-width: 240px;
+    }
+
+    .expense-form .date-picker-trigger {
+        width: 100%;
+        height: 42px;
+        border: 1px solid #cfe1ee;
+        border-radius: 12px;
+        background: #fff;
+        color: #334155;
+        font-size: 0.9em;
+        font-weight: 500;
+        padding: 8px 38px 8px 12px;
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .expense-form .date-picker-trigger::after {
+        content: '';
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #6b7280;
+        border-bottom: 2px solid #6b7280;
+        transform: translateY(-65%) rotate(45deg);
+        transition: transform 0.2s ease;
+    }
+
+    .expense-form .date-picker.open .date-picker-trigger {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.16);
+    }
+
+    .expense-form .date-picker.open .date-picker-trigger::after {
+        transform: translateY(-35%) rotate(-135deg);
+    }
+
+    .expense-form .date-picker-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        min-width: 260px;
+        background: #fff;
+        border: 1px solid #dbe8f3;
+        border-radius: 14px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+        padding: 8px;
+        z-index: 50;
+        display: none;
+    }
+
+    .expense-form .date-picker.open .date-picker-panel {
+        display: block;
+        animation: dropdownReveal 0.18s ease-out;
+    }
+
+    .expense-form .date-picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .expense-form .date-picker-nav {
+        width: 28px;
+        height: 28px;
+        border: 1px solid #dbe8f3;
+        border-radius: 8px;
+        background: #fff;
+        color: #334155;
+        cursor: pointer;
+        font-size: 0.82em;
+    }
+
+    .expense-form .date-picker-month {
+        margin: 0;
+        font-size: 0.96em;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .expense-form .date-picker-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        margin-bottom: 4px;
+        color: #64748b;
+        font-size: 0.72em;
+        text-align: center;
+    }
+
+    .expense-form .date-picker-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+
+    .expense-form .date-day {
+        width: 100%;
+        height: 30px;
+        border: none;
+        border-radius: 7px;
+        background: transparent;
+        color: #334155;
+        font-size: 0.84em;
+        cursor: pointer;
+    }
+
+    .expense-form .date-day:hover {
+        background: #edf6fb;
+    }
+
+    .expense-form .date-day.selected {
+        background: linear-gradient(135deg, var(--primary), #4db8e8);
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .expense-form .date-day.today {
+        border: 1px solid rgba(42, 157, 143, 0.55);
+    }
+
+    .expense-form .date-day.muted {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .expense-form .date-picker-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .expense-form .date-picker-action {
+        border: none;
+        border-radius: 9px;
+        padding: 7px 8px;
+        font-size: 0.78em;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .expense-form .date-picker-action-clear {
+        background: #e6eff5;
+        color: #475569;
+    }
+
+    .expense-form .date-picker-action-today {
+        background: rgba(42, 157, 143, 0.16);
+        color: #0f766e;
+    }
+
+    .expense-btn {
+        border: none;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: linear-gradient(135deg, var(--primary), #4db8e8);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .expense-alert {
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .expense-alert-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .expense-alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .expense-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+    }
+
+    .expense-item {
+        border: 1px solid #dce9f3;
+        border-left: 4px solid var(--primary);
+        border-radius: 12px;
+        padding: 14px;
+        background: #f8fbfe;
+    }
+
+    .expense-item-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .expense-status {
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.78em;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .expense-status-pending_manager { background: #fff3cd; color: #856404; }
+    .expense-status-needs_admin_review { background: #ede9fe; color: #5b21b6; }
+    .expense-status-approved { background: #dcfce7; color: #166534; }
+    .expense-status-rejected { background: #fee2e2; color: #991b1b; }
+
+    .expenses-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        gap: 20px;
+    }
+
+    .expense-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .expense-summary-card {
+        border: 1px solid #dbe9f5;
+        background: #f8fbfe;
+        border-radius: 10px;
+        padding: 12px;
+    }
+
+    .expense-summary-card p {
+        margin: 0;
+        font-size: 0.84em;
+        color: #5f7380;
+    }
+
+    .expense-summary-card strong {
+        display: block;
+        margin-top: 6px;
+        color: var(--secondary);
+        font-size: 1.25em;
+    }
+
     .participant-item {
         display: flex;
         align-items: center;
@@ -290,6 +582,399 @@
         box-shadow: 0 6px 20px rgba(66, 102, 244, 0.3);
     }
 
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 24px;
+        margin-top: 18px;
+    }
+
+    .tab-link {
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #3d5361;
+        background: #e8f1f7;
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+
+    .tab-link.active {
+        background: linear-gradient(135deg, var(--primary), #4db8e8);
+        color: #fff;
+        box-shadow: 0 6px 18px rgba(42, 157, 143, 0.25);
+    }
+
+    .tasks-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .tasks-stat-card {
+        background: #f8fbfe;
+        border: 1px solid #dbe9f5;
+        border-radius: 10px;
+        padding: 14px;
+    }
+
+    .tasks-stat-card p {
+        margin: 0;
+        color: #5f7380;
+        font-size: 0.85em;
+    }
+
+    .tasks-stat-card strong {
+        display: block;
+        margin-top: 7px;
+        font-size: 1.5em;
+        color: var(--secondary);
+    }
+
+    .tasks-filters {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .tasks-filters input,
+    .tasks-filters .custom-select-trigger,
+    .tasks-filters .date-picker-trigger {
+        width: 100%;
+        height: 48px;
+        border: 1px solid #cfe1ee;
+        border-radius: 12px;
+        background-color: #fff;
+        color: #334155;
+        font-size: 0.95em;
+        font-weight: 500;
+        padding: 11px 14px;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .tasks-filters input::placeholder {
+        color: #90a0af;
+    }
+
+    .tasks-filters input:focus,
+    .tasks-filters .custom-select.open .custom-select-trigger,
+    .tasks-filters .date-picker.open .date-picker-trigger {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.16);
+    }
+
+    .tasks-filters .custom-select {
+        position: relative;
+    }
+
+    .tasks-filters .native-select {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .tasks-filters .custom-select-trigger {
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+        padding-right: 42px;
+        font-family: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tasks-filters .custom-select-trigger::after {
+        content: '';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #6b7280;
+        border-bottom: 2px solid #6b7280;
+        transform: translateY(-65%) rotate(45deg);
+        transition: transform 0.2s ease;
+    }
+
+    .tasks-filters .custom-select.open .custom-select-trigger::after {
+        transform: translateY(-35%) rotate(-135deg);
+    }
+
+    .tasks-filters .custom-select-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #dbe8f3;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        max-height: 240px;
+        overflow-y: auto;
+        padding: 6px;
+        z-index: 30;
+        display: none;
+    }
+
+    .tasks-filters .custom-select.open .custom-select-menu {
+        display: block;
+        animation: dropdownReveal 0.18s ease-out;
+    }
+
+    @keyframes dropdownReveal {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .tasks-filters .custom-select-option {
+        width: 100%;
+        border: none;
+        background: transparent;
+        text-align: left;
+        padding: 10px 12px;
+        border-radius: 9px;
+        color: #334155;
+        cursor: pointer;
+        font-size: 0.95em;
+        font-weight: 500;
+    }
+
+    .tasks-filters .custom-select-option:hover {
+        background: #f4f8fb;
+    }
+
+    .tasks-filters .custom-select-option.active {
+        background: linear-gradient(135deg, rgba(42, 157, 143, 0.16), rgba(77, 184, 232, 0.16));
+        color: #1f3c5a;
+        font-weight: 600;
+    }
+
+    .tasks-filters .date-picker {
+        position: relative;
+    }
+
+    .tasks-filters .date-picker-trigger {
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+        padding-right: 42px;
+        font-family: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tasks-filters .date-picker-trigger::after {
+        content: '';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #6b7280;
+        border-bottom: 2px solid #6b7280;
+        transform: translateY(-65%) rotate(45deg);
+        transition: transform 0.2s ease;
+    }
+
+    .tasks-filters .date-picker.open .date-picker-trigger::after {
+        transform: translateY(-35%) rotate(-135deg);
+    }
+
+    .tasks-filters .date-picker-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: auto;
+        right: 0;
+        min-width: 260px;
+        background: #fff;
+        border: 1px solid #dbe8f3;
+        border-radius: 14px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+        padding: 8px;
+        z-index: 40;
+        display: none;
+    }
+
+    .tasks-filters .date-picker.open .date-picker-panel {
+        display: block;
+        animation: dropdownReveal 0.18s ease-out;
+    }
+
+    .tasks-filters .date-picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .tasks-filters .date-picker-nav {
+        width: 28px;
+        height: 28px;
+        border: 1px solid #dbe8f3;
+        border-radius: 8px;
+        background: #fff;
+        color: #334155;
+        cursor: pointer;
+        font-size: 0.82em;
+    }
+
+    .tasks-filters .date-picker-nav:hover {
+        background: #f8fbfd;
+    }
+
+    .tasks-filters .date-picker-month {
+        margin: 0;
+        font-size: 0.96em;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .tasks-filters .date-picker-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        margin-bottom: 4px;
+        color: #64748b;
+        font-size: 0.72em;
+        text-align: center;
+    }
+
+    .tasks-filters .date-picker-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+
+    .tasks-filters .date-day {
+        width: 100%;
+        height: 30px;
+        border: none;
+        border-radius: 7px;
+        background: transparent;
+        color: #334155;
+        font-size: 0.84em;
+        cursor: pointer;
+    }
+
+    .tasks-filters .date-day:hover {
+        background: #edf6fb;
+    }
+
+    .tasks-filters .date-day.selected {
+        background: linear-gradient(135deg, var(--primary), #4db8e8);
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .tasks-filters .date-day.today {
+        border: 1px solid rgba(42, 157, 143, 0.55);
+    }
+
+    .tasks-filters .date-day.muted {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .tasks-filters .date-picker-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .tasks-filters .date-picker-action {
+        border: none;
+        border-radius: 9px;
+        padding: 7px 8px;
+        font-size: 0.78em;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .tasks-filters .date-picker-action-clear {
+        background: #e6eff5;
+        color: #475569;
+    }
+
+    .tasks-filters .date-picker-action-today {
+        background: rgba(42, 157, 143, 0.16);
+        color: #0f766e;
+    }
+
+    .tasks-list-project {
+        display: grid;
+        gap: 10px;
+    }
+
+    .task-project-item {
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid #dce9f3;
+        border-left: 4px solid var(--primary);
+        border-radius: 10px;
+        padding: 14px;
+        background: #fff;
+        transition: all 0.2s ease;
+    }
+
+    .task-project-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(0, 132, 212, 0.12);
+    }
+
+    .task-project-item.overdue {
+        border-left-color: #ef4444;
+    }
+
+    .task-project-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .task-project-title {
+        margin: 0;
+        color: var(--secondary);
+        font-size: 1.05em;
+    }
+
+    .task-project-status {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.8em;
+        font-weight: 700;
+        background: #e2e8f0;
+        color: #334155;
+        white-space: nowrap;
+    }
+
+    .project-task-status-в_работе { background: #dbeafe; color: #1d4ed8; }
+    .project-task-status-завершена { background: #dcfce7; color: #166534; }
+    .project-task-status-на_проверке { background: #fef3c7; color: #92400e; }
+    .project-task-status-отложена { background: #ede9fe; color: #5b21b6; }
+
+    .task-project-meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        color: #6b7280;
+        font-size: 0.9em;
+    }
+
     @media (max-width: 768px) {
         .project-header {
             flex-direction: column;
@@ -300,11 +985,19 @@
             width: 100%;
             justify-content: center;
         }
+
+        .tasks-filters {
+            grid-template-columns: 1fr;
+        }
+
+        .expenses-layout {
+            grid-template-columns: 1fr;
+        }
     }
 
 </style>
 
-<a href="{% url 'employee_projects' %}" class="project-back-link">
+<a href="{% if is_archived %}{% url 'employee_projects_archive' %}{% else %}{% url 'employee_projects' %}{% endif %}" class="project-back-link">
     <i class="fa-solid fa-arrow-left"></i> Назад к проектам
 </a>
 
@@ -317,12 +1010,125 @@
                 {{ project.status.name }}
             </span>
         {% endif %}
+        {% if is_archived %}
+            <p style="margin-top: 10px; color: #0f766e; font-weight: 600;">
+                <i class="fa-solid fa-box-archive"></i> Проект в архиве. Доступен только для просмотра.
+            </p>
+        {% endif %}
     </div>
     <a href="{% url 'employee_project_chat' pk=project.id %}" class="btn-chat">
         💬 Чат проекта
     </a>
 </div>
 
+<div class="tabs">
+    <a href="{% url 'employee_project_detail' pk=project.id %}?tab=info" class="tab-link {% if selected_tab == 'info' %}active{% endif %}">
+        <i class="fa-solid fa-circle-info"></i> О проекте
+    </a>
+    <a href="{% url 'employee_project_detail' pk=project.id %}?tab=tasks" class="tab-link {% if selected_tab == 'tasks' %}active{% endif %}">
+        <i class="fa-solid fa-list-check"></i> Задачи проекта
+    </a>
+    <a href="{% url 'employee_project_detail' pk=project.id %}?tab=expenses" class="tab-link {% if selected_tab == 'expenses' %}active{% endif %}">
+        <i class="fa-solid fa-receipt"></i> Траты
+    </a>
+</div>
+
+{% if selected_tab == 'tasks' %}
+<div class="card">
+    <div class="tasks-stats">
+        <div class="tasks-stat-card">
+            <p>Всего задач</p>
+            <strong>{{ total_tasks_count }}</strong>
+        </div>
+        <div class="tasks-stat-card">
+            <p>Показано по фильтру</p>
+            <strong>{{ tasks_data|length }}</strong>
+        </div>
+        <div class="tasks-stat-card">
+            <p>Завершено</p>
+            <strong>{{ completed_tasks_count }}</strong>
+        </div>
+        <div class="tasks-stat-card">
+            <p>Просрочено</p>
+            <strong>{{ overdue_tasks_count }}</strong>
+        </div>
+    </div>
+
+    <form method="get" class="tasks-filters" id="tasksFiltersForm">
+        <input type="hidden" name="tab" value="tasks">
+        <input type="text" name="task_search" value="{{ task_search }}" placeholder="Поиск по названию и описанию">
+
+        <div class="custom-select" data-custom-select>
+            <select name="task_status" class="native-select">
+                <option value="">Все статусы</option>
+                {% for option in task_status_options %}
+                    <option value="{{ option }}" {% if task_status == option %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="custom-select-trigger"></button>
+            <div class="custom-select-menu"></div>
+        </div>
+
+        <div class="custom-select" data-custom-select>
+            <select name="task_priority" class="native-select">
+                <option value="">Все приоритеты</option>
+                {% for option in task_priority_options %}
+                    <option value="{{ option }}" {% if task_priority == option %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="custom-select-trigger"></button>
+            <div class="custom-select-menu"></div>
+        </div>
+
+        <div class="date-picker" data-date-picker>
+            <input type="hidden" name="task_due_date" value="{{ task_due_date }}">
+            <button type="button" class="date-picker-trigger" aria-label="Фильтр задач по дате срока"></button>
+            <div class="date-picker-panel">
+                <div class="date-picker-header">
+                    <button type="button" class="date-picker-nav" data-date-prev aria-label="Предыдущий месяц">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <p class="date-picker-month" data-date-month></p>
+                    <button type="button" class="date-picker-nav" data-date-next aria-label="Следующий месяц">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="date-picker-weekdays">
+                    <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+                </div>
+                <div class="date-picker-days" data-date-days></div>
+                <div class="date-picker-actions">
+                    <button type="button" class="date-picker-action date-picker-action-clear" data-date-clear>Все даты</button>
+                    <button type="button" class="date-picker-action date-picker-action-today" data-date-today>Сегодня</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {% if tasks_data %}
+        <div class="tasks-list-project">
+            {% for item in tasks_data %}
+                <a href="{% url 'employee_task_detail' item.task.id %}" class="task-project-item {% if item.is_overdue %}overdue{% endif %}">
+                    <div class="task-project-head">
+                        <h3 class="task-project-title">{{ item.task.name }}</h3>
+                        {% if item.task.status %}
+                            <span class="task-project-status project-task-status-{{ item.status_class }}">{{ item.task.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="task-project-meta">
+                        {% if item.task.priority %}<span><i class="fa-solid fa-flag"></i> {{ item.task.priority }}</span>{% endif %}
+                        <span><i class="fa-solid fa-calendar-days"></i> {% if item.task.due_date %}{{ item.task.due_date|date:"d.m.Y" }}{% else %}Без срока{% endif %}</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state" style="padding: 20px;">
+            <p>По выбранным фильтрам задачи не найдены.</p>
+        </div>
+    {% endif %}
+</div>
+{% elif selected_tab == 'info' %}
 <div class="project-grid">
     <!-- Project Info -->
     <div class="card">
@@ -384,65 +1190,33 @@
         </div>
     </div>
 
-    <!-- Tasks & Progress -->
+    <!-- Progress Summary -->
     <div class="card">
-        <h2><i class="fa-solid fa-tasks"></i> Ваши задачи</h2>
+        <h2><i class="fa-solid fa-chart-line"></i> Прогресс по задачам</h2>
 
         <div class="info-item">
             <div class="info-label">Прогресс выполнения</div>
             <div class="progress-bar">
                 <div class="progress-fill" style="width: {{ progress_percent }}%;"></div>
             </div>
-            <div class="progress-text">
-                {{ completed_tasks|length }} из {{ total_tasks }} завершено ({{ progress_percent }}%)
+            <div class="project-progress-text">
+                {{ completed_tasks_count }} из {{ total_tasks_count }} завершено ({{ progress_percent }}%)
             </div>
         </div>
 
-        <div class="tasks-section">
-            <h3><i class="fa-solid fa-circle-check"></i> Активные задачи ({{ active_tasks|length }})</h3>
-            {% if active_tasks %}
-                <ul class="task-list">
-                    {% for task in active_tasks %}
-                    <li class="task-item">
-                        <p class="task-name">{{ task.name }}</p>
-                        <div class="task-meta">
-                            {% if task.status %}
-                            <span class="task-status task-status-active">{{ task.status }}</span>
-                            {% endif %}
-                            {% if task.priority %}
-                            <span class="task-priority task-priority-{{ task.priority|lower }}">{{ task.priority }}</span>
-                            {% endif %}
-                            {% if task.due_date %}
-                            <span class="task-date">
-                                <i class="fa-solid fa-calendar"></i> {{ task.due_date|date:"d.m.Y" }}
-                            </span>
-                            {% endif %}
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <div class="empty-state" style="padding: 16px; margin-bottom: 20px;">
-                    <p>Нет активных задач</p>
-                </div>
-            {% endif %}
+        <div class="info-item">
+            <div class="info-label">В работе</div>
+            <div class="info-value">{{ active_tasks_count }}</div>
         </div>
 
-        {% if completed_tasks %}
-        <div class="tasks-section">
-            <h3><i class="fa-solid fa-check"></i> Завершённые задачи ({{ completed_tasks|length }})</h3>
-            <ul class="task-list">
-                {% for task in completed_tasks %}
-                <li class="task-item">
-                    <p class="task-name"><s>{{ task.name }}</s></p>
-                    <div class="task-meta">
-                        <span class="task-status task-status-completed">Завершена</span>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
+        <div class="info-item">
+            <div class="info-label">Просрочено</div>
+            <div class="info-value">{{ overdue_tasks_count }}</div>
         </div>
-        {% endif %}
+
+        <a href="{% url 'employee_project_detail' pk=project.id %}?tab=tasks" class="btn-chat" style="margin-top: 16px;">
+            <i class="fa-solid fa-list-check"></i> Перейти к задачам проекта
+        </a>
     </div>
 </div>
 
@@ -463,5 +1237,536 @@
         {% endfor %}
     </div>
 </div>
+{% elif selected_tab == 'expenses' %}
+<div class="expenses-layout">
+    <div class="card">
+        <h2><i class="fa-solid fa-file-circle-plus"></i> Создать запрос на трату</h2>
+
+        {% if expense_success %}
+            <div class="expense-alert expense-alert-success">{{ expense_success }}</div>
+        {% endif %}
+        {% if expense_error %}
+            <div class="expense-alert expense-alert-error">{{ expense_error }}</div>
+        {% endif %}
+
+        <div class="expense-summary">
+            <div class="expense-summary-card">
+                <p>Всего заявок</p>
+                <strong>{{ my_expense_requests|length }}</strong>
+            </div>
+            <div class="expense-summary-card">
+                <p>Ожидают решения</p>
+                <strong>{{ pending_expense_requests_count }}</strong>
+            </div>
+            <div class="expense-summary-card">
+                <p>Подтверждено</p>
+                <strong>{{ approved_expense_requests_count }}</strong>
+            </div>
+        </div>
+
+        {% if not is_archived %}
+            <form method="post" class="expense-form">
+                {% csrf_token %}
+                <input type="hidden" name="tab" value="expenses">
+                <input type="hidden" name="action" value="create_expense_request">
+                <input type="text" name="title" placeholder="Назначение траты (например: закупка оборудования)" required>
+                <input type="number" name="amount" step="0.01" min="0.01" {% if project.budget %}max="{{ project.budget|floatformat:2 }}"{% endif %} placeholder="Сумма, ₽" required>
+                {% if project.budget %}
+                    <div style="font-size: 0.84em; color: #64748b; margin-top: -4px;">Максимум по бюджету проекта: {{ project.budget|floatformat:2 }} ₽</div>
+                {% endif %}
+                <div class="date-picker" data-expense-date-picker>
+                    <input type="hidden" name="expense_date" value="">
+                    <button type="button" class="date-picker-trigger" aria-label="Выбор даты траты"></button>
+                    <div class="date-picker-panel">
+                        <div class="date-picker-header">
+                            <button type="button" class="date-picker-nav" data-date-prev aria-label="Предыдущий месяц">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <p class="date-picker-month" data-date-month></p>
+                            <button type="button" class="date-picker-nav" data-date-next aria-label="Следующий месяц">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="date-picker-weekdays">
+                            <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+                        </div>
+                        <div class="date-picker-days" data-date-days></div>
+                        <div class="date-picker-actions">
+                            <button type="button" class="date-picker-action date-picker-action-clear" data-date-clear>Удалить</button>
+                            <button type="button" class="date-picker-action date-picker-action-today" data-date-today>Сегодня</button>
+                        </div>
+                    </div>
+                </div>
+                <textarea name="description" placeholder="Комментарий (необязательно)"></textarea>
+                <button type="submit" class="expense-btn">Отправить на согласование</button>
+            </form>
+        {% else %}
+            <div class="expense-alert expense-alert-success">Архивный проект: создание новых заявок на траты недоступно.</div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2><i class="fa-solid fa-receipt"></i> История заявок</h2>
+
+        {% if my_expense_requests %}
+            <div class="expense-list">
+                {% for expense in my_expense_requests %}
+                    <div class="expense-item">
+                        <div class="expense-item-head">
+                            <strong>{{ expense.title }}</strong>
+                            <span class="expense-status expense-status-{{ expense.status }}">{{ expense.get_status_display }}</span>
+                        </div>
+                        <p style="margin: 8px 0 4px; color:#526372;"><i class="fa-solid fa-calendar"></i> {{ expense.expense_date|date:"d.m.Y" }} · <i class="fa-solid fa-ruble-sign"></i> {{ expense.amount|floatformat:2 }} ₽</p>
+                        {% if expense.description %}<p style="margin: 4px 0 0; color: #5f7380;">{{ expense.description }}</p>{% endif %}
+                        {% if expense.manager_comment %}<p style="margin: 6px 0 0;"><strong>Комментарий руководителя:</strong> {{ expense.manager_comment }}</p>{% endif %}
+                        {% if expense.admin_comment %}<p style="margin: 6px 0 0;"><strong>Комментарий администратора:</strong> {{ expense.admin_comment }}</p>{% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state" style="padding: 18px;">
+                <i class="fa-solid fa-inbox"></i>
+                <p>Вы ещё не отправляли запросы на траты по этому проекту.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+    const tasksFiltersForm = document.getElementById('tasksFiltersForm');
+    if (tasksFiltersForm) {
+        const searchInput = tasksFiltersForm.querySelector('input[name="task_search"]');
+        const filterSelects = tasksFiltersForm.querySelectorAll('select');
+        const customSelectBlocks = tasksFiltersForm.querySelectorAll('[data-custom-select]');
+        const datePicker = tasksFiltersForm.querySelector('[data-date-picker]');
+        let searchDebounceTimer = null;
+
+        function submitTasksFilters() {
+            if (tasksFiltersForm.requestSubmit) {
+                tasksFiltersForm.requestSubmit();
+                return;
+            }
+            tasksFiltersForm.submit();
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(function () {
+                    submitTasksFilters();
+                }, 350);
+            });
+        }
+
+        filterSelects.forEach(function (select) {
+            select.addEventListener('change', function () {
+                submitTasksFilters();
+            });
+        });
+
+        function closeAllCustomSelects(exceptSelect) {
+            customSelectBlocks.forEach(function (block) {
+                if (block !== exceptSelect) {
+                    block.classList.remove('open');
+                }
+            });
+        }
+
+        function closeDatePicker() {
+            if (datePicker) {
+                datePicker.classList.remove('open');
+            }
+        }
+
+        customSelectBlocks.forEach(function (block) {
+            const nativeSelect = block.querySelector('select');
+            const trigger = block.querySelector('.custom-select-trigger');
+            const menu = block.querySelector('.custom-select-menu');
+            if (!nativeSelect || !trigger || !menu) {
+                return;
+            }
+
+            function selectedOptionText() {
+                const selected = nativeSelect.options[nativeSelect.selectedIndex];
+                return selected ? selected.textContent.trim() : '';
+            }
+
+            function buildMenuOptions() {
+                menu.innerHTML = '';
+                Array.from(nativeSelect.options).forEach(function (option) {
+                    const optionButton = document.createElement('button');
+                    optionButton.type = 'button';
+                    optionButton.className = 'custom-select-option' + (option.selected ? ' active' : '');
+                    optionButton.textContent = option.textContent.trim();
+                    optionButton.dataset.value = option.value;
+
+                    optionButton.addEventListener('click', function () {
+                        nativeSelect.value = option.value;
+                        trigger.textContent = selectedOptionText();
+                        buildMenuOptions();
+                        block.classList.remove('open');
+                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
+                    menu.appendChild(optionButton);
+                });
+            }
+
+            trigger.textContent = selectedOptionText();
+            buildMenuOptions();
+
+            trigger.addEventListener('click', function () {
+                const isOpen = block.classList.contains('open');
+                closeDatePicker();
+                closeAllCustomSelects(block);
+                if (!isOpen) {
+                    block.classList.add('open');
+                }
+            });
+        });
+
+        if (datePicker) {
+            const monthNames = [
+                'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+            ];
+            const dateValueInput = datePicker.querySelector('input[name="task_due_date"]');
+            const trigger = datePicker.querySelector('.date-picker-trigger');
+            const monthLabel = datePicker.querySelector('[data-date-month]');
+            const daysContainer = datePicker.querySelector('[data-date-days]');
+            const prevButton = datePicker.querySelector('[data-date-prev]');
+            const nextButton = datePicker.querySelector('[data-date-next]');
+            const clearButton = datePicker.querySelector('[data-date-clear]');
+            const todayButton = datePicker.querySelector('[data-date-today]');
+
+            function parseIsoDate(value) {
+                if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                    return null;
+                }
+                const parts = value.split('-').map(Number);
+                const parsedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+            }
+
+            function toIsoDate(dateObj) {
+                const y = dateObj.getFullYear();
+                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const d = String(dateObj.getDate()).padStart(2, '0');
+                return y + '-' + m + '-' + d;
+            }
+
+            function toDisplayDate(dateObj) {
+                const d = String(dateObj.getDate()).padStart(2, '0');
+                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                return d + '.' + m + '.' + dateObj.getFullYear();
+            }
+
+            function sameDay(a, b) {
+                return a && b
+                    && a.getFullYear() === b.getFullYear()
+                    && a.getMonth() === b.getMonth()
+                    && a.getDate() === b.getDate();
+            }
+
+            let selectedDate = parseIsoDate(dateValueInput.value);
+            const initialDate = selectedDate || new Date();
+            let viewYear = initialDate.getFullYear();
+            let viewMonth = initialDate.getMonth();
+
+            function updateDateTrigger() {
+                trigger.textContent = selectedDate ? ('Срок: ' + toDisplayDate(selectedDate)) : 'По дате: все';
+            }
+
+            function renderDateGrid() {
+                monthLabel.textContent = monthNames[viewMonth] + ' ' + viewYear;
+                daysContainer.innerHTML = '';
+
+                const firstDay = new Date(viewYear, viewMonth, 1);
+                const dayOffset = (firstDay.getDay() + 6) % 7;
+                const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+                const todayDate = new Date();
+                todayDate.setHours(0, 0, 0, 0);
+
+                for (let i = 0; i < dayOffset; i += 1) {
+                    const spacer = document.createElement('div');
+                    spacer.className = 'date-day muted';
+                    daysContainer.appendChild(spacer);
+                }
+
+                for (let day = 1; day <= daysInMonth; day += 1) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'date-day';
+                    btn.textContent = day;
+
+                    const dateObj = new Date(viewYear, viewMonth, day);
+                    dateObj.setHours(0, 0, 0, 0);
+
+                    if (sameDay(dateObj, selectedDate)) {
+                        btn.classList.add('selected');
+                    }
+                    if (sameDay(dateObj, todayDate)) {
+                        btn.classList.add('today');
+                    }
+
+                    btn.addEventListener('click', function () {
+                        selectedDate = new Date(viewYear, viewMonth, day);
+                        selectedDate.setHours(0, 0, 0, 0);
+                        dateValueInput.value = toIsoDate(selectedDate);
+                        updateDateTrigger();
+                        renderDateGrid();
+                        closeDatePicker();
+                        submitTasksFilters();
+                    });
+
+                    daysContainer.appendChild(btn);
+                }
+            }
+
+            trigger.addEventListener('click', function () {
+                const isOpen = datePicker.classList.contains('open');
+                closeAllCustomSelects(null);
+                if (isOpen) {
+                    closeDatePicker();
+                    return;
+                }
+                datePicker.classList.add('open');
+                renderDateGrid();
+            });
+
+            prevButton.addEventListener('click', function () {
+                viewMonth -= 1;
+                if (viewMonth < 0) {
+                    viewMonth = 11;
+                    viewYear -= 1;
+                }
+                renderDateGrid();
+            });
+
+            nextButton.addEventListener('click', function () {
+                viewMonth += 1;
+                if (viewMonth > 11) {
+                    viewMonth = 0;
+                    viewYear += 1;
+                }
+                renderDateGrid();
+            });
+
+            clearButton.addEventListener('click', function () {
+                selectedDate = null;
+                dateValueInput.value = '';
+                updateDateTrigger();
+                closeDatePicker();
+                submitTasksFilters();
+            });
+
+            todayButton.addEventListener('click', function () {
+                const now = new Date();
+                selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                viewYear = selectedDate.getFullYear();
+                viewMonth = selectedDate.getMonth();
+                dateValueInput.value = toIsoDate(selectedDate);
+                updateDateTrigger();
+                closeDatePicker();
+                submitTasksFilters();
+            });
+
+            updateDateTrigger();
+            renderDateGrid();
+        }
+
+        document.addEventListener('click', function (event) {
+            if (!tasksFiltersForm.contains(event.target)) {
+                closeAllCustomSelects(null);
+                closeDatePicker();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeAllCustomSelects(null);
+                closeDatePicker();
+            }
+        });
+    }
+
+    const expenseDatePicker = document.querySelector('[data-expense-date-picker]');
+    if (expenseDatePicker) {
+        const monthNames = [
+            'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+            'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+        ];
+        const dateValueInput = expenseDatePicker.querySelector('input[name="expense_date"]');
+        const trigger = expenseDatePicker.querySelector('.date-picker-trigger');
+        const monthLabel = expenseDatePicker.querySelector('[data-date-month]');
+        const daysContainer = expenseDatePicker.querySelector('[data-date-days]');
+        const prevButton = expenseDatePicker.querySelector('[data-date-prev]');
+        const nextButton = expenseDatePicker.querySelector('[data-date-next]');
+        const clearButton = expenseDatePicker.querySelector('[data-date-clear]');
+        const todayButton = expenseDatePicker.querySelector('[data-date-today]');
+        const expenseForm = expenseDatePicker.closest('form');
+
+        function parseIsoDate(value) {
+            if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                return null;
+            }
+            const parts = value.split('-').map(Number);
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            return Number.isNaN(dateObj.getTime()) ? null : dateObj;
+        }
+
+        function toIsoDate(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        function toDisplayDate(dateObj) {
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            return d + '.' + m + '.' + dateObj.getFullYear();
+        }
+
+        function sameDay(a, b) {
+            return a && b
+                && a.getFullYear() === b.getFullYear()
+                && a.getMonth() === b.getMonth()
+                && a.getDate() === b.getDate();
+        }
+
+        function closeExpenseDatePicker() {
+            expenseDatePicker.classList.remove('open');
+        }
+
+        let selectedDate = parseIsoDate(dateValueInput.value);
+        const initialDate = selectedDate || new Date();
+        let viewYear = initialDate.getFullYear();
+        let viewMonth = initialDate.getMonth();
+
+        function updateDateTrigger() {
+            trigger.textContent = selectedDate ? ('Дата: ' + toDisplayDate(selectedDate)) : 'Дата траты';
+            trigger.style.borderColor = '';
+            trigger.style.boxShadow = '';
+        }
+
+        function renderDateGrid() {
+            monthLabel.textContent = monthNames[viewMonth] + ' ' + viewYear;
+            daysContainer.innerHTML = '';
+
+            const firstDay = new Date(viewYear, viewMonth, 1);
+            const dayOffset = (firstDay.getDay() + 6) % 7;
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            const todayDate = new Date();
+            todayDate.setHours(0, 0, 0, 0);
+
+            for (let i = 0; i < dayOffset; i += 1) {
+                const spacer = document.createElement('div');
+                spacer.className = 'date-day muted';
+                daysContainer.appendChild(spacer);
+            }
+
+            for (let day = 1; day <= daysInMonth; day += 1) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'date-day';
+                btn.textContent = day;
+
+                const dateObj = new Date(viewYear, viewMonth, day);
+                dateObj.setHours(0, 0, 0, 0);
+
+                if (sameDay(dateObj, selectedDate)) {
+                    btn.classList.add('selected');
+                }
+                if (sameDay(dateObj, todayDate)) {
+                    btn.classList.add('today');
+                }
+
+                btn.addEventListener('click', function () {
+                    selectedDate = new Date(viewYear, viewMonth, day);
+                    selectedDate.setHours(0, 0, 0, 0);
+                    dateValueInput.value = toIsoDate(selectedDate);
+                    updateDateTrigger();
+                    renderDateGrid();
+                    closeExpenseDatePicker();
+                });
+
+                daysContainer.appendChild(btn);
+            }
+        }
+
+        trigger.addEventListener('click', function () {
+            const isOpen = expenseDatePicker.classList.contains('open');
+            if (isOpen) {
+                closeExpenseDatePicker();
+                return;
+            }
+            expenseDatePicker.classList.add('open');
+            renderDateGrid();
+        });
+
+        prevButton.addEventListener('click', function () {
+            viewMonth -= 1;
+            if (viewMonth < 0) {
+                viewMonth = 11;
+                viewYear -= 1;
+            }
+            renderDateGrid();
+        });
+
+        nextButton.addEventListener('click', function () {
+            viewMonth += 1;
+            if (viewMonth > 11) {
+                viewMonth = 0;
+                viewYear += 1;
+            }
+            renderDateGrid();
+        });
+
+        clearButton.addEventListener('click', function () {
+            selectedDate = null;
+            dateValueInput.value = '';
+            updateDateTrigger();
+            closeExpenseDatePicker();
+        });
+
+        todayButton.addEventListener('click', function () {
+            const now = new Date();
+            selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            viewYear = selectedDate.getFullYear();
+            viewMonth = selectedDate.getMonth();
+            dateValueInput.value = toIsoDate(selectedDate);
+            updateDateTrigger();
+            closeExpenseDatePicker();
+        });
+
+        if (expenseForm) {
+            expenseForm.addEventListener('submit', function (event) {
+                if (!dateValueInput.value) {
+                    event.preventDefault();
+                    expenseDatePicker.classList.add('open');
+                    trigger.style.borderColor = '#dc2626';
+                    trigger.style.boxShadow = '0 0 0 3px rgba(220, 38, 38, 0.14)';
+                }
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            if (!expenseDatePicker.contains(event.target)) {
+                closeExpenseDatePicker();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeExpenseDatePicker();
+            }
+        });
+
+        updateDateTrigger();
+        renderDateGrid();
+    }
+</script>
 
 {% endblock %}

@@ -24,23 +24,10 @@
                 <i class="fa-solid fa-chart-line"></i> Дашборд
             </a>
 
-            <a href="{% url 'employee_profile' %}"
-               class="{% if request.resolver_match.url_name == 'employee_profile' %}active{% endif %}">
-                <i class="fa-solid fa-user"></i> Профиль
-            </a>
-
-            <a href="{% url 'employee_tasks' %}"
-               class="{% if request.resolver_match.url_name == 'employee_tasks' %}active{% endif %}">
-                <i class="fa-solid fa-tasks"></i> Мои задачи
-                {% if new_task_notifications and new_task_notifications > 0 %}
-                    <span class="notification-dot"></span>
-                {% endif %}
-            </a>
-
             <a href="{% url 'employee_projects' %}"
-               class="{% if request.resolver_match.url_name == 'employee_projects' %}active{% endif %}">
+               class="{% if request.resolver_match.url_name == 'employee_projects' or request.resolver_match.url_name == 'employee_projects_archive' or request.resolver_match.url_name == 'employee_project_detail' or request.resolver_match.url_name == 'employee_project_chat' or request.resolver_match.url_name == 'employee_task_detail' or request.resolver_match.url_name == 'employee_task_chat' %}active{% endif %}">
                 <i class="fa-solid fa-folder-open"></i> Мои проекты
-                {% if new_assignment_notifications and new_assignment_notifications > 0 or employee_new_chat_count and employee_new_chat_count > 0 %}
+                {% if new_assignment_notifications and new_assignment_notifications > 0 or employee_new_chat_count and employee_new_chat_count > 0 or new_task_notifications and new_task_notifications > 0 %}
                     <span class="notification-dot"></span>
                 {% endif %}
             </a>
@@ -48,6 +35,19 @@
             <a href="{% url 'employee_calendar' %}"
                class="{% if request.resolver_match.url_name == 'employee_calendar' %}active{% endif %}">
                 <i class="fa-solid fa-calendar"></i> График
+            </a>
+
+            <a href="{% url 'employee_notifications' %}"
+               class="{% if request.resolver_match.url_name == 'employee_notifications' %}active{% endif %}">
+                <i class="fa-solid fa-bell"></i> Уведомления
+                {% if employee_total_notifications and employee_total_notifications > 0 %}
+                    <span class="notification-dot"></span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'employee_profile' %}"
+               class="{% if request.resolver_match.url_name == 'employee_profile' %}active{% endif %}">
+                <i class="fa-solid fa-user"></i> Профиль
             </a>
         </nav>
 

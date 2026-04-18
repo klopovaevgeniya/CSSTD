@@ -4,19 +4,42 @@ from core.decorators import role_required
 from core.models import (
     Employee, Project, ManagerProjectNotification, 
     ProjectParticipant, EmployeeProjectAssignmentNotification,
-    ProjectChatMessageNotification, ProjectTask, EmployeeTaskAssignmentNotification, TaskAttachment, TaskAssignee, User
+    ProjectChatMessageNotification, ProjectTask, EmployeeTaskAssignmentNotification, TaskAttachment, TaskAssignee, User,
+    ProjectExpenseRequest, ProjectClosureRequest, ProjectStatus, TaskChatMessageNotification
 )
 from core.forms import ProjectTaskForm
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.utils import timezone
 from django.urls import reverse
 from datetime import datetime
+from decimal import Decimal
+from core.utils.project_archive import archived_project_q
+
+
+def _recalculate_project_actual_cost(project):
+    approved_total = ProjectExpenseRequest.objects.filter(
+        project=project,
+        status=ProjectExpenseRequest.STATUS_APPROVED
+    ).values_list('amount', flat=True)
+    total = sum(approved_total, Decimal('0'))
+    project.actual_cost = total
+    project.updated_at = timezone.now()
+    project.save(update_fields=['actual_cost', 'updated_at'])
 
 
 @role_required(['project_manager'])
 def manager_projects_list(request):
+    return _manager_projects_list(request, archive_mode=False)
+
+
+@role_required(['project_manager'])
+def manager_projects_archive(request):
+    return _manager_projects_list(request, archive_mode=True)
+
+
+def _manager_projects_list(request, archive_mode=False):
     # Получаем объект Employee для текущего пользователя
     employee = Employee.objects.filter(employee_user_id=request.session.get('user_id')).first()
     if not employee:
@@ -27,11 +50,53 @@ def manager_projects_list(request):
     new_project_ids = list(unseen_notifications.values_list('project_id', flat=True))
 
     # Отметим уведомления как прочитанные — при открытии вкладки проектов точка должна пропасть
-    if unseen_notifications.exists():
+    if not archive_mode and unseen_notifications.exists():
         with transaction.atomic():
             unseen_notifications.update(seen=True)
 
-    projects = Project.objects.select_related('status', 'type', 'manager').filter(manager=employee).order_by('-created_at')
+    project_search = (request.GET.get('project_search') or '').strip()
+    project_status = (request.GET.get('project_status') or '').strip()
+    project_type = (request.GET.get('project_type') or '').strip()
+    project_start_date = (request.GET.get('project_start_date') or '').strip()
+
+    projects_base_qs = Project.objects.select_related('status', 'type', 'manager').filter(manager=employee)
+    if archive_mode:
+        projects_base_qs = projects_base_qs.filter(archived_project_q())
+    else:
+        projects_base_qs = projects_base_qs.exclude(archived_project_q())
+    projects = projects_base_qs.order_by('-created_at')
+
+    if project_search:
+        projects = projects.filter(
+            Q(name__icontains=project_search)
+            | Q(description__icontains=project_search)
+            | Q(code__icontains=project_search)
+            | Q(type__name__icontains=project_search)
+            | Q(status__name__icontains=project_search)
+        )
+    if project_status:
+        projects = projects.filter(status_id=project_status)
+    if project_type:
+        projects = projects.filter(type_id=project_type)
+    if project_start_date:
+        try:
+            selected_start_date = datetime.strptime(project_start_date, '%Y-%m-%d').date()
+            projects = projects.filter(start_date=selected_start_date)
+        except ValueError:
+            project_start_date = ''
+
+    project_status_options = (
+        projects_base_qs.exclude(status__isnull=True)
+        .values('status_id', 'status__name')
+        .distinct()
+        .order_by('status__name')
+    )
+    project_type_options = (
+        projects_base_qs.exclude(type__isnull=True)
+        .values('type_id', 'type__name')
+        .distinct()
+        .order_by('type__name')
+    )
     
     # Получаем непрочитанные сообщения в чате для каждого проекта
     projects_data = []
@@ -41,24 +106,40 @@ def manager_projects_list(request):
             employee=employee,
             seen=False
         ).count()
+        pending_expense_requests = ProjectExpenseRequest.objects.filter(
+            project=project,
+            status=ProjectExpenseRequest.STATUS_PENDING_MANAGER
+        ).count()
         projects_data.append({
             'project': project,
-            'unread_chat_messages': unread_messages
+            'unread_chat_messages': unread_messages,
+            'pending_expense_requests': pending_expense_requests,
         })
 
     # Общее количество непрочитанных сообщений в чатах (для индикатора на вкладке)
-    manager_new_chat_count = ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+    manager_new_chat_count = (
+        ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+        + TaskChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+    )
 
-    # Отметить уведомления чата как прочитанные при открытии вкладки проектов
-    if manager_new_chat_count > 0:
-        with transaction.atomic():
-            ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).update(seen=True)
+    manager_new_expense_requests_count = ProjectExpenseRequest.objects.filter(
+        project__manager=employee,
+        status=ProjectExpenseRequest.STATUS_PENDING_MANAGER
+    ).count()
 
     return render(request, 'manager/projects/list.html', {
         'projects_data': projects_data,
+        'archive_mode': archive_mode,
         'new_project_ids': new_project_ids,
         'manager_new_chat_count': manager_new_chat_count,
         'manager_new_projects_count': len(new_project_ids),
+        'manager_new_expense_requests_count': manager_new_expense_requests_count,
+        'project_search': project_search,
+        'project_status': project_status,
+        'project_type': project_type,
+        'project_start_date': project_start_date,
+        'project_status_options': project_status_options,
+        'project_type_options': project_type_options,
 
     })
 
@@ -73,12 +154,90 @@ def manager_project_detail(request, pk):
 
     # Получаем проект
     project = get_object_or_404(Project, id=pk, manager=employee)
+    is_archived = Project.objects.filter(id=project.id).filter(archived_project_q()).exists()
     selected_tab = request.GET.get('tab', 'info')
-    if selected_tab not in {'info', 'tasks'}:
+    if selected_tab not in {'info', 'tasks', 'expenses'}:
         selected_tab = 'info'
+
+    expense_error = None
+    expense_success = None
+    closure_error = None
+    closure_success = None
+
+    ProjectClosureRequest.objects.filter(
+        project=project,
+        status__in=[ProjectClosureRequest.STATUS_APPROVED, ProjectClosureRequest.STATUS_REJECTED],
+        seen_by_manager=False
+    ).update(seen_by_manager=True)
+
+    latest_closure_request = ProjectClosureRequest.objects.filter(project=project).select_related(
+        'requested_by'
+    ).order_by('-requested_at').first()
+
+    if request.method == 'POST' and request.POST.get('action') == 'request_project_closure':
+        pending_request_exists = ProjectClosureRequest.objects.filter(
+            project=project,
+            status=ProjectClosureRequest.STATUS_PENDING
+        ).exists()
+        if is_archived:
+            closure_error = 'Проект уже находится в архиве.'
+        elif pending_request_exists:
+            closure_error = 'Запрос на закрытие уже отправлен и ожидает решения администратора.'
+        else:
+            ProjectClosureRequest.objects.create(
+                project=project,
+                requested_by=employee,
+                status=ProjectClosureRequest.STATUS_PENDING,
+                seen_by_manager=True,
+            )
+            closure_success = 'Проект отправлен администратору на закрытие.'
+            latest_closure_request = ProjectClosureRequest.objects.filter(project=project).order_by('-requested_at').first()
+
+    # Руководитель обрабатывает запрос трат: подтвердить/отклонить/эскалировать админу
+    if request.method == 'POST' and request.POST.get('expense_action') in {'approve', 'reject', 'escalate'}:
+        if is_archived:
+            expense_error = 'Архивный проект доступен только для просмотра.'
+        else:
+            expense_action = request.POST.get('expense_action')
+            expense_id = (request.POST.get('expense_id') or '').strip()
+            manager_comment = (request.POST.get('manager_comment') or '').strip()
+
+            if not expense_id.isdigit():
+                expense_error = 'Некорректный запрос на трату.'
+            else:
+                expense_request = ProjectExpenseRequest.objects.filter(
+                    id=int(expense_id),
+                    project=project,
+                    status=ProjectExpenseRequest.STATUS_PENDING_MANAGER
+                ).first()
+                if not expense_request:
+                    expense_error = 'Запрос уже обработан или недоступен.'
+                else:
+                    with transaction.atomic():
+                        expense_request.manager_comment = manager_comment or None
+                        expense_request.manager_decision_at = timezone.now()
+                        if expense_action == 'approve':
+                            expense_request.status = ProjectExpenseRequest.STATUS_APPROVED
+                            expense_success = 'Трата подтверждена.'
+                        elif expense_action == 'reject':
+                            expense_request.status = ProjectExpenseRequest.STATUS_REJECTED
+                            expense_success = 'Трата отклонена.'
+                        else:
+                            expense_request.status = ProjectExpenseRequest.STATUS_NEEDS_ADMIN_REVIEW
+                            expense_success = 'Запрос передан администратору.'
+                        expense_request.save(update_fields=['status', 'manager_comment', 'manager_decision_at', 'updated_at'])
+                        _recalculate_project_actual_cost(project)
+
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'success': True, 'message': expense_success})
+                    return redirect(f"{reverse('manager_project_detail', kwargs={'pk': pk})}?tab=expenses")
 
     # Обработка удаления участника
     if request.method == 'POST' and 'participant_id' in request.POST:
+        if is_archived:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'Архивный проект доступен только для просмотра.'}, status=400)
+            return redirect('manager_project_detail', pk=pk)
         participant_id = request.POST.get('participant_id')
         try:
             participant = ProjectParticipant.objects.get(id=participant_id, project=project)
@@ -177,8 +336,21 @@ def manager_project_detail(request, pk):
     completed_tasks_count = tasks_base_qs.filter(status__icontains='заверш').count()
     overdue_tasks_count = tasks_base_qs.filter(due_date__lt=today).exclude(status__icontains='заверш').count()
 
+    expense_requests = ProjectExpenseRequest.objects.filter(project=project).select_related(
+        'requested_by'
+    ).order_by('-created_at')
+    pending_expense_requests = expense_requests.filter(status=ProjectExpenseRequest.STATUS_PENDING_MANAGER)
+    approved_expense_total = sum(
+        expense_requests.filter(status=ProjectExpenseRequest.STATUS_APPROVED).values_list('amount', flat=True),
+        Decimal('0')
+    )
+
     # Обработка добавления нового участника
     if request.method == 'POST' and 'employee_id' in request.POST:
+        if is_archived:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'Архивный проект доступен только для просмотра.'}, status=400)
+            return redirect('manager_project_detail', pk=pk)
         employee_id = request.POST.get('employee_id')
 
         if employee_id:
@@ -230,6 +402,20 @@ def manager_project_detail(request, pk):
         'total_tasks_count': total_tasks_count,
         'completed_tasks_count': completed_tasks_count,
         'overdue_tasks_count': overdue_tasks_count,
+        'expense_requests': expense_requests,
+        'pending_expense_requests': pending_expense_requests,
+        'pending_expense_requests_count': pending_expense_requests.count(),
+        'approved_expense_total': approved_expense_total,
+        'expense_error': expense_error,
+        'expense_success': expense_success,
+        'closure_error': closure_error,
+        'closure_success': closure_success,
+        'latest_closure_request': latest_closure_request,
+        'is_archived': is_archived,
+        'manager_new_expense_requests_count': ProjectExpenseRequest.objects.filter(
+            project__manager=employee,
+            status=ProjectExpenseRequest.STATUS_PENDING_MANAGER
+        ).count(),
     }
 
     return render(request, 'manager/projects/detail.html', context)
@@ -245,24 +431,40 @@ def manager_tasks(request):
     # задачи, созданные этим менеджером и относящиеся к его проектам
     tasks = ProjectTask.objects.filter(created_by=employee, project__manager=employee).select_related(
         'project', 'assigned_to'
+    ).exclude(
+        archived_project_q(prefix='project')
     ).prefetch_related('task_assignees__employee')
+
+    unread_task_chat_map = {
+        row['task_id']: row['unread_count']
+        for row in TaskChatMessageNotification.objects.filter(
+            employee=employee,
+            seen=False,
+            task__in=tasks
+        ).values('task_id').annotate(unread_count=Count('id'))
+    }
 
     # подготовка списка задач с дополнительными полями
     tasks_data = []
     for task in tasks:
         status_class = task.status.replace(' ', '_').lower() if task.status else ''
         is_completed = task.status and 'завершена' in task.status.lower()
+        unread_task_chat_messages = unread_task_chat_map.get(task.id, 0)
         tasks_data.append({
             'task': task,
             'is_overdue': task.due_date and task.due_date < timezone.now().date() and not is_completed,
             'status_class': status_class,
             'is_completed': is_completed,
             'assignees_display': task.get_assignees_display(),
+            'unread_task_chat_messages': unread_task_chat_messages,
         })
 
     context = {
         'tasks_data': tasks_data,
-        'manager_new_chat_count': ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).count(),
+        'manager_new_chat_count': (
+            ProjectChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+            + TaskChatMessageNotification.objects.filter(employee=employee, seen=False).count()
+        ),
     }
     return render(request, 'manager/tasks/list.html', context)
 
@@ -279,6 +481,7 @@ def manager_task_detail(request, task_id):
         id=task_id,
         project__manager=manager_employee
     )
+    is_project_archived = Project.objects.filter(id=task.project_id).filter(archived_project_q()).exists()
     chain_steps = list(task.get_chain_steps())
     active_step = task.get_active_step()
 
@@ -306,6 +509,8 @@ def manager_task_detail(request, task_id):
         return result
 
     if request.method == 'POST':
+        if is_project_archived:
+            return redirect('manager_task_detail', task_id=task_id)
         # обработка загрузки файла
         if 'attachment' in request.FILES:
             TaskAttachment.objects.create(
@@ -342,8 +547,12 @@ def manager_task_detail(request, task_id):
         'chain_steps': chain_steps,
         'active_step': active_step,
         'is_manager': True,
-        'manager_new_chat_count': ProjectChatMessageNotification.objects.filter(employee=manager_employee, seen=False).count(),
+        'manager_new_chat_count': (
+            ProjectChatMessageNotification.objects.filter(employee=manager_employee, seen=False).count()
+            + TaskChatMessageNotification.objects.filter(employee=manager_employee, seen=False).count()
+        ),
         'back_to_project_tasks_url': f"{reverse('manager_project_detail', kwargs={'pk': task.project.id})}?tab=tasks",
+        'is_project_archived': is_project_archived,
     }
     return render(request, 'manager/tasks/detail.html', context)
 
@@ -361,6 +570,8 @@ def manager_edit_task(request, task_id):
         project__manager=manager_employee
     )
     project = task.project
+    if Project.objects.filter(id=project.id).filter(archived_project_q()).exists():
+        return redirect('manager_task_detail', task_id=task_id)
 
     project_employees = ProjectParticipant.objects.filter(project=project).values_list('employee_id', flat=True)
     available_employees = Employee.objects.filter(
@@ -484,6 +695,8 @@ def manager_create_task(request, project_id):
 
     # Получаем проект и проверяем, что он принадлежит текущему менеджеру
     project = get_object_or_404(Project, id=project_id, manager=manager_employee)
+    if Project.objects.filter(id=project.id).filter(archived_project_q()).exists():
+        return redirect('manager_project_detail', pk=project_id)
 
     # Получаем сотрудников, назначенных на этот проект
     project_employees = ProjectParticipant.objects.filter(project=project).values_list('employee_id', flat=True)

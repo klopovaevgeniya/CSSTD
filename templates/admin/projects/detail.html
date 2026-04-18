@@ -2,119 +2,279 @@
 {% block title %}Проект: {{ project.name }}{% endblock %}
 
 {% block content %}
-<div class="project-detail-header">
-    <a href="{% url 'admin_projects' %}" class="back-btn">
-        <i class="fa-solid fa-arrow-left"></i> Назад к проектам
-    </a>
-    <div class="project-title">
-        <h1 class="page-title">{{ project.name }}</h1>
-        {% if project.code %}<p class="project-code">Код: {{ project.code }}</p>{% endif %}
-    </div>
-</div>
+<style>
+    .project-page { max-width: 1320px; margin: 0 auto; }
+    @keyframes slideDownFade { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-<div class="project-details">
-    <div class="detail-row">
-        <div class="detail-card">
-            <div class="card-icon">
-                <i class="fa-solid fa-info-circle"></i>
+    .back-row { margin-bottom: 12px; animation: slideDownFade .42s ease-out; }
+    .project-header { margin-bottom: 18px; animation: slideDownFade .46s ease-out; }
+    .project-title-wrap h1 { margin: 0; font-size: 2.1rem; color: var(--secondary); }
+    .project-title-wrap p { margin: 6px 0 0 0; color: #64748b; }
+    .back-btn {
+        display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
+        text-decoration: none; border: 1px solid #d6e1e7; color: #334155; background: #fff;
+    }
+    .back-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    .tabs { display: flex; gap: 10px; margin-bottom: 18px; animation: fadeInUp .45s ease-out .05s both; }
+    .tab-link {
+        text-decoration: none; color: #334155; background: #ecf3f6; border-radius: 10px;
+        padding: 10px 14px; font-weight: 700; transition: all .2s ease;
+    }
+    .tab-link.active { color: #fff; background: linear-gradient(135deg, var(--primary), #3ab6a8); box-shadow: 0 6px 18px rgba(42,157,143,.22); }
+
+    .alert-box { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-weight: 600; animation: fadeInUp .36s ease-out; }
+    .alert-ok { background: #ecfdf3; color: #166534; border: 1px solid #bbf7d0; }
+    .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat-card { background: #fff; border: 1px solid #dbe8ee; border-radius: 12px; padding: 14px; opacity: 0; animation: fadeInUp .45s ease-out forwards; }
+    .stats-grid .stat-card:nth-child(1) { animation-delay: .04s; }
+    .stats-grid .stat-card:nth-child(2) { animation-delay: .09s; }
+    .stats-grid .stat-card:nth-child(3) { animation-delay: .14s; }
+    .stats-grid .stat-card:nth-child(4) { animation-delay: .19s; }
+    .stat-card p {
+        margin: 0;
+        color: #64748b;
+        font-size: .84rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .stat-card strong {
+        display: block;
+        margin-top: 7px;
+        color: #1e293b;
+        font-size: clamp(1.1rem, 2vw, 1.45rem);
+        line-height: 1.15;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { background: #fff; border: 1px solid #dbe8ee; border-radius: 14px; padding: 18px; opacity: 0; animation: fadeInUp .45s ease-out forwards; }
+    .detail-grid .card:nth-child(1) { animation-delay: .08s; }
+    .detail-grid .card:nth-child(2) { animation-delay: .14s; }
+    .detail-grid .card:nth-child(3) { animation-delay: .2s; }
+    .card h2 { margin: 0 0 12px 0; color: var(--secondary); font-size: 1.15rem; }
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+    .meta-item { border-bottom: 1px solid #edf2f6; padding-bottom: 10px; }
+    .meta-label { color: #64748b; font-size: .78rem; text-transform: uppercase; letter-spacing: .3px; font-weight: 700; margin-bottom: 4px; }
+    .meta-value { color: #1f2937; font-weight: 600; }
+    .project-status-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; color: #fff; font-size: .78rem; font-weight: 700; }
+    .project-description { margin: 0; color: #334155; line-height: 1.6; white-space: pre-line; }
+    .money-positive { color: #b91c1c; font-weight: 700; }
+    .money-negative { color: #166534; font-weight: 700; }
+
+    .expense-list { display: grid; gap: 12px; }
+    .expense-card { border: 1px solid #dbe8ee; border-left: 4px solid var(--primary); border-radius: 12px; background: #fff; padding: 14px; opacity: 0; animation: fadeInUp .45s ease-out forwards; }
+    .expense-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+    .expense-title { margin: 0; color: #1f2937; font-size: 1rem; }
+    .expense-status { font-size: .76rem; font-weight: 700; border-radius: 999px; padding: 4px 8px; white-space: nowrap; }
+    .expense-status-needs_admin_review { background: #fde68a; color: #92400e; }
+    .expense-status-pending { background: #dbeafe; color: #1d4ed8; }
+    .expense-status-approved { background: #bbf7d0; color: #166534; }
+    .expense-status-rejected { background: #fecaca; color: #991b1b; }
+    .expense-status-pending_manager { background: #dbeafe; color: #1d4ed8; }
+    .expense-meta { color: #64748b; font-size: .88rem; display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+
+    .expense-actions { margin-top: 10px; display: grid; gap: 8px; }
+    .expense-actions textarea {
+        border: 1px solid #d1dbe3; border-radius: 10px; padding: 10px 12px; min-height: 80px; resize: vertical;
+        font-size: .92rem; outline: none;
+    }
+    .expense-actions textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(42,157,143,.14); }
+    .expense-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-action { border: none; border-radius: 9px; padding: 9px 12px; color: #fff; font-weight: 700; cursor: pointer; }
+    .btn-approve { background: #16a34a; }
+    .btn-reject { background: #dc2626; }
+
+    @media (max-width: 1100px) {
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+        .detail-grid { grid-template-columns: 1fr; }
+        .meta-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="project-page">
+    <div class="back-row">
+        <a href="{% if is_archived %}{% url 'admin_projects_archive' %}{% else %}{% url 'admin_projects' %}{% endif %}" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Назад к проектам</a>
+    </div>
+    <div class="project-header">
+        <div class="project-title-wrap">
+            <h1>{{ project.name }}</h1>
+            {% if project.code %}<p>Код проекта: {{ project.code }}</p>{% endif %}
+        </div>
+    </div>
+
+    <div class="tabs">
+        <a href="{% url 'project_detail' pk=project.id %}?tab=info" class="tab-link {% if selected_tab == 'info' %}active{% endif %}">
+            <i class="fa-solid fa-circle-info"></i> О проекте
+        </a>
+        <a href="{% url 'project_detail' pk=project.id %}?tab=expenses" class="tab-link {% if selected_tab == 'expenses' %}active{% endif %}">
+            <i class="fa-solid fa-receipt"></i> Заявки на траты{% if pending_admin_expenses_count %} ({{ pending_admin_expenses_count }}){% endif %}
+        </a>
+        <a href="{% url 'project_detail' pk=project.id %}?tab=closure" class="tab-link {% if selected_tab == 'closure' %}active{% endif %}">
+            <i class="fa-solid fa-lock"></i> Закрытие проекта{% if pending_closure_requests_count %} ({{ pending_closure_requests_count }}){% endif %}
+        </a>
+    </div>
+
+    {% if expense_success %}
+        <div class="alert-box alert-ok">{{ expense_success }}</div>
+    {% endif %}
+    {% if expense_error %}
+        <div class="alert-box alert-error">{{ expense_error }}</div>
+    {% endif %}
+    {% if closure_success %}
+        <div class="alert-box alert-ok">{{ closure_success }}</div>
+    {% endif %}
+    {% if closure_error %}
+        <div class="alert-box alert-error">{{ closure_error }}</div>
+    {% endif %}
+
+    {% if selected_tab == 'expenses' %}
+        <div class="stats-grid">
+            <div class="stat-card"><p>Всего заявок</p><strong>{{ expense_requests|length }}</strong></div>
+            <div class="stat-card"><p>Ожидают решения</p><strong>{{ pending_admin_expenses_count }}</strong></div>
+            <div class="stat-card"><p>Подтверждено по заявкам</p><strong>{{ approved_expense_total|floatformat:2 }} ₽</strong></div>
+            <div class="stat-card"><p>Фактические траты проекта</p><strong>{{ project.actual_cost|default:0|floatformat:2 }} ₽</strong></div>
+        </div>
+
+        {% if expense_requests %}
+            <div class="expense-list">
+                {% for expense in expense_requests %}
+                    <div class="expense-card">
+                        <div class="expense-head">
+                            <h3 class="expense-title">{{ expense.title }}</h3>
+                            <span class="expense-status expense-status-{{ expense.status }}">{{ expense.get_status_display }}</span>
+                        </div>
+                        <div class="expense-meta">
+                            <span><i class="fa-solid fa-user"></i> {{ expense.requested_by.last_name }} {{ expense.requested_by.first_name }}</span>
+                            <span><i class="fa-solid fa-calendar"></i> {{ expense.expense_date|date:"d.m.Y" }}</span>
+                            <span><i class="fa-solid fa-ruble-sign"></i> {{ expense.amount|floatformat:2 }} ₽</span>
+                        </div>
+                        {% if expense.description %}<p>{{ expense.description }}</p>{% endif %}
+                        {% if expense.manager_comment %}<p><strong>Комментарий руководителя:</strong> {{ expense.manager_comment }}</p>{% endif %}
+                        {% if expense.admin_comment %}<p><strong>Комментарий администратора:</strong> {{ expense.admin_comment }}</p>{% endif %}
+
+                        {% if expense.status == 'needs_admin_review' %}
+                            <form method="post" class="expense-actions">
+                                {% csrf_token %}
+                                <input type="hidden" name="tab" value="expenses">
+                                <input type="hidden" name="expense_id" value="{{ expense.id }}">
+                                <textarea name="admin_comment" placeholder="Комментарий администратора (необязательно)"></textarea>
+                                <div class="expense-actions-row">
+                                    <button type="submit" name="expense_action" value="approve" class="btn-action btn-approve">Подтвердить</button>
+                                    <button type="submit" name="expense_action" value="reject" class="btn-action btn-reject">Отклонить</button>
+                                </div>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endfor %}
             </div>
-            <div class="card-content">
-                <h3>Основная информация</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label>Тип проекта</label>
-                        <span>{{ project.type.name|default:"Не указан" }}</span>
+        {% else %}
+            <div class="card"><p style="margin:0; color:#64748b;">Запросы на траты отсутствуют.</p></div>
+        {% endif %}
+    {% elif selected_tab == 'closure' %}
+        <div class="stats-grid">
+            <div class="stat-card"><p>Всего запросов</p><strong>{{ closure_requests|length }}</strong></div>
+            <div class="stat-card"><p>Ожидают решения</p><strong>{{ pending_closure_requests_count }}</strong></div>
+            <div class="stat-card"><p>Подтверждено</p><strong>{{ approved_closure_requests_count }}</strong></div>
+            <div class="stat-card"><p>Текущий статус проекта</p><strong>{{ project.status.name|default:'Не указан' }}</strong></div>
+        </div>
+
+        {% if closure_requests %}
+            <div class="expense-list">
+                {% for closure in closure_requests %}
+                    <div class="expense-card">
+                        <div class="expense-head">
+                            <h3 class="expense-title">Запрос от {{ closure.requested_by.last_name }} {{ closure.requested_by.first_name }}</h3>
+                            <span class="expense-status expense-status-{{ closure.status }}">{{ closure.get_status_display }}</span>
+                        </div>
+                        <div class="expense-meta">
+                            <span><i class="fa-solid fa-calendar"></i> {{ closure.requested_at|date:"d.m.Y H:i" }}</span>
+                            {% if closure.decided_at %}<span><i class="fa-solid fa-check"></i> {{ closure.decided_at|date:"d.m.Y H:i" }}</span>{% endif %}
+                        </div>
+                        {% if closure.manager_comment %}<p><strong>Комментарий руководителя:</strong> {{ closure.manager_comment }}</p>{% endif %}
+                        {% if closure.admin_comment %}<p><strong>Комментарий администратора:</strong> {{ closure.admin_comment }}</p>{% endif %}
+
+                        {% if closure.status == 'pending' %}
+                            <form method="post" class="expense-actions">
+                                {% csrf_token %}
+                                <input type="hidden" name="tab" value="closure">
+                                <input type="hidden" name="closure_request_id" value="{{ closure.id }}">
+                                <textarea name="admin_comment" placeholder="Причина отклонения или комментарий (обязательно при отклонении)"></textarea>
+                                <div class="expense-actions-row">
+                                    <button type="submit" name="closure_action" value="approve" class="btn-action btn-approve">Одобрить закрытие</button>
+                                    <button type="submit" name="closure_action" value="reject" class="btn-action btn-reject">Отклонить</button>
+                                </div>
+                            </form>
+                        {% endif %}
                     </div>
-                    <div class="info-item">
-                        <label>Статус</label>
-                        <span class="project-status-badge" style="background-color: {{ project.status.color_code|default:'#999' }};">{{ project.status.name|default:"Не указан" }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card"><p style="margin:0; color:#64748b;">Запросы на закрытие отсутствуют.</p></div>
+        {% endif %}
+    {% else %}
+        <div class="stats-grid">
+            <div class="stat-card"><p>Бюджет проекта</p><strong>{{ project.budget|default:0|floatformat:2 }} ₽</strong></div>
+            <div class="stat-card"><p>Фактические траты</p><strong>{{ project.actual_cost|default:0|floatformat:2 }} ₽</strong></div>
+            <div class="stat-card"><p>Отклонение</p><strong class="{% if budget_deviation and budget_deviation > 0 %}money-positive{% else %}money-negative{% endif %}">{{ budget_deviation|default:0|floatformat:2 }} ₽</strong></div>
+            <div class="stat-card"><p>Ожидают админа</p><strong>{{ pending_admin_expenses_count }}</strong></div>
+        </div>
+
+        <div class="detail-grid">
+            <div class="card">
+                <h2><i class="fa-solid fa-circle-info"></i> Основная информация</h2>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <div class="meta-label">Тип проекта</div>
+                        <div class="meta-value">{{ project.type.name|default:"Не указан" }}</div>
                     </div>
-                    <div class="info-item">
-                        <label>Руководитель</label>
-                        <span>{% if project.manager %}{{ project.manager.last_name }} {{ project.manager.first_name }}{% if project.manager.middle_name %} {{ project.manager.middle_name }}{% endif %}{% else %}Не назначен{% endif %}</span>
+                    <div class="meta-item">
+                        <div class="meta-label">Статус</div>
+                        <div class="meta-value">
+                            <span class="project-status-badge" style="background-color: {{ project.status.color_code|default:'#999' }};">{{ project.status.name|default:"Не указан" }}</span>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Руководитель</div>
+                        <div class="meta-value">{% if project.manager %}{{ project.manager.last_name }} {{ project.manager.first_name }}{% if project.manager.middle_name %} {{ project.manager.middle_name }}{% endif %}{% else %}Не назначен{% endif %}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Обновлено</div>
+                        <div class="meta-value">{{ project.updated_at|date:"d.m.Y H:i"|default:"Не указано" }}</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="detail-card">
-            <div class="card-icon">
-                <i class="fa-solid fa-calendar"></i>
-            </div>
-            <div class="card-content">
-                <h3>Сроки и даты</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label>Дата начала</label>
-                        <span>{{ project.start_date|date:"d.m.Y"|default:"Не указана" }}</span>
+            <div class="card">
+                <h2><i class="fa-solid fa-calendar-days"></i> Сроки</h2>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <div class="meta-label">Дата начала</div>
+                        <div class="meta-value">{{ project.start_date|date:"d.m.Y"|default:"Не указана" }}</div>
                     </div>
-                    <div class="info-item">
-                        <label>Дата окончания</label>
-                        <span>{{ project.end_date|date:"d.m.Y"|default:"Не указана" }}</span>
+                    <div class="meta-item">
+                        <div class="meta-label">Дата окончания</div>
+                        <div class="meta-value">{{ project.end_date|date:"d.m.Y"|default:"Не указана" }}</div>
                     </div>
-                    <div class="info-item">
-                        <label>Дата создания</label>
-                        <span>{{ project.created_at|date:"d.m.Y H:i"|default:"Не указана" }}</span>
+                    <div class="meta-item">
+                        <div class="meta-label">Дата создания</div>
+                        <div class="meta-value">{{ project.created_at|date:"d.m.Y H:i"|default:"Не указана" }}</div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="detail-row">
-        <div class="detail-card">
-            <div class="card-icon">
-                <i class="fa-solid fa-ruble-sign"></i>
-            </div>
-            <div class="card-content">
-                <h3>Бюджет и расходы</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label>Бюджет</label>
-                        <span class="budget-amount">{% if project.budget %}{{ project.budget|floatformat:0 }} руб.{% else %}Не указан{% endif %}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Фактическая стоимость</label>
-                        <span class="cost-amount">{% if project.actual_cost %}{{ project.actual_cost|floatformat:0 }} руб.{% else %}Не указана{% endif %}</span>
-                    </div>
-                    {% if budget_deviation is not None %}
-                    <div class="info-item">
-                        <label>Отклонение</label>
-                        <span class="{% if budget_deviation > 0 %}over-budget{% else %}under-budget{% endif %}">
-                            {{ budget_deviation|floatformat:0 }} руб.
-                        </span>
-                    </div>
-                    {% endif %}
+            {% if project.description %}
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2><i class="fa-solid fa-file-lines"></i> Описание проекта</h2>
+                    <p class="project-description">{{ project.description }}</p>
                 </div>
-            </div>
+            {% endif %}
         </div>
-
-        <div class="detail-card">
-            <div class="card-icon">
-                <i class="fa-solid fa-clock"></i>
-            </div>
-            <div class="card-content">
-                <h3>Обновления</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label>Последнее обновление</label>
-                        <span>{{ project.updated_at|date:"d.m.Y H:i"|default:"Не указано" }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% if project.description %}
-    <div class="detail-card full-width">
-        <div class="card-icon">
-            <i class="fa-solid fa-file-alt"></i>
-        </div>
-        <div class="card-content">
-            <h3>Описание проекта</h3>
-            <p class="project-description">{{ project.description }}</p>
-        </div>
-    </div>
     {% endif %}
 </div>
 {% endblock %}

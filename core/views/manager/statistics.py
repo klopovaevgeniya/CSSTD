@@ -7,6 +7,7 @@ from core.models import Employee, Project, ProjectTask, ProjectParticipant
 from datetime import date, timedelta
 import csv
 from io import BytesIO
+from core.utils.project_archive import archived_project_q
 
 try:
     from openpyxl import Workbook
@@ -23,18 +24,26 @@ def manager_statistics(request):
     employee = Employee.objects.filter(employee_user_id=request.session.get('user_id')).first()
     
     if not employee:
-        projects = Project.objects.filter(manager__employee_user=request.user)
-        all_tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user)
+        projects = Project.objects.filter(manager__employee_user=request.user).exclude(archived_project_q())
+        all_tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user).exclude(
+            archived_project_q(prefix='project')
+        )
         team_members = ProjectParticipant.objects.filter(
             project__manager__employee_user=request.user
+        ).exclude(
+            archived_project_q(prefix='project')
         ).values('employee').distinct().count()
     else:
-        projects = Project.objects.filter(manager=employee).select_related('status', 'type')
+        projects = Project.objects.filter(manager=employee).exclude(archived_project_q()).select_related('status', 'type')
         all_tasks = ProjectTask.objects.filter(project__manager=employee).select_related(
             'status', 'project', 'assigned_to'
+        ).exclude(
+            archived_project_q(prefix='project')
         ).prefetch_related('task_assignees__employee')
         team_members = ProjectParticipant.objects.filter(
             project__manager=employee
+        ).exclude(
+            archived_project_q(prefix='project')
         ).values('employee').distinct().count()
     
     # Статистика по проектам
@@ -124,9 +133,9 @@ def export_manager_projects_excel(request):
     employee = Employee.objects.filter(employee_user_id=request.session.get('user_id')).first()
     
     if employee:
-        projects = Project.objects.filter(manager=employee).select_related('status', 'type')
+        projects = Project.objects.filter(manager=employee).exclude(archived_project_q()).select_related('status', 'type')
     else:
-        projects = Project.objects.filter(manager__employee_user=request.user).select_related('status', 'type')
+        projects = Project.objects.filter(manager__employee_user=request.user).exclude(archived_project_q()).select_related('status', 'type')
     
     workbook = Workbook()
     worksheet = workbook.active
@@ -198,10 +207,14 @@ def export_manager_tasks_excel(request):
     if employee:
         tasks = ProjectTask.objects.filter(project__manager=employee).select_related(
             'project', 'assigned_to'
+        ).exclude(
+            archived_project_q(prefix='project')
         ).prefetch_related('task_assignees__employee')
     else:
         tasks = ProjectTask.objects.filter(project__manager__employee_user=request.user).select_related(
             'project', 'assigned_to'
+        ).exclude(
+            archived_project_q(prefix='project')
         ).prefetch_related('task_assignees__employee')
     
     workbook = Workbook()

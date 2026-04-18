@@ -24,11 +24,19 @@
                 <i class="fa-solid fa-chart-line"></i> Дашборд
             </a>
 
+            <a href="{% url 'manager_notifications' %}"
+               class="{% if request.resolver_match.url_name == 'manager_notifications' %}active{% endif %}">
+                <i class="fa-solid fa-bell"></i> Уведомления
+                {% if manager_total_notifications and manager_total_notifications > 0 %}
+                    <span class="notification-dot" title="Есть новые уведомления" aria-hidden="true"></span>
+                {% endif %}
+            </a>
+
             <!-- Добавить ссылки на проекты, задачи и т.д. -->
-            <a href="{% url 'manager_projects' %}" class="{% if request.resolver_match.url_name == 'manager_projects' or request.resolver_match.url_name == 'manager_project_detail' or request.resolver_match.url_name == 'manager_create_task' or request.resolver_match.url_name == 'manager_task_detail' or request.resolver_match.url_name == 'manager_edit_task' %}active{% endif %}">
+            <a href="{% url 'manager_projects' %}" class="{% if request.resolver_match.url_name == 'manager_projects' or request.resolver_match.url_name == 'manager_projects_archive' or request.resolver_match.url_name == 'manager_project_detail' or request.resolver_match.url_name == 'manager_create_task' or request.resolver_match.url_name == 'manager_task_detail' or request.resolver_match.url_name == 'manager_edit_task' %}active{% endif %}">
                 <i class="fa-solid fa-folder-open"></i> Мои проекты
-                {% if manager_new_projects_count and manager_new_projects_count > 0 or manager_new_chat_count and manager_new_chat_count > 0 %}
-                    <span class="notification-dot" title="Новые проекты/сообщения" aria-hidden="true"></span>
+                {% if manager_new_projects_count and manager_new_projects_count > 0 or manager_new_chat_count and manager_new_chat_count > 0 or manager_new_expense_requests_count and manager_new_expense_requests_count > 0 %}
+                    <span class="notification-dot" title="Новые проекты/сообщения/запросы трат" aria-hidden="true"></span>
                 {% endif %} 
             </a>
 

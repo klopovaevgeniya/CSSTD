@@ -1,12 +1,31 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from core.decorators import admin_required
-from core.models import Project, ProjectStatus, ProjectType, Employee, ManagerProjectNotification
+from core.models import (
+    Project,
+    ProjectClosureRequest,
+    ProjectStatus,
+    ProjectType,
+    Employee,
+    ManagerProjectNotification,
+    ProjectExpenseRequest,
+)
 from django.contrib import messages
 from django.utils import timezone
 from datetime import date
 from decimal import Decimal, InvalidOperation
 import re
+from core.utils.project_archive import archived_project_q
+
+
+def _recalculate_project_actual_cost(project):
+    approved_total = ProjectExpenseRequest.objects.filter(
+        project=project,
+        status=ProjectExpenseRequest.STATUS_APPROVED
+    ).values_list('amount', flat=True)
+    project.actual_cost = sum(approved_total, Decimal('0'))
+    project.updated_at = timezone.now()
+    project.save(update_fields=['actual_cost', 'updated_at'])
 
 
 def _available_managers_qs():
@@ -137,6 +156,15 @@ def _validate_project_form(post_data):
 
 @admin_required
 def project_list(request):
+    return _project_list_common(request, archive_mode=False)
+
+
+@admin_required
+def project_archive_list(request):
+    return _project_list_common(request, archive_mode=True)
+
+
+def _project_list_common(request, archive_mode=False):
     search_query = (request.GET.get("q") or "").strip()
     status_id = (request.GET.get("status") or "").strip()
     type_id = (request.GET.get("type") or "").strip()
@@ -145,6 +173,10 @@ def project_list(request):
     projects = Project.objects.select_related(
         "status", "type", "manager"
     ).order_by("-created_at")
+    if archive_mode:
+        projects = projects.filter(archived_project_q())
+    else:
+        projects = projects.exclude(archived_project_q())
     if search_query:
         projects = projects.filter(
             Q(name__icontains=search_query)
@@ -161,8 +193,20 @@ def project_list(request):
     if manager_id.isdigit():
         projects = projects.filter(manager_id=int(manager_id))
 
+    pending_expense_project_ids = set(
+        ProjectExpenseRequest.objects.filter(
+            status=ProjectExpenseRequest.STATUS_NEEDS_ADMIN_REVIEW
+        ).values_list('project_id', flat=True)
+    )
+    pending_closure_project_ids = set(
+        ProjectClosureRequest.objects.filter(
+            status=ProjectClosureRequest.STATUS_PENDING
+        ).values_list('project_id', flat=True)
+    )
+
     return render(request, "admin/projects/list.html", {
         "projects": projects,
+        "archive_mode": archive_mode,
         "search_query": search_query,
         "status_id": status_id,
         "type_id": type_id,
@@ -171,6 +215,8 @@ def project_list(request):
         "types": ProjectType.objects.order_by("name"),
         "managers": _available_managers_qs(),
         "projects_count": projects.count(),
+        "pending_expense_project_ids": pending_expense_project_ids,
+        "pending_closure_project_ids": pending_closure_project_ids,
     })
 
 
@@ -283,12 +329,117 @@ def project_edit(request, pk):
 @admin_required
 def project_detail(request, pk):
     project = get_object_or_404(Project.objects.select_related('type', 'status', 'manager', 'manager__position', 'manager__department'), pk=pk)
+    is_archived = Project.objects.filter(id=project.id).filter(archived_project_q()).exists()
+    selected_tab = request.GET.get("tab") or request.POST.get("tab") or "info"
+    if selected_tab not in {"info", "expenses", "closure"}:
+        selected_tab = "info"
+
+    expense_error = None
+    expense_success = None
+    closure_error = None
+    closure_success = None
+    if request.method == "POST" and request.POST.get("expense_action") in {"approve", "reject"}:
+        expense_action = request.POST.get("expense_action")
+        expense_id = (request.POST.get("expense_id") or "").strip()
+        admin_comment = (request.POST.get("admin_comment") or "").strip()
+
+        if not expense_id.isdigit():
+            expense_error = "Некорректный запрос на трату."
+        else:
+            expense_request = ProjectExpenseRequest.objects.filter(
+                id=int(expense_id),
+                project=project,
+                status=ProjectExpenseRequest.STATUS_NEEDS_ADMIN_REVIEW
+            ).first()
+            if not expense_request:
+                expense_error = "Запрос уже обработан или недоступен."
+            else:
+                expense_request.admin_comment = admin_comment or None
+                expense_request.admin_decision_at = timezone.now()
+                if expense_action == "approve":
+                    expense_request.status = ProjectExpenseRequest.STATUS_APPROVED
+                    expense_success = "Трата подтверждена администратором."
+                else:
+                    expense_request.status = ProjectExpenseRequest.STATUS_REJECTED
+                    expense_success = "Трата отклонена администратором."
+                expense_request.save(update_fields=["status", "admin_comment", "admin_decision_at", "updated_at"])
+                _recalculate_project_actual_cost(project)
+                selected_tab = "expenses"
+
+    if request.method == "POST" and request.POST.get("closure_action") in {"approve", "reject"}:
+        closure_action = request.POST.get("closure_action")
+        closure_id = (request.POST.get("closure_request_id") or "").strip()
+        admin_comment = (request.POST.get("admin_comment") or "").strip()
+        selected_tab = "closure"
+
+        if not closure_id.isdigit():
+            closure_error = "Некорректный запрос на закрытие."
+        else:
+            closure_request = ProjectClosureRequest.objects.filter(
+                id=int(closure_id),
+                project=project,
+                status=ProjectClosureRequest.STATUS_PENDING
+            ).first()
+            if not closure_request:
+                closure_error = "Запрос уже обработан или недоступен."
+            elif closure_action == "reject" and not admin_comment:
+                closure_error = "При отклонении укажите комментарий для руководителя."
+            else:
+                closure_request.admin_comment = admin_comment or None
+                closure_request.decided_at = timezone.now()
+                closure_request.seen_by_manager = False
+                if closure_action == "approve":
+                    closed_status = ProjectStatus.objects.filter(name__icontains='заверш').first()
+                    if not closed_status:
+                        closure_error = "Не найден статус 'Завершён'. Добавьте его в справочник статусов и повторите."
+                    else:
+                        closure_request.status = ProjectClosureRequest.STATUS_APPROVED
+                        project.status = closed_status
+                        project.updated_at = timezone.now()
+                        project.save(update_fields=['status', 'updated_at'])
+                        closure_success = "Закрытие проекта подтверждено."
+                else:
+                    closure_request.status = ProjectClosureRequest.STATUS_REJECTED
+                    closure_success = "Запрос на закрытие отклонен."
+                if not closure_error:
+                    closure_request.save(update_fields=["status", "admin_comment", "decided_at", "seen_by_manager", "updated_at"])
+
     budget_deviation = None
     if project.budget and project.actual_cost:
         budget_deviation = project.actual_cost - project.budget
+
+    expense_requests = ProjectExpenseRequest.objects.filter(project=project).select_related('requested_by').order_by('-created_at')
+    pending_admin_expenses = expense_requests.filter(status=ProjectExpenseRequest.STATUS_NEEDS_ADMIN_REVIEW)
+    closure_requests = ProjectClosureRequest.objects.filter(project=project).select_related('requested_by').order_by('-requested_at')
+    pending_closure_requests = closure_requests.filter(status=ProjectClosureRequest.STATUS_PENDING)
+    approved_closure_requests_count = closure_requests.filter(status=ProjectClosureRequest.STATUS_APPROVED).count()
+    rejected_closure_requests_count = closure_requests.filter(status=ProjectClosureRequest.STATUS_REJECTED).count()
+    approved_expense_total = sum(
+        expense_requests.filter(status=ProjectExpenseRequest.STATUS_APPROVED).values_list('amount', flat=True),
+        Decimal('0')
+    )
+
     return render(request, "admin/projects/detail.html", {
         "project": project,
-        "budget_deviation": budget_deviation
+        "budget_deviation": budget_deviation,
+        "expense_requests": expense_requests,
+        "pending_admin_expenses": pending_admin_expenses,
+        "pending_admin_expenses_count": pending_admin_expenses.count(),
+        "approved_expense_total": approved_expense_total,
+        "expense_error": expense_error,
+        "expense_success": expense_success,
+        "closure_error": closure_error,
+        "closure_success": closure_success,
+        "selected_tab": selected_tab,
+        "is_archived": is_archived,
+        "closure_requests": closure_requests,
+        "pending_closure_requests": pending_closure_requests,
+        "pending_closure_requests_count": pending_closure_requests.count(),
+        "approved_closure_requests_count": approved_closure_requests_count,
+        "rejected_closure_requests_count": rejected_closure_requests_count,
+        "admin_pending_expense_requests_count": ProjectExpenseRequest.objects.filter(
+            status=ProjectExpenseRequest.STATUS_NEEDS_ADMIN_REVIEW
+        ).count(),
     })
 
 @admin_required

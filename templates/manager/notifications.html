@@ -1,0 +1,297 @@
+{% extends 'manager/base_manager.html' %}
+
+{% block title %}Уведомления{% endblock %}
+
+{% block content %}
+<style>
+    .notifications-wrap { max-width: 1240px; margin: 0 auto; animation: fadeInUp 0.5s ease-out; }
+    .notifications-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+    .notifications-head h1 {
+        margin: 0;
+        font-size: 2rem;
+        background: linear-gradient(135deg, var(--secondary), var(--primary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .notifications-subtitle {
+        margin: 8px 0 0;
+        color: #5f6f82;
+        font-size: 0.96em;
+    }
+    .notifications-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-notify {
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: #475569;
+        border-radius: 10px;
+        padding: 9px 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-notify:hover {
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+    .btn-notify-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; }
+    .notifications-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .notify-card {
+        background: var(--card-bg);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+    .notify-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e9eef5;
+    }
+    .notify-card-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 1.03rem;
+        color: var(--secondary);
+    }
+    .notify-card-title i { color: var(--primary); }
+    .badge {
+        font-size: 0.75rem;
+        border-radius: 999px;
+        padding: 3px 10px;
+        background: rgba(231, 111, 81, 0.13);
+        color: #9a3412;
+        font-weight: 700;
+        min-width: 30px;
+        text-align: center;
+    }
+    .notify-list { display: grid; gap: 10px; }
+    .notify-item {
+        border: 1px solid #edf2f7;
+        border-radius: 10px;
+        padding: 12px;
+        background: #fff;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+    }
+    .notify-main {
+        min-width: 0;
+        display: grid;
+        gap: 4px;
+    }
+    .notify-title {
+        margin: 0;
+        color: #1f2f42;
+        font-size: 0.96rem;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+    .notify-title strong { color: #0f172a; }
+    .notify-meta {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.84em;
+        line-height: 1.35;
+    }
+    .notify-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 9px;
+        border: 1px solid #d7e1eb;
+        text-decoration: none;
+        color: #11527f;
+        background: #f7fafc;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .notify-link:hover {
+        background: #eef5fb;
+        border-color: #bfd0e2;
+    }
+    .notify-status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 3px 10px;
+        width: fit-content;
+        font-size: 0.78em;
+        font-weight: 700;
+    }
+    .notify-status-chip-approved { background: #dcfce7; color: #166534; }
+    .notify-status-chip-rejected { background: #fee2e2; color: #991b1b; }
+    .empty-note {
+        color: #94a3b8;
+        margin: 0;
+        border: 1px dashed #dce5ef;
+        border-radius: 10px;
+        padding: 14px 12px;
+        background: #f8fbff;
+    }
+    @media (max-width: 1100px) { .notifications-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) {
+        .notifications-head { flex-direction: column; align-items: flex-start; }
+        .notify-item { grid-template-columns: 1fr; }
+        .notify-link { width: 100%; }
+    }
+</style>
+
+<div class="notifications-wrap">
+    <div class="notifications-head">
+        <div>
+            <h1><i class="fa-solid fa-bell"></i> Уведомления</h1>
+            <p class="notifications-subtitle">Новых событий: <strong>{{ total_new_count }}</strong></p>
+        </div>
+        <div class="notifications-actions">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="mark_all_read">
+                <button type="submit" class="btn-notify btn-notify-primary">Отметить всё как просмотренное</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="notifications-grid">
+        <section class="notify-card">
+            <div class="notify-card-header">
+                <h2 class="notify-card-title"><i class="fa-solid fa-folder-plus"></i> Новые проекты</h2>
+                <span class="badge">{{ new_projects|length }}</span>
+            </div>
+            {% if new_projects %}
+                <div class="notify-list">
+                    {% for item in new_projects %}
+                        <article class="notify-item">
+                            <div class="notify-main">
+                                <p class="notify-title">Назначен проект: <strong>{{ item.project.name }}</strong></p>
+                                <p class="notify-meta">{{ item.created_at|date:"d.m.Y H:i" }}</p>
+                            </div>
+                            <a class="notify-link" href="{% url 'manager_project_detail' item.project.id %}">
+                                <i class="fa-solid fa-arrow-right"></i> Открыть
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-note">Новых назначений проектов нет.</p>
+            {% endif %}
+        </section>
+
+        <section class="notify-card">
+            <div class="notify-card-header">
+                <h2 class="notify-card-title"><i class="fa-solid fa-comments"></i> Чат проектов</h2>
+                <span class="badge">{{ unread_project_chat|length }}</span>
+            </div>
+            {% if unread_project_chat %}
+                <div class="notify-list">
+                    {% for item in unread_project_chat %}
+                        <article class="notify-item">
+                            <div class="notify-main">
+                                <p class="notify-title"><strong>{{ item.message.author.first_name }} {{ item.message.author.last_name }}</strong> написал в проекте <strong>{{ item.project.name }}</strong></p>
+                                <p class="notify-meta">{{ item.created_at|date:"d.m.Y H:i" }}</p>
+                            </div>
+                            <a class="notify-link" href="{% url 'manager_project_chat' item.project.id %}">
+                                <i class="fa-solid fa-comments"></i> Открыть чат
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-note">Новых сообщений в чатах проектов нет.</p>
+            {% endif %}
+        </section>
+
+        <section class="notify-card">
+            <div class="notify-card-header">
+                <h2 class="notify-card-title"><i class="fa-solid fa-list-check"></i> Чат задач</h2>
+                <span class="badge">{{ unread_task_chat|length }}</span>
+            </div>
+            {% if unread_task_chat %}
+                <div class="notify-list">
+                    {% for item in unread_task_chat %}
+                        <article class="notify-item">
+                            <div class="notify-main">
+                                <p class="notify-title"><strong>{{ item.message.author.first_name }} {{ item.message.author.last_name }}</strong> написал в задаче <strong>{{ item.task.name }}</strong></p>
+                                <p class="notify-meta">{{ item.created_at|date:"d.m.Y H:i" }}</p>
+                            </div>
+                            <a class="notify-link" href="{% url 'manager_task_chat' item.task.id %}">
+                                <i class="fa-solid fa-comments"></i> Открыть чат
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-note">Новых сообщений в чатах задач нет.</p>
+            {% endif %}
+        </section>
+
+        <section class="notify-card">
+            <div class="notify-card-header">
+                <h2 class="notify-card-title"><i class="fa-solid fa-receipt"></i> Запросы на траты</h2>
+                <span class="badge">{{ pending_expenses|length }}</span>
+            </div>
+            {% if pending_expenses %}
+                <div class="notify-list">
+                    {% for item in pending_expenses %}
+                        <article class="notify-item">
+                            <div class="notify-main">
+                                <p class="notify-title">Заявка на <strong>{{ item.amount|floatformat:2 }} ₽</strong> от <strong>{{ item.requested_by.first_name }} {{ item.requested_by.last_name }}</strong></p>
+                                <p class="notify-meta">{{ item.project.name }} · {{ item.created_at|date:"d.m.Y H:i" }}</p>
+                            </div>
+                            <a class="notify-link" href="{% url 'manager_project_detail' item.project.id %}?tab=expenses">
+                                <i class="fa-solid fa-arrow-right"></i> К тратам
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-note">Новых запросов на траты нет.</p>
+            {% endif %}
+        </section>
+
+        <section class="notify-card">
+            <div class="notify-card-header">
+                <h2 class="notify-card-title"><i class="fa-solid fa-flag-checkered"></i> Ответы по закрытию</h2>
+                <span class="badge">{{ closure_feedback|length }}</span>
+            </div>
+            {% if closure_feedback %}
+                <div class="notify-list">
+                    {% for item in closure_feedback %}
+                        <article class="notify-item">
+                            <div class="notify-main">
+                                <p class="notify-title">Проект <strong>{{ item.project.name }}</strong></p>
+                                <span class="notify-status-chip {% if item.status == 'approved' %}notify-status-chip-approved{% else %}notify-status-chip-rejected{% endif %}">
+                                    {{ item.get_status_display }}
+                                </span>
+                                {% if item.admin_comment %}<p class="notify-meta">Комментарий администратора: {{ item.admin_comment }}</p>{% endif %}
+                            </div>
+                            <a class="notify-link" href="{% url 'manager_project_detail' item.project.id %}">
+                                <i class="fa-solid fa-arrow-right"></i> Открыть
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-note">Новых решений по закрытию нет.</p>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

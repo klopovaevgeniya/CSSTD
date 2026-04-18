@@ -209,6 +209,11 @@
         background: linear-gradient(180deg, #e63946, #ff6b7a);
     }
 
+    .task-card.has-unread-chat {
+        border: 1px solid rgba(231, 111, 81, 0.35);
+        box-shadow: 0 8px 28px rgba(231, 111, 81, 0.18);
+    }
+
     .task-card.completed {
         opacity: 0.75;
     }
@@ -232,6 +237,19 @@
     .task-card.completed .task-title {
         text-decoration: line-through;
         color: #999;
+    }
+
+    .task-chat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(231, 111, 81, 0.12);
+        color: #b45309;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.74em;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .task-meta-row {
@@ -441,11 +459,14 @@
                 <div class="tasks-list">
                     {% for item in tasks_data %}
                     <a href="{% url 'manager_task_detail' item.task.id %}" style="text-decoration: none; color: inherit;">
-                    <div class="task-card {% if item.is_overdue %}overdue{% endif %}" data-status="{% if item.is_overdue %}overdue{% else %}active{% endif %}" style="animation-delay: {% cycle '0s' '0.05s' '0.1s' '0.15s' '0.2s' %};">
+                    <div class="task-card {% if item.is_overdue %}overdue{% endif %}{% if item.unread_task_chat_messages > 0 %} has-unread-chat{% endif %}" data-status="{% if item.is_overdue %}overdue{% else %}active{% endif %}" style="animation-delay: {% cycle '0s' '0.05s' '0.1s' '0.15s' '0.2s' %};">
                         <div class="task-header">
                             <div style="flex: 1;">
                                 <h3 class="task-title">{{ item.task.name }}</h3>
                             </div>
+                            {% if item.unread_task_chat_messages > 0 %}
+                                <span class="task-chat-badge"><i class="fa-solid fa-comments"></i> {{ item.unread_task_chat_messages }} нов.</span>
+                            {% endif %}
                         </div>
 
                         <div class="task-meta-row">

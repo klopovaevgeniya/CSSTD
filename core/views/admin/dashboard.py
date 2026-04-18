@@ -2,19 +2,22 @@ from django.shortcuts import render
 from core.decorators import admin_required
 from django.utils import timezone
 from core.models import Project, Employee, Department, ProjectTask
+from core.utils.project_archive import archived_project_q
 
 @admin_required
 def admin_dashboard(request):
-    total_projects = Project.objects.count()
-    active_projects = Project.objects.filter(status__name__icontains='актив').count()
-    completed_projects = Project.objects.filter(status__name__icontains='заверш').count()
+    active_projects_qs = Project.objects.exclude(archived_project_q())
+    total_projects = active_projects_qs.count()
+    active_projects = active_projects_qs.filter(status__name__icontains='актив').count()
+    completed_projects = active_projects_qs.filter(status__name__icontains='заверш').count()
     total_employees = Employee.objects.count()
     active_employees = Employee.objects.filter(is_active=True).count()
     total_departments = Department.objects.count()
 
-    total_tasks = ProjectTask.objects.count()
-    in_progress_tasks = ProjectTask.objects.filter(status__icontains='работе').count()
-    overdue_tasks = ProjectTask.objects.filter(
+    active_tasks_qs = ProjectTask.objects.exclude(archived_project_q(prefix='project'))
+    total_tasks = active_tasks_qs.count()
+    in_progress_tasks = active_tasks_qs.filter(status__icontains='работе').count()
+    overdue_tasks = active_tasks_qs.filter(
         due_date__lt=timezone.now().date(),
         status__icontains='работе',
     ).count()
