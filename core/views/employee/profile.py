@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/employee/profile.py`: содержит код и настройки для раздела "profile".
 from django.shortcuts import render, redirect, get_object_or_404
 from core.decorators import role_required
 from core.models import (
@@ -10,6 +15,7 @@ from django.utils import timezone
 from core.utils.project_archive import archived_project_q
 
 
+# Summary: Обрабатывает сценарий employee profile.
 @role_required(['employee'])
 def employee_profile(request):
     """Профиль сотрудника с личными данными и статистикой."""

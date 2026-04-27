@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/employee/dashboard.py`: содержит код и настройки для раздела "dashboard".
 from datetime import date, datetime
 import os
 from decimal import Decimal, InvalidOperation
@@ -23,6 +28,7 @@ from core.models import (
 from core.utils.project_archive import archived_project_q
 
 
+# Summary: Содержит логику для employee tasks queryset.
 def _employee_tasks_queryset(employee):
     return ProjectTask.objects.filter(
         Q(assigned_to=employee) | Q(task_assignees__employee=employee, task_assignees__step_status__in=['active', 'completed'])
@@ -31,6 +37,7 @@ def _employee_tasks_queryset(employee):
     ).select_related('project', 'created_by').prefetch_related('task_assignees__employee').distinct()
 
 
+# Summary: Обрабатывает сценарий employee dashboard.
 @role_required(['employee'])
 def employee_dashboard(request):
     """Дашборд сотрудника с реальной информацией."""
@@ -94,16 +101,19 @@ def employee_dashboard(request):
     return render(request, 'employee/dashboard.html', context)
 
 
+# Summary: Обрабатывает сценарий employee projects.
 @role_required(['employee'])
 def employee_projects(request):
     return _employee_projects_common(request, archive_mode=False)
 
 
+# Summary: Обрабатывает сценарий employee projects archive.
 @role_required(['employee'])
 def employee_projects_archive(request):
     return _employee_projects_common(request, archive_mode=True)
 
 
+# Summary: Содержит логику для employee projects common.
 def _employee_projects_common(request, archive_mode=False):
     """Список проектов сотрудника вкладка в дашборде."""
     employee = Employee.objects.filter(employee_user_id=request.session.get('user_id')).first()
@@ -202,6 +212,7 @@ def _employee_projects_common(request, archive_mode=False):
     return render(request, 'employee/projects.html', context)
 
 
+# Summary: Обрабатывает сценарий employee project detail.
 @role_required(['employee'])
 def employee_project_detail(request, pk):
     """Детальная страница проекта для сотрудника."""
@@ -218,14 +229,38 @@ def employee_project_detail(request, pk):
 
     expense_error = None
     expense_success = None
+    expense_form_data = {
+        'title': '',
+        'amount': '',
+        'description': '',
+        'expense_type': ProjectExpenseRequest.TYPE_PROJECT,
+        'task_id': '',
+    }
+    project_tasks = ProjectTask.objects.filter(
+        project=project
+    ).filter(
+        Q(assigned_to=employee) | Q(task_assignees__employee=employee, task_assignees__step_status__in=['active', 'completed'])
+    ).select_related('project', 'created_by').prefetch_related('task_assignees__employee').distinct()
+
     if request.method == 'POST' and request.POST.get('action') == 'create_expense_request':
         if is_archived:
             expense_error = 'Архивный проект доступен только для просмотра.'
         else:
             title = (request.POST.get('title') or '').strip()
             amount_raw = (request.POST.get('amount') or '').strip().replace(',', '.')
-            expense_date_raw = (request.POST.get('expense_date') or '').strip()
             description = (request.POST.get('description') or '').strip()
+            expense_type = (request.POST.get('expense_type') or '').strip()
+            task_id_raw = (request.POST.get('task_id') or '').strip()
+            if expense_type not in {ProjectExpenseRequest.TYPE_PROJECT, ProjectExpenseRequest.TYPE_TASK}:
+                expense_type = ProjectExpenseRequest.TYPE_PROJECT
+
+            expense_form_data = {
+                'title': title,
+                'amount': amount_raw,
+                'description': description,
+                'expense_type': expense_type,
+                'task_id': task_id_raw,
+            }
 
             amount_value = None
             if not title:
@@ -238,13 +273,6 @@ def employee_project_detail(request, pk):
                 except (InvalidOperation, ValueError):
                     expense_error = 'Введите корректную сумму.'
 
-            expense_date_value = None
-            if not expense_error:
-                try:
-                    expense_date_value = date.fromisoformat(expense_date_raw)
-                except ValueError:
-                    expense_error = 'Укажите корректную дату траты.'
-
             if not expense_error and amount_value is not None and amount_value <= 0:
                 expense_error = 'Сумма должна быть больше нуля.'
 
@@ -256,28 +284,42 @@ def employee_project_detail(request, pk):
             ):
                 expense_error = f'Сумма заявки не может превышать бюджет проекта ({project.budget:.2f} ₽).'
 
+            selected_task = None
+            if not expense_error and expense_type == ProjectExpenseRequest.TYPE_TASK:
+                if not task_id_raw:
+                    expense_error = 'Выберите задачу для траты по задаче.'
+                elif not task_id_raw.isdigit():
+                    expense_error = 'Некорректная задача для траты.'
+                else:
+                    selected_task = project_tasks.filter(id=int(task_id_raw)).first()
+                    if not selected_task:
+                        expense_error = 'Выбранная задача недоступна.'
+
             if not expense_error:
                 ProjectExpenseRequest.objects.create(
                     project=project,
+                    task=selected_task,
                     requested_by=employee,
                     amount=amount_value,
-                    expense_date=expense_date_value,
+                    expense_type=expense_type,
                     title=title,
                     description=description or None,
                     status=ProjectExpenseRequest.STATUS_PENDING_MANAGER,
                 )
                 expense_success = 'Запрос на трату отправлен руководителю.'
+                expense_form_data = {
+                    'title': '',
+                    'amount': '',
+                    'description': '',
+                    'expense_type': ProjectExpenseRequest.TYPE_PROJECT,
+                    'task_id': '',
+                }
 
     task_search = (request.GET.get('task_search') or '').strip()
     task_status = (request.GET.get('task_status') or '').strip()
     task_priority = (request.GET.get('task_priority') or '').strip()
     task_due_date = (request.GET.get('task_due_date') or '').strip()
 
-    project_tasks = ProjectTask.objects.filter(
-        project=project
-    ).filter(
-        Q(assigned_to=employee) | Q(task_assignees__employee=employee, task_assignees__step_status__in=['active', 'completed'])
-    ).select_related('project', 'created_by').prefetch_related('task_assignees__employee').distinct()
     tasks_qs = project_tasks.order_by('due_date', '-created_at')
     if task_search:
         tasks_qs = tasks_qs.filter(
@@ -334,7 +376,8 @@ def employee_project_detail(request, pk):
     my_expense_requests = ProjectExpenseRequest.objects.filter(
         project=project,
         requested_by=employee
-    ).order_by('-created_at')
+    ).select_related('task').order_by('-created_at')
+    expense_task_options = list(project_tasks.order_by('name', 'id'))
     approved_expense_requests_count = my_expense_requests.filter(status=ProjectExpenseRequest.STATUS_APPROVED).count()
     pending_expense_requests_count = my_expense_requests.filter(
         status__in=[ProjectExpenseRequest.STATUS_PENDING_MANAGER, ProjectExpenseRequest.STATUS_NEEDS_ADMIN_REVIEW]
@@ -362,6 +405,8 @@ def employee_project_detail(request, pk):
         'all_participants': all_participants,
         'user': request.user,
         'my_expense_requests': my_expense_requests,
+        'expense_task_options': expense_task_options,
+        'expense_form_data': expense_form_data,
         'approved_expense_requests_count': approved_expense_requests_count,
         'pending_expense_requests_count': pending_expense_requests_count,
         'expense_error': expense_error,
@@ -373,6 +418,7 @@ def employee_project_detail(request, pk):
     return render(request, 'employee/project_detail.html', context)
 
 
+# Summary: Обрабатывает сценарий employee tasks.
 @role_required(['employee'])
 def employee_tasks(request):
     """Список всех задач сотрудника."""
@@ -434,6 +480,7 @@ def employee_tasks(request):
     return render(request, 'employee/tasks.html', context)
 
 
+# Summary: Обрабатывает сценарий employee task detail.
 @role_required(['employee'])
 def employee_task_detail(request, task_id):
     """Детальная страница задачи для сотрудника с возможностью сдачи и прикрепления файлов."""
@@ -496,6 +543,7 @@ def employee_task_detail(request, task_id):
                     task.save(update_fields=['status', 'updated_at'])
         return redirect('employee_task_detail', task_id=task_id)
 
+    # Summary: Создает и подготавливает build attachments data.
     def build_attachments_data(items):
         image_ext = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'}
         result = []

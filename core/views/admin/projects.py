@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/admin/projects.py`: содержит код и настройки для раздела "projects".
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from core.decorators import admin_required
@@ -18,6 +23,7 @@ import re
 from core.utils.project_archive import archived_project_q
 
 
+# Summary: Содержит логику для recalculate project actual cost.
 def _recalculate_project_actual_cost(project):
     approved_total = ProjectExpenseRequest.objects.filter(
         project=project,
@@ -28,10 +34,12 @@ def _recalculate_project_actual_cost(project):
     project.save(update_fields=['actual_cost', 'updated_at'])
 
 
+# Summary: Содержит логику для available managers qs.
 def _available_managers_qs():
     return Employee.objects.filter(is_active=True, position__name="Руководитель проекта").order_by("last_name", "first_name")
 
 
+# Summary: Содержит логику для project form context.
 def _project_form_context(mode, statuses, types, managers, project=None, form_data=None, form_errors=None):
     if form_data is None:
         form_data = {
@@ -55,6 +63,7 @@ def _project_form_context(mode, statuses, types, managers, project=None, form_da
     }
 
 
+# Summary: Содержит логику для validate project form.
 def _validate_project_form(post_data):
     form_data = {
         "name": (post_data.get("name") or "").strip(),
@@ -154,16 +163,19 @@ def _validate_project_form(post_data):
 
     return cleaned, form_data, errors
 
+# Summary: Содержит логику для project list.
 @admin_required
 def project_list(request):
     return _project_list_common(request, archive_mode=False)
 
 
+# Summary: Содержит логику для project archive list.
 @admin_required
 def project_archive_list(request):
     return _project_list_common(request, archive_mode=True)
 
 
+# Summary: Содержит логику для project list common.
 def _project_list_common(request, archive_mode=False):
     search_query = (request.GET.get("q") or "").strip()
     status_id = (request.GET.get("status") or "").strip()
@@ -220,6 +232,7 @@ def _project_list_common(request, archive_mode=False):
     })
 
 
+# Summary: Содержит логику для project create.
 @admin_required
 def project_create(request):
     statuses = ProjectStatus.objects.order_by("name")
@@ -272,6 +285,7 @@ def project_create(request):
     return render(request, "admin/projects/form.html", _project_form_context("create", statuses, types, managers))
 
 
+# Summary: Содержит логику для project edit.
 @admin_required
 def project_edit(request, pk):
     project = get_object_or_404(Project, pk=pk)
@@ -326,6 +340,7 @@ def project_edit(request, pk):
 
 
 
+# Summary: Содержит логику для project detail.
 @admin_required
 def project_detail(request, pk):
     project = get_object_or_404(Project.objects.select_related('type', 'status', 'manager', 'manager__position', 'manager__department'), pk=pk)
@@ -408,7 +423,7 @@ def project_detail(request, pk):
     if project.budget and project.actual_cost:
         budget_deviation = project.actual_cost - project.budget
 
-    expense_requests = ProjectExpenseRequest.objects.filter(project=project).select_related('requested_by').order_by('-created_at')
+    expense_requests = ProjectExpenseRequest.objects.filter(project=project).select_related('requested_by', 'task').order_by('-created_at')
     pending_admin_expenses = expense_requests.filter(status=ProjectExpenseRequest.STATUS_NEEDS_ADMIN_REVIEW)
     closure_requests = ProjectClosureRequest.objects.filter(project=project).select_related('requested_by').order_by('-requested_at')
     pending_closure_requests = closure_requests.filter(status=ProjectClosureRequest.STATUS_PENDING)
@@ -442,6 +457,7 @@ def project_detail(request, pk):
         ).count(),
     })
 
+# Summary: Содержит логику для project delete.
 @admin_required
 def project_delete(request, pk):
     project = get_object_or_404(Project, pk=pk)

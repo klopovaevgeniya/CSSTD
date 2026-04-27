@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `csstd/asgi.py`: содержит код и настройки для раздела "asgi".
 """
 ASGI config for csstd project.
 

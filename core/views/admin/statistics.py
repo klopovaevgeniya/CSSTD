@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/admin/statistics.py`: содержит код и настройки для раздела "statistics".
 from django.shortcuts import render
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -8,6 +13,7 @@ import json
 from core.utils.project_archive import archived_project_q
 
 
+# Summary: Содержит логику для statistics dashboard.
 @admin_required
 def statistics_dashboard(request):
     """Дашборд со статистикой"""

@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/employee/chat.py`: содержит код и настройки для раздела "chat".
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -10,6 +15,7 @@ from core.models import (
 )
 
 
+# Summary: Обрабатывает сценарий employee project chat.
 @role_required(['employee'])
 def employee_project_chat(request, pk):
     """Открытие чата проекта для сотрудника."""
@@ -44,6 +50,7 @@ def employee_project_chat(request, pk):
     return render(request, 'employee/project_chat.html', context)
 
 
+# Summary: Обрабатывает сценарий employee project chat send.
 @role_required(['employee'])
 @require_http_methods(["POST"])
 def employee_project_chat_send(request, pk):
@@ -106,6 +113,7 @@ def employee_project_chat_send(request, pk):
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 
+# Summary: Обрабатывает сценарий employee delete chat message.
 @role_required(['employee'])
 @require_http_methods(["POST"])
 def employee_delete_chat_message(request, pk, message_id):
@@ -126,6 +134,7 @@ def employee_delete_chat_message(request, pk, message_id):
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 
+# Summary: Обрабатывает сценарий employee edit chat message.
 @role_required(['employee'])
 @require_http_methods(["POST"])
 def employee_edit_chat_message(request, pk, message_id):

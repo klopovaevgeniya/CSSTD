@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/admin/reports.py`: содержит код и настройки для раздела "reports".
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Count, Q
@@ -15,6 +20,7 @@ except ImportError:
     OPENPYXL_AVAILABLE = False
 
 
+# Summary: Содержит логику для reports list.
 @admin_required
 def reports_list(request):
     """Страница со списком отчетов"""
@@ -23,6 +29,7 @@ def reports_list(request):
     })
 
 
+# Summary: Обрабатывает передачу данных для export projects excel.
 @admin_required
 def export_projects_excel(request):
     """Экспорт проектов в Excel"""
@@ -100,6 +107,7 @@ def export_projects_excel(request):
     return response
 
 
+# Summary: Обрабатывает передачу данных для export projects csv.
 @admin_required
 def export_projects_csv(request):
     """Экспорт проектов в CSV"""
@@ -140,6 +148,7 @@ def export_projects_csv(request):
     return response
 
 
+# Summary: Обрабатывает передачу данных для export employees excel.
 @admin_required
 def export_employees_excel(request):
     """Экспорт сотрудников в Excel"""
@@ -204,6 +213,7 @@ def export_employees_excel(request):
     return response
 
 
+# Summary: Обрабатывает передачу данных для export employees csv.
 @admin_required
 def export_employees_csv(request):
     """Экспорт сотрудников в CSV"""
@@ -235,6 +245,7 @@ def export_employees_csv(request):
     return response
 
 
+# Summary: Обрабатывает передачу данных для export tasks excel.
 @admin_required
 def export_tasks_excel(request):
     """Экспорт задач в Excel"""
@@ -291,6 +302,7 @@ def export_tasks_excel(request):
     return response
 
 
+# Summary: Обрабатывает передачу данных для export tasks csv.
 @admin_required
 def export_tasks_csv(request):
     """Экспорт задач в CSV"""

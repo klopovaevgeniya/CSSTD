@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `csstd/settings.py`: содержит код и настройки для раздела "settings".
 from pathlib import Path
 import os
 try:

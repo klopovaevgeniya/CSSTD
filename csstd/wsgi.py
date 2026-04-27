@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `csstd/wsgi.py`: содержит код и настройки для раздела "wsgi".
 """
 WSGI config for csstd project.
 

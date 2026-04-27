@@ -4,6 +4,11 @@ from django.utils import timezone
 from core.models import Project, Employee, Department, ProjectTask
 from core.utils.project_archive import archived_project_q
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Обрабатывает сценарий admin dashboard.
 @admin_required
 def admin_dashboard(request):
     active_projects_qs = Project.objects.exclude(archived_project_q())

@@ -1,3 +1,4 @@
+/* Summary: Файл `static/css/employee.css`: содержит код и настройки для раздела "employee". */
 /* ===== ROOT ===== */
 :root {
     --primary: #0084d4; /* Голубой для сотрудника */
@@ -1214,5 +1215,101 @@ table tbody td {
 
     .employee-info-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ===== GLOBAL RESPONSIVE LAYER ===== */
+img,
+svg,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.main-content,
+.content {
+    min-width: 0;
+}
+
+@media (max-width: 1024px) {
+    .layout {
+        display: block;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        transform: none !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .sidebar::before {
+        width: 100%;
+        height: 4px;
+    }
+
+    .sidebar .logo {
+        padding: 16px;
+    }
+
+    .sidebar nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px 12px;
+    }
+
+    .sidebar nav a {
+        flex: 1 1 200px;
+        margin-bottom: 0;
+    }
+
+    .sidebar-footer {
+        position: static;
+        margin-top: 8px;
+        padding: 0 12px 12px;
+    }
+
+    .main-content {
+        margin-left: 0;
+        height: auto;
+        min-height: calc(100vh - 80px);
+        padding: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header h1 {
+        font-size: 1.8em;
+    }
+
+    .stats-grid,
+    .urgent-grid,
+    .employee-info-grid,
+    .user-info-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .task-item,
+    .project-header,
+    .employee-info-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .main-content {
+        padding: 14px;
     }
 }

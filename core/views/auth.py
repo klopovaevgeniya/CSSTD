@@ -5,6 +5,11 @@ from ..forms import LoginForm
 from ..services.auth_service import authenticate
 from ..models import Employee
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Содержит логику для login view.
 def login_view(request):
     form = LoginForm(request.POST or None)
 
@@ -36,11 +41,13 @@ def login_view(request):
     return render(request, 'auth/login.html', {'form': form})
 
 
+# Summary: Содержит логику для logout view.
 def logout_view(request):
     request.session.flush()
     return redirect('home')
 
 
+# Summary: Содержит логику для change password view.
 def change_password_view(request):
     """Страница принудительной смены пароля для новых сотрудников."""
     # Очищаем все старые сообщения из предыдущих операций

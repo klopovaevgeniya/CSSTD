@@ -1,3 +1,4 @@
+# Summary: Файл `docker-compose.yml`: содержит код и настройки для раздела "docker compose".
 version: '3.8'
 
 services:

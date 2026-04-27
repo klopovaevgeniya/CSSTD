@@ -1,6 +1,11 @@
 from django import forms
 from .models import ProjectStatus, ProjectType, Employee, ProjectTask
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Определяет структуру формы и валидацию для LoginForm.
 class LoginForm(forms.Form):
     username = forms.CharField(label='Логин', max_length=50)
     password = forms.CharField(
@@ -8,6 +13,7 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput
     )
     
+# Summary: Определяет структуру формы и валидацию для ProjectForm.
 class ProjectForm(forms.Form):
     name = forms.CharField(
         label='Название проекта',
@@ -63,6 +69,7 @@ class ProjectForm(forms.Form):
         widget=forms.Textarea(attrs={'rows': 4})
     )
 
+# Summary: Определяет структуру формы и валидацию для ProjectTaskForm.
 class ProjectTaskForm(forms.Form):
     """Форма для создания и редактирования задачи в проекте."""
     name = forms.CharField(

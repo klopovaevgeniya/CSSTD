@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/manager/projects.py`: содержит код и настройки для раздела "projects".
 from django.shortcuts import render, redirect, get_object_or_404
 import os
 from core.decorators import role_required
@@ -18,6 +23,7 @@ from decimal import Decimal
 from core.utils.project_archive import archived_project_q
 
 
+# Summary: Содержит логику для recalculate project actual cost.
 def _recalculate_project_actual_cost(project):
     approved_total = ProjectExpenseRequest.objects.filter(
         project=project,
@@ -29,16 +35,19 @@ def _recalculate_project_actual_cost(project):
     project.save(update_fields=['actual_cost', 'updated_at'])
 
 
+# Summary: Обрабатывает сценарий manager projects list.
 @role_required(['project_manager'])
 def manager_projects_list(request):
     return _manager_projects_list(request, archive_mode=False)
 
 
+# Summary: Обрабатывает сценарий manager projects archive.
 @role_required(['project_manager'])
 def manager_projects_archive(request):
     return _manager_projects_list(request, archive_mode=True)
 
 
+# Summary: Содержит логику для manager projects list.
 def _manager_projects_list(request, archive_mode=False):
     # Получаем объект Employee для текущего пользователя
     employee = Employee.objects.filter(employee_user_id=request.session.get('user_id')).first()
@@ -144,6 +153,7 @@ def _manager_projects_list(request, archive_mode=False):
     })
 
 
+# Summary: Обрабатывает сценарий manager project detail.
 @role_required(['project_manager'])
 def manager_project_detail(request, pk):
     """Детальная информация о проекте с возможностью назначения сотрудников."""
@@ -337,7 +347,7 @@ def manager_project_detail(request, pk):
     overdue_tasks_count = tasks_base_qs.filter(due_date__lt=today).exclude(status__icontains='заверш').count()
 
     expense_requests = ProjectExpenseRequest.objects.filter(project=project).select_related(
-        'requested_by'
+        'requested_by', 'task'
     ).order_by('-created_at')
     pending_expense_requests = expense_requests.filter(status=ProjectExpenseRequest.STATUS_PENDING_MANAGER)
     approved_expense_total = sum(
@@ -421,6 +431,7 @@ def manager_project_detail(request, pk):
     return render(request, 'manager/projects/detail.html', context)
 
 
+# Summary: Обрабатывает сценарий manager tasks.
 @role_required(['project_manager'])
 def manager_tasks(request):
     """Список задач, созданных текущим руководителем."""
@@ -469,6 +480,7 @@ def manager_tasks(request):
     return render(request, 'manager/tasks/list.html', context)
 
 
+# Summary: Обрабатывает сценарий manager task detail.
 @role_required(['project_manager'])
 def manager_task_detail(request, task_id):
     """Детальная страница задачи для менеджера с возможностью управления и загрузки файлов."""
@@ -488,6 +500,7 @@ def manager_task_detail(request, task_id):
     # связанные файлы
     attachments = task.attachments.all().order_by('-uploaded_at')
 
+    # Summary: Создает и подготавливает build attachments data.
     def build_attachments_data(items):
         image_ext = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'}
         result = []
@@ -557,6 +570,7 @@ def manager_task_detail(request, task_id):
     return render(request, 'manager/tasks/detail.html', context)
 
 
+# Summary: Обрабатывает сценарий manager edit task.
 @role_required(['project_manager'])
 def manager_edit_task(request, task_id):
     """Редактирование задачи руководителем."""
@@ -685,6 +699,7 @@ def manager_edit_task(request, task_id):
     return render(request, 'manager/tasks/create.html', context)
 
 
+# Summary: Обрабатывает сценарий manager create task.
 @role_required(['project_manager'])
 def manager_create_task(request, project_id):
     """Создание новой задачи в проекте."""

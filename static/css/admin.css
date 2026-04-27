@@ -1,3 +1,4 @@
+/* Summary: Файл `static/css/admin.css`: содержит код и настройки для раздела "admin". */
 /* ===== ROOT ===== */
 :root {
     --primary: #2a9d8f;
@@ -842,4 +843,118 @@ input:focus, select:focus, textarea:focus {
     font-size: 14px;
     margin: 5px 0 0 0;
     font-weight: 500;
+}
+
+/* ===== RESPONSIVE ===== */
+img,
+svg,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+.list-container,
+.card,
+.form-card,
+.detail-card,
+.modal-content {
+    max-width: 100%;
+}
+
+table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1200px) {
+    .content {
+        padding: 24px;
+    }
+}
+
+@media (max-width: 992px) {
+    .layout {
+        display: block;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .sidebar::before {
+        width: 100%;
+        height: 4px;
+    }
+
+    .sidebar nav {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .sidebar nav a {
+        margin-bottom: 0;
+        flex: 1 1 220px;
+    }
+
+    .sidebar-footer {
+        position: static;
+        padding: 0 10px 10px;
+        margin-top: 10px;
+    }
+
+    .content {
+        margin-left: 0;
+        padding: 18px;
+    }
+
+    .list-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .detail-row,
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .project-detail-header {
+        display: grid;
+        gap: 12px;
+    }
+
+    .project-detail-header .back-btn,
+    .project-detail-header .project-title {
+        position: static;
+        transform: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .content {
+        padding: 14px;
+    }
+
+    .form-card,
+    .detail-card,
+    .list-container,
+    .modal-content {
+        padding: 16px;
+    }
+
+    .dashboard-stats,
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
 }

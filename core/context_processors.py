@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/context_processors.py`: содержит код и настройки для раздела "context processors".
 from core.models import (
     Employee,
     EmployeeProjectAssignmentNotification,
@@ -11,6 +16,7 @@ from core.models import (
 from django.contrib.auth.models import User
 
 
+# Summary: Обрабатывает сценарий manager notifications.
 def manager_notifications(request):
     """Глобальные счетчики уведомлений для всех ролей интерфейса."""
     base = {

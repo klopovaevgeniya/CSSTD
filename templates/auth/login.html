@@ -1,39 +1,16 @@
+<!-- Summary: Файл `templates/auth/login.html`: содержит код и настройки для раздела "login". -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход в систему</title>
-    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}?v=2026-04-27">
+    <link rel="stylesheet" href="{% static 'css/responsive-global.css' %}?v=2026-04-27-all-pages">
+    <link rel="stylesheet" href="{% static 'css/form-validation.css' %}?v=2026-04-27-forms">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        .password-container {
-            position: relative;
-        }
-        .password-container input {
-            width: 100%;
-            padding-right: 40px;
-            box-sizing: border-box;
-        }
-        .password-container button {
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            color: #666;
-            padding: 0;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
 </head>
 <body>
 
@@ -57,7 +34,16 @@
                 <label for="password">Пароль</label>
                 <div class="password-container">
                     <input type="password" name="password" id="password" required>
-                    <button type="button" id="toggle-password">&#128065;</button>
+                    <button
+                        type="button"
+                        class="password-toggle-btn"
+                        data-password-toggle
+                        data-target="password"
+                        aria-label="Показать пароль"
+                        aria-pressed="false"
+                    >
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
                 </div>
             </div>
 
@@ -83,3 +69,8 @@
         </div>
     </div>
 </div>
+
+<script src="{% static 'js/password-toggle.js' %}?v=2026-04-27"></script>
+<script src="{% static 'js/form-validation.js' %}?v=2026-04-27-forms"></script>
+</body>
+</html>

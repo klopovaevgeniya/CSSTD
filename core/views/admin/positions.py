@@ -5,6 +5,11 @@ from core.decorators import admin_required
 from core.models import Position, Department, PositionDepartment, Employee
 from django.contrib import messages
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Содержит логику для position list.
 @admin_required
 def position_list(request):
     search_query = (request.GET.get('q') or '').strip()
@@ -55,6 +60,7 @@ def position_list(request):
     })
 
 
+# Summary: Содержит логику для position form context.
 def _position_form_context(mode, departments, position=None, form_data=None, form_errors=None):
     if form_data is None:
         linked_department = PositionDepartment.objects.filter(position=position).first() if position else None
@@ -71,6 +77,7 @@ def _position_form_context(mode, departments, position=None, form_data=None, for
     }
 
 
+# Summary: Содержит логику для validate position form.
 def _validate_position_form(post_data, current_position=None):
     form_data = {
         "name": (post_data.get("name") or "").strip(),
@@ -111,6 +118,7 @@ def _validate_position_form(post_data, current_position=None):
     return cleaned, form_data, errors
 
 
+# Summary: Содержит логику для position create.
 @admin_required
 def position_create(request):
     departments = Department.objects.order_by('name')
@@ -131,6 +139,7 @@ def position_create(request):
 
     return render(request, "admin/positions/form.html", _position_form_context("create", departments))
 
+# Summary: Содержит логику для position edit.
 @admin_required
 def position_edit(request, pk):
     position = get_object_or_404(Position, pk=pk)
@@ -157,6 +166,7 @@ def position_edit(request, pk):
 
     return render(request, "admin/positions/form.html", _position_form_context("edit", departments, position=position))
 
+# Summary: Содержит логику для position delete.
 @admin_required
 def position_delete(request, pk):
     position = get_object_or_404(Position, pk=pk)

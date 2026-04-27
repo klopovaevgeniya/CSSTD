@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/task_chat.py`: содержит код и настройки для раздела "task chat".
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -13,12 +18,14 @@ from core.models import (
 )
 
 
+# Summary: Содержит логику для is task participant.
 def _is_task_participant(task, employee):
     if task.project and task.project.manager_id == employee.id:
         return True
     return task.task_assignees.filter(employee=employee).exists()
 
 
+# Summary: Содержит логику для task chat view.
 @role_required(['project_manager', 'employee'])
 def task_chat_view(request, task_id):
     employee = Employee.objects.filter(employee_user_id=request.session.get('user_id')).first()
@@ -60,6 +67,7 @@ def task_chat_view(request, task_id):
     })
 
 
+# Summary: Содержит логику для task chat send.
 @role_required(['project_manager', 'employee'])
 @require_http_methods(["POST"])
 def task_chat_send(request, task_id):

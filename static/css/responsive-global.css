@@ -1,0 +1,381 @@
+/* Summary: Файл `static/css/responsive-global.css`: содержит код и настройки для раздела "responsive global". */
+/* Global responsive overrides for all pages */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+.content,
+.main-content,
+.page,
+.project-page,
+.task-page,
+.notifications-wrap,
+.projects-container,
+.chat-shell,
+.calendar-wrap,
+.calendar-shell,
+.dashboard-content,
+.list-container,
+.form-container,
+.modal-content {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tab-link {
+    white-space: nowrap;
+}
+
+.filter-panel,
+.projects-filters,
+.tasks-filters,
+.header-toolbar,
+.page-header,
+.list-header,
+.form-row,
+.detail-row,
+.detail-grid,
+.meta-grid,
+.expenses-layout,
+.notifications-grid,
+.reports-grid,
+.kpi-grid,
+.stats-grid,
+.dashboard-stats,
+.quick-actions-grid,
+.projects-grid,
+.projects-mini-grid,
+.tasks-stats,
+.expenses-stats,
+.expense-summary,
+.employee-info-grid,
+.user-info-grid,
+.urgent-grid,
+.budget-grid {
+    min-width: 0;
+}
+
+table,
+.data-table {
+    width: 100%;
+}
+
+.modal,
+.modal-overlay {
+    padding: 14px;
+}
+
+@media (max-width: 1200px) {
+    .page-header,
+    .list-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .projects-grid,
+    .projects-mini-grid,
+    .notifications-grid,
+    .reports-grid,
+    .kpi-grid,
+    .dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .filter-panel,
+    .projects-filters,
+    .tasks-filters,
+    .form-row,
+    .detail-row,
+    .detail-grid,
+    .meta-grid,
+    .expenses-layout,
+    .notifications-grid,
+    .reports-grid,
+    .kpi-grid,
+    .stats-grid,
+    .dashboard-stats,
+    .quick-actions-grid,
+    .projects-grid,
+    .projects-mini-grid,
+    .tasks-stats,
+    .expenses-stats,
+    .expense-summary,
+    .employee-info-grid,
+    .user-info-grid,
+    .urgent-grid,
+    .budget-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .task-item,
+    .project-header,
+    .notify-item,
+    .expense-head,
+    .expense-item-head {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .projects-title-row,
+    .project-detail-header,
+    .tabs-row,
+    .header-actions,
+    .tab-actions,
+    .projects-filters-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .projects-filters .custom-select-menu,
+    .tasks-filters .custom-select-menu {
+        left: 0 !important;
+        right: auto !important;
+        width: min(100%, calc(100vw - 36px));
+        max-width: calc(100vw - 36px);
+    }
+
+    .projects-filters .date-picker-panel,
+    .tasks-filters .date-picker-panel {
+        left: 0 !important;
+        right: auto !important;
+        transform: none !important;
+        width: min(100%, calc(100vw - 36px));
+        min-width: 0 !important;
+        max-width: calc(100vw - 36px);
+    }
+
+    .chat-shell,
+    .task-page,
+    .project-page {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .project-card,
+    .project-card-employee {
+        min-height: auto !important;
+    }
+
+    .archive-toggle-btn,
+    .projects-filters-submit,
+    .btn-action,
+    .btn-chat,
+    .btn-create-task,
+    .btn-closure {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    table,
+    .data-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table th,
+    table td,
+    .data-table th,
+    .data-table td {
+        white-space: nowrap;
+    }
+
+    .tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+    }
+
+    .tab-link {
+        flex: 0 0 auto;
+    }
+
+    .sidebar nav {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        width: 100%;
+    }
+
+    .sidebar nav a {
+        width: 100%;
+    }
+
+    .header-inner {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .chat-container {
+        height: calc(100vh - 165px) !important;
+        border-radius: 12px !important;
+    }
+
+    .chat-header {
+        padding: 12px 14px !important;
+    }
+
+    .chat-header h2 {
+        font-size: 1rem !important;
+    }
+
+    .chat-messages {
+        padding: 12px !important;
+    }
+
+    .chat-input-area {
+        padding: 10px !important;
+    }
+
+    .composer-main {
+        flex-wrap: wrap;
+    }
+
+    .composer-main .send-btn {
+        width: 100%;
+    }
+
+    .message-content {
+        max-width: 92% !important;
+    }
+
+    .task-meta,
+    .project-meta,
+    .expense-meta {
+        gap: 6px !important;
+    }
+
+    .modal-dialog {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 12px !important;
+    }
+
+    .fc-toolbar {
+        padding: 10px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+
+    .fc-toolbar-chunk {
+        flex-wrap: wrap !important;
+    }
+
+    .fc .fc-button {
+        font-size: 0.82rem !important;
+        padding: 0.32rem 0.5rem !important;
+    }
+
+    .calendar-tooltip {
+        display: none !important;
+    }
+
+    .hero {
+        padding: 96px 20px 70px;
+    }
+
+    .hero h1 {
+        font-size: 2.2em !important;
+    }
+
+    .hero p {
+        font-size: 1.05em !important;
+    }
+
+    .cards {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .cards .card {
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 560px) {
+    .content,
+    .main-content,
+    .list-container,
+    .form-card,
+    .detail-card,
+    .card,
+    .modal-content {
+        padding: 12px !important;
+    }
+
+    .page-title,
+    h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .auth-card {
+        padding: 18px 12px !important;
+    }
+
+    .chat-container {
+        height: calc(100vh - 150px) !important;
+    }
+
+    .chat-header p,
+    .project-desc,
+    .project-description,
+    .message-text {
+        font-size: 0.9rem !important;
+    }
+
+    .projects-filters input,
+    .projects-filters .custom-select-trigger,
+    .projects-filters .date-picker-trigger,
+    .tasks-filters input,
+    .tasks-filters .custom-select-trigger,
+    .tasks-filters .date-picker-trigger {
+        height: 44px !important;
+        font-size: 0.92rem !important;
+    }
+
+    .projects-filters .date-picker-panel,
+    .tasks-filters .date-picker-panel {
+        width: calc(100vw - 24px) !important;
+        max-width: calc(100vw - 24px) !important;
+    }
+
+    .projects-filters-meta,
+    .projects-title-row,
+    .project-detail-header,
+    .tabs-row {
+        gap: 8px !important;
+    }
+}

@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `csstd/urls.py`: содержит код и настройки для раздела "urls".
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings

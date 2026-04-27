@@ -2,6 +2,11 @@ from django.contrib.auth import authenticate as django_authenticate
 from django.contrib.auth.models import User
 from django.db import connection
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Содержит логику для authenticate.
 def authenticate(username, password):
     username = username.lower()  # Make username case-insensitive
     

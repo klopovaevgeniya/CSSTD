@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `manage.py`: содержит код и настройки для раздела "manage".
 """Django's command-line utility for administrative tasks."""
 import os
 import sys

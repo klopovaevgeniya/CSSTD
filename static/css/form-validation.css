@@ -1,0 +1,29 @@
+/* Summary: Глобальные стили подсветки ошибочных полей в формах. */
+.is-invalid {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16) !important;
+    background-color: #fff7f7 !important;
+}
+
+.ui-select.has-error .ui-select-trigger {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16) !important;
+    background-color: #fff7f7 !important;
+}
+
+.ui-date.has-error .ui-date-input {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16) !important;
+    background-color: #fff7f7 !important;
+}
+
+.has-invalid > label,
+label.has-invalid {
+    color: #b91c1c !important;
+}
+
+.validation-hint {
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: #b91c1c;
+}

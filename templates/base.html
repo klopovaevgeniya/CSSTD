@@ -1,3 +1,4 @@
+<!-- Summary: Файл `templates/base.html`: содержит код и настройки для раздела "base". -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
@@ -8,6 +9,8 @@
 <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
 
 <link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/responsive-global.css' %}?v=2026-04-27-all-pages">
+<link rel="stylesheet" href="{% static 'css/form-validation.css' %}?v=2026-04-27-forms">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
@@ -45,5 +48,6 @@
 
 </div>
 
+<script src="{% static 'js/form-validation.js' %}?v=2026-04-27-forms"></script>
 </body>
 </html>

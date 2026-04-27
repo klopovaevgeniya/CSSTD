@@ -1,5 +1,6 @@
 {% extends 'manager/base_manager.html' %}
 
+<!-- Summary: Файл `templates/manager/projects/detail.html`: содержит код и настройки для раздела "detail". -->
 {% block title %}{{ project.name }} - Детали проекта{% endblock %}
 
 {% block content %}
@@ -1052,7 +1053,9 @@
                 </div>
                 <div class="expense-meta">
                     <span><i class="fa-solid fa-user"></i> {{ expense.requested_by.first_name }} {{ expense.requested_by.last_name }}</span>
-                    <span><i class="fa-solid fa-calendar"></i> {{ expense.expense_date|date:"d.m.Y" }}</span>
+                    <span><i class="fa-solid fa-layer-group"></i> {{ expense.get_expense_type_display }}</span>
+                    {% if expense.expense_type == 'task' and expense.task %}<span><i class="fa-solid fa-list-check"></i> {{ expense.task.name }}</span>{% endif %}
+                    <span><i class="fa-solid fa-calendar"></i> {{ expense.created_at|date:"d.m.Y" }}</span>
                     <span><i class="fa-solid fa-ruble-sign"></i> {{ expense.amount|floatformat:2 }} ₽</span>
                 </div>
                 {% if expense.description %}

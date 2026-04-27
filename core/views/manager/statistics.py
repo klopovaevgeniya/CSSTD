@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/manager/statistics.py`: содержит код и настройки для раздела "statistics".
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Count, Q, Sum, DecimalField, Value
@@ -18,6 +23,7 @@ except ImportError:
     OPENPYXL_AVAILABLE = False
 
 
+# Summary: Обрабатывает сценарий manager statistics.
 @role_required(['project_manager'])
 def manager_statistics(request):
     """Страница со статистикой и отчётами менеджера"""
@@ -124,6 +130,7 @@ def manager_statistics(request):
     return render(request, 'manager/statistics.html', context)
 
 
+# Summary: Обрабатывает передачу данных для export manager projects excel.
 @role_required(['project_manager'])
 def export_manager_projects_excel(request):
     """Экспорт проектов менеджера в Excel"""
@@ -196,6 +203,7 @@ def export_manager_projects_excel(request):
     return response
 
 
+# Summary: Обрабатывает передачу данных для export manager tasks excel.
 @role_required(['project_manager'])
 def export_manager_tasks_excel(request):
     """Экспорт задач менеджера в Excel"""

@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/admin/employees.py`: содержит код и настройки для раздела "employees".
 import json
 import random
 import re
@@ -27,6 +32,7 @@ from core.models import (
     TaskAssignee,
 )
 
+# Summary: Содержит логику для transliterate.
 def transliterate(text):
     translit_dict = {
         'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
@@ -46,6 +52,7 @@ def transliterate(text):
     return result
 
 
+# Summary: Содержит логику для get position department map.
 def _get_position_department_map():
     """
     Возвращает соответствие должность -> отдел.
@@ -73,6 +80,7 @@ def _get_position_department_map():
     return fallback_map
 
 
+# Summary: Содержит логику для resolve role.
 def _resolve_role(position_id):
     if not position_id:
         return "employee"
@@ -86,6 +94,7 @@ def _resolve_role(position_id):
     return "employee"
 
 
+# Summary: Содержит логику для empty employee form data.
 def _empty_employee_form_data():
     return {
         "last_name": "",
@@ -100,6 +109,7 @@ def _empty_employee_form_data():
     }
 
 
+# Summary: Содержит логику для employee to form data.
 def _employee_to_form_data(employee):
     return {
         "last_name": employee.last_name or "",
@@ -114,6 +124,7 @@ def _employee_to_form_data(employee):
     }
 
 
+# Summary: Содержит логику для validate employee form.
 def _validate_employee_form(post_data, position_department_map, current_employee=None):
     errors = {}
     form_data = {
@@ -224,6 +235,7 @@ def _validate_employee_form(post_data, position_department_map, current_employee
     return cleaned, form_data, errors
 
 
+# Summary: Содержит логику для employee form context.
 def _employee_form_context(mode, position_department_map, employee=None, form_data=None, form_errors=None):
     if form_data is None:
         form_data = _employee_to_form_data(employee) if employee else _empty_employee_form_data()
@@ -238,6 +250,7 @@ def _employee_form_context(mode, position_department_map, employee=None, form_da
     }
 
 
+# Summary: Обрабатывает сценарий employee list.
 @admin_required
 def employee_list(request):
     search_query = (request.GET.get("q") or "").strip()
@@ -278,6 +291,7 @@ def employee_list(request):
     })
 
 
+# Summary: Обрабатывает сценарий employee create.
 @admin_required
 def employee_create(request):
     position_department_map = _get_position_department_map()
@@ -377,6 +391,7 @@ def employee_create(request):
     )
 
 
+# Summary: Обрабатывает сценарий employee edit.
 @admin_required
 def employee_edit(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -433,6 +448,7 @@ def employee_edit(request, pk):
         ),
     )
 
+# Summary: Обрабатывает сценарий employee delete.
 @admin_required
 def employee_delete(request, pk):
     employee = get_object_or_404(Employee, pk=pk)

@@ -2,6 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Описывает сущность AuditLog и связанное поведение.
 class AuditLog(models.Model):
     table_name = models.TextField(blank=True, null=True)
     action = models.TextField(blank=True, null=True)
@@ -9,11 +14,13 @@ class AuditLog(models.Model):
     old_data = models.JSONField(blank=True, null=True)
     new_data = models.JSONField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'audit_log'
 
 
+# Summary: Описывает сущность Contact и связанное поведение.
 class Contact(models.Model):
     partner = models.ForeignKey('Partner', models.CASCADE, blank=True, null=True)
     full_name = models.CharField(max_length=255)
@@ -22,41 +29,51 @@ class Contact(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True)
     is_main_contact = models.BooleanField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'contacts'
 
 
+# Summary: Описывает сущность Position и связанное поведение.
 class Position(models.Model):
     name = models.CharField(unique=True, max_length=150)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'positions'
 
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return self.name
 
+# Summary: Описывает сущность Department и связанное поведение.
 class Department(models.Model):
     name = models.CharField(unique=True, max_length=100)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'departments'
 
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return self.name
 
 
+# Summary: Описывает сущность PositionDepartment и связанное поведение.
 class PositionDepartment(models.Model):
     position = models.OneToOneField(Position, models.CASCADE, related_name='department_link')
     department = models.ForeignKey(Department, models.CASCADE, related_name='position_links')
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'position_departments'
 
 
+# Summary: Описывает сущность Employee и связанное поведение.
 class Employee(models.Model):
     employee_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee', blank=True, null=True)
     last_name = models.CharField(max_length=100)
@@ -70,31 +87,37 @@ class Employee(models.Model):
     is_active = models.BooleanField(blank=True, null=True)
     force_password_change = models.BooleanField(default=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'employees'
 
 
+# Summary: Описывает сущность EventParticipant и связанное поведение.
 class EventParticipant(models.Model):
     event = models.ForeignKey('Event', models.CASCADE, blank=True, null=True)
     participant_type = models.CharField(max_length=20, blank=True, null=True)
     employee = models.ForeignKey(Employee, models.CASCADE, blank=True, null=True)
     partner = models.ForeignKey('Partner', models.CASCADE, blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'event_participants'
 
 
+# Summary: Описывает сущность EventType и связанное поведение.
 class EventType(models.Model):
     name = models.CharField(unique=True, max_length=100)
     is_public = models.BooleanField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'event_types'
 
 
+# Summary: Описывает сущность Event и связанное поведение.
 class Event(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     type = models.ForeignKey(EventType, models.CASCADE, blank=True, null=True)
@@ -102,20 +125,24 @@ class Event(models.Model):
     end_datetime = models.DateTimeField(blank=True, null=True)
     project = models.ForeignKey('Project', models.CASCADE, blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'events'
 
 
+# Summary: Описывает сущность PartnerType и связанное поведение.
 class PartnerType(models.Model):
     name = models.CharField(unique=True, max_length=100)
     description = models.TextField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'partner_types'
 
 
+# Summary: Описывает сущность Partner и связанное поведение.
 class Partner(models.Model):
     name = models.CharField(max_length=255)
     type = models.ForeignKey(PartnerType, models.CASCADE, blank=True, null=True)
@@ -126,41 +153,49 @@ class Partner(models.Model):
     is_active = models.BooleanField(blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'partners'
 
 
+# Summary: Описывает сущность ProjectParticipant и связанное поведение.
 class ProjectParticipant(models.Model):
     project = models.ForeignKey('Project', models.CASCADE, blank=True, null=True)
     employee = models.ForeignKey(Employee, models.CASCADE, blank=True, null=True)
     role = models.CharField(max_length=100, blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'project_participant'
         unique_together = (('project', 'employee'),)
 
+# Summary: Описывает сущность ProjectPartner и связанное поведение.
 class ProjectPartner(models.Model):
     project = models.ForeignKey('Project', models.CASCADE, blank=True, null=True)
     partner = models.ForeignKey(Partner, models.CASCADE, blank=True, null=True)
     role = models.CharField(max_length=100, blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'project_partner'
         unique_together = (('project', 'partner'),)
 
+# Summary: Описывает сущность ProjectStatus и связанное поведение.
 class ProjectStatus(models.Model):
     name = models.CharField(unique=True, max_length=50)
     color_code = models.CharField(max_length=7, blank=True, null=True)
     sort_order = models.IntegerField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'project_statuses'
 
 
+# Summary: Описывает сущность ProjectTask и связанное поведение.
 class ProjectTask(models.Model):
     project = models.ForeignKey('Project', models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=255)
@@ -173,13 +208,16 @@ class ProjectTask(models.Model):
     created_by = models.ForeignKey(Employee, models.CASCADE, related_name='created_tasks', blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'project_tasks'
         
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return self.name
 
+    # Summary: Возвращает данные для get assignees.
     def get_assignees(self):
         """Возвращает список исполнителей задачи с fallback на legacy assigned_to."""
         employees = [assignment.employee for assignment in self.task_assignees.select_related('employee').all()]
@@ -187,28 +225,34 @@ class ProjectTask(models.Model):
             return employees
         return [self.assigned_to] if self.assigned_to else []
 
+    # Summary: Возвращает данные для get assignees display.
     def get_assignees_display(self):
         employees = self.get_assignees()
         return ", ".join(f"{employee.first_name} {employee.last_name}" for employee in employees)
 
+    # Summary: Возвращает данные для get chain steps.
     def get_chain_steps(self):
         return self.task_assignees.select_related('employee').order_by('step_order')
 
+    # Summary: Возвращает данные для get active step.
     def get_active_step(self):
         return self.task_assignees.select_related('employee').filter(
             step_status=TaskAssignee.STEP_STATUS_ACTIVE
         ).order_by('step_order').first()
 
 
+# Summary: Описывает сущность ProjectType и связанное поведение.
 class ProjectType(models.Model):
     name = models.CharField(unique=True, max_length=100)
     description = models.TextField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'project_types'
 
 
+# Summary: Описывает сущность Project и связанное поведение.
 class Project(models.Model):
     id = models.AutoField(primary_key=True)
     code = models.CharField(unique=True, max_length=50, blank=True, null=True)
@@ -224,12 +268,21 @@ class Project(models.Model):
     created_at = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'projects'
 
 
+# Summary: Описывает сущность ProjectExpenseRequest и связанное поведение.
 class ProjectExpenseRequest(models.Model):
+    TYPE_PROJECT = 'project'
+    TYPE_TASK = 'task'
+    EXPENSE_TYPE_CHOICES = [
+        (TYPE_PROJECT, 'Трата по проекту'),
+        (TYPE_TASK, 'Трата по задаче'),
+    ]
+
     STATUS_PENDING_MANAGER = 'pending_manager'
     STATUS_NEEDS_ADMIN_REVIEW = 'needs_admin_review'
     STATUS_APPROVED = 'approved'
@@ -239,12 +292,13 @@ class ProjectExpenseRequest(models.Model):
         (STATUS_NEEDS_ADMIN_REVIEW, 'Передано администратору'),
         (STATUS_APPROVED, 'Подтверждено'),
         (STATUS_REJECTED, 'Отклонено'),
-    ]
+    ] 
 
     project = models.ForeignKey(Project, models.CASCADE, related_name='expense_requests')
+    task = models.ForeignKey(ProjectTask, models.SET_NULL, blank=True, null=True, related_name='expense_requests')
     requested_by = models.ForeignKey(Employee, models.CASCADE, related_name='created_expense_requests')
+    expense_type = models.CharField(max_length=16, choices=EXPENSE_TYPE_CHOICES, default=TYPE_PROJECT)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
-    expense_date = models.DateField()
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING_MANAGER)
@@ -255,12 +309,23 @@ class ProjectExpenseRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'project_expense_requests'
         ordering = ['-created_at']
+        constraints = [
+            models.CheckConstraint(
+                name='expense_task_required_for_task_type',
+                condition=(
+                    (models.Q(expense_type='project') & models.Q(task__isnull=True))
+                    | (models.Q(expense_type='task') & models.Q(task__isnull=False))
+                ),
+            ),
+        ]
 
 
+# Summary: Описывает сущность ProjectClosureRequest и связанное поведение.
 class ProjectClosureRequest(models.Model):
     STATUS_PENDING = 'pending'
     STATUS_APPROVED = 'approved'
@@ -281,12 +346,14 @@ class ProjectClosureRequest(models.Model):
     seen_by_manager = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'project_closure_requests'
         ordering = ['-requested_at']
 
 
+# Summary: Описывает сущность ManagerProjectNotification и связанное поведение.
 class ManagerProjectNotification(models.Model):
     """Уведомление о новом проекте для руководителя."""
     manager = models.ForeignKey(Employee, models.CASCADE, blank=True, null=True)
@@ -294,11 +361,13 @@ class ManagerProjectNotification(models.Model):
     seen = models.BooleanField(default=False)
     created_at = models.DateTimeField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'manager_project_notifications'
 
 
+# Summary: Описывает сущность EmployeeProjectAssignmentNotification и связанное поведение.
 class EmployeeProjectAssignmentNotification(models.Model):
     """Уведомление о назначении сотрудника на проект."""
     employee = models.ForeignKey(Employee, models.CASCADE, blank=True, null=True)
@@ -306,11 +375,13 @@ class EmployeeProjectAssignmentNotification(models.Model):
     seen = models.BooleanField(default=False)
     created_at = models.DateTimeField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'employee_project_assignment_notifications'
 
 
+# Summary: Описывает сущность EmployeeTaskAssignmentNotification и связанное поведение.
 class EmployeeTaskAssignmentNotification(models.Model):
     """Уведомление о назначении сотрудника на задачу."""
     employee = models.ForeignKey(Employee, models.CASCADE, blank=True, null=True)
@@ -319,15 +390,18 @@ class EmployeeTaskAssignmentNotification(models.Model):
     seen = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'employee_task_assignment_notifications'
         unique_together = (('employee', 'task'),)
 
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return f"Task notification for {self.employee} - {self.task.name}"
 
 
+# Summary: Описывает сущность TaskAttachment и связанное поведение.
 class TaskAttachment(models.Model):
     """Файлы, прикреплённые к задаче."""
     task = models.ForeignKey(ProjectTask, models.CASCADE, related_name='attachments')
@@ -336,14 +410,17 @@ class TaskAttachment(models.Model):
     step_order = models.PositiveIntegerField(blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'task_attachments'
 
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return f"Attachment for {self.task.name}: {self.file.name}"
 
 
+# Summary: Описывает сущность TaskAssignee и связанное поведение.
 class TaskAssignee(models.Model):
     """Связка задача -> сотрудник для назначения нескольких исполнителей."""
     STEP_STATUS_PENDING = 'pending'
@@ -363,15 +440,18 @@ class TaskAssignee(models.Model):
     completed_at = models.DateTimeField(blank=True, null=True)
     assigned_at = models.DateTimeField(auto_now_add=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'task_assignees'
         unique_together = (('task', 'employee'),)
 
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return f"{self.task.name} -> {self.employee.first_name} {self.employee.last_name}"
 
 
+# Summary: Описывает сущность TaskChatMessage и связанное поведение.
 class TaskChatMessage(models.Model):
     """Сообщение в чате задачи."""
     task = models.ForeignKey(ProjectTask, models.CASCADE, related_name='chat_messages')
@@ -380,12 +460,14 @@ class TaskChatMessage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'task_chat_messages'
         ordering = ['created_at']
 
 
+# Summary: Описывает сущность TaskChatAttachment и связанное поведение.
 class TaskChatAttachment(models.Model):
     """Вложение к сообщению чата задачи."""
     message = models.ForeignKey(TaskChatMessage, models.CASCADE, related_name='attachments')
@@ -393,11 +475,13 @@ class TaskChatAttachment(models.Model):
     filename = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'task_chat_attachments'
 
 
+# Summary: Описывает сущность TaskChatMessageNotification и связанное поведение.
 class TaskChatMessageNotification(models.Model):
     """Уведомление о новом сообщении в чате задачи."""
     task = models.ForeignKey(ProjectTask, models.CASCADE, related_name='task_chat_notifications')
@@ -406,40 +490,48 @@ class TaskChatMessageNotification(models.Model):
     seen = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'task_chat_message_notifications'
         unique_together = (('task', 'employee', 'message'),)
 
 
+# Summary: Описывает сущность ResourceType и связанное поведение.
 class ResourceType(models.Model):
     name = models.CharField(unique=True, max_length=100)
     category = models.CharField(max_length=50, blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'resource_types'
 
 
+# Summary: Описывает сущность ResourceUsage и связанное поведение.
 class ResourceUsage(models.Model):
     resource = models.ForeignKey('Resource', models.CASCADE, blank=True, null=True)
     project = models.ForeignKey(Project, models.CASCADE, blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'resource_usage'
 
 
+# Summary: Описывает сущность Resource и связанное поведение.
 class Resource(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     type = models.ForeignKey(ResourceType, models.CASCADE, blank=True, null=True)
     is_available = models.BooleanField(blank=True, null=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'resources'
 
 
+# Summary: Описывает сущность User и связанное поведение.
 class User(models.Model):
     employee = models.OneToOneField(Employee, models.DO_NOTHING, blank=True, null=True)
     username = models.CharField(unique=True, max_length=50)
@@ -447,14 +539,17 @@ class User(models.Model):
     role = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = False
         db_table = 'users'
 
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return self.username
 
 
+# Summary: Описывает сущность ProjectChatMessage и связанное поведение.
 class ProjectChatMessage(models.Model):
     """Сообщение в чате проекта."""
     project = models.ForeignKey(Project, models.CASCADE, related_name='chat_messages')
@@ -463,15 +558,18 @@ class ProjectChatMessage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'project_chat_messages'
         ordering = ['created_at']
 
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return f"{self.author} - {self.project.name} ({self.created_at})"
 
 
+# Summary: Описывает сущность ProjectChatAttachment и связанное поведение.
 class ProjectChatAttachment(models.Model):
     """Прикрепленный файл к сообщению чата."""
     message = models.ForeignKey(ProjectChatMessage, models.CASCADE, related_name='attachments')
@@ -479,14 +577,17 @@ class ProjectChatAttachment(models.Model):
     filename = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'project_chat_attachments'
 
+    # Summary: Возвращает человекочитаемое строковое представление экземпляра.
     def __str__(self):
         return self.filename
 
 
+# Summary: Описывает сущность ProjectChatMessageNotification и связанное поведение.
 class ProjectChatMessageNotification(models.Model):
     """Уведомление о новом сообщении в чате проекта для сотрудников."""
     project = models.ForeignKey(Project, models.CASCADE, related_name='chat_notifications')
@@ -495,6 +596,7 @@ class ProjectChatMessageNotification(models.Model):
     seen = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Summary: Описывает сущность Meta и связанное поведение.
     class Meta:
         managed = True
         db_table = 'project_chat_message_notifications'

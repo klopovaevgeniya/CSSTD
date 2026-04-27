@@ -5,6 +5,11 @@ from core.models import Project, Employee, AuditLog
 from datetime import datetime, timedelta
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Содержит логику для audit log.
 @admin_required
 def audit_log(request):
     """Отображение журнала аудита"""

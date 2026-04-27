@@ -5,6 +5,11 @@ from datetime import date
 from core.utils.project_archive import archived_project_q
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Обрабатывает сценарий manager dashboard.
 @role_required(['project_manager'])
 def manager_dashboard(request):
     # Получаем объект Employee для текущего пользователя (руководителя)

@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/manager/notifications.py`: содержит код и настройки для раздела "notifications".
 from django.shortcuts import redirect, render
 
 from core.decorators import role_required
@@ -11,6 +16,7 @@ from core.models import (
 )
 
 
+# Summary: Обрабатывает сценарий manager notifications.
 @role_required(['project_manager'])
 def manager_notifications(request):
     employee = Employee.objects.filter(employee_user_id=request.session.get('user_id')).first()

@@ -1,3 +1,4 @@
+/* Summary: Файл `static/css/auth.css`: содержит код и настройки для раздела "auth". */
 /* ===== ROOT ===== */
 :root {
     --primary: #2a9d8f;
@@ -174,6 +175,71 @@ body {
 
 .auth-btn:hover {
     opacity: 0.9;
+}
+
+/* ===== PASSWORD TOGGLE ===== */
+.password-container {
+    position: relative;
+}
+
+.password-container input {
+    padding-right: 46px;
+    margin-bottom: 0;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.password-toggle-btn:focus-visible {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.16);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 16px;
+        align-items: flex-start;
+    }
+
+    .auth-card {
+        max-width: 100%;
+        padding: 28px 20px;
+        border-radius: 14px;
+        margin-top: 16px;
+    }
+
+    .auth-card h1 {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 420px) {
+    .auth-card {
+        padding: 22px 14px;
+    }
 }
 
 

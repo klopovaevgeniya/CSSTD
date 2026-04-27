@@ -5,6 +5,11 @@ from core.decorators import admin_required
 from core.models import Department, Employee, PositionDepartment
 from django.contrib import messages
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Содержит логику для department list.
 @admin_required
 def department_list(request):
     search_query = (request.GET.get('q') or '').strip()
@@ -56,6 +61,7 @@ def department_list(request):
     })
 
 
+# Summary: Содержит логику для department form context.
 def _department_form_context(mode, department=None, form_data=None, form_errors=None):
     if form_data is None:
         form_data = {"name": department.name if department else ""}
@@ -67,6 +73,7 @@ def _department_form_context(mode, department=None, form_data=None, form_errors=
     }
 
 
+# Summary: Содержит логику для validate department form.
 def _validate_department_form(post_data, current_department=None):
     form_data = {"name": (post_data.get("name") or "").strip()}
     errors = {}
@@ -93,6 +100,7 @@ def _validate_department_form(post_data, current_department=None):
     return cleaned, form_data, errors
 
 
+# Summary: Содержит логику для department create.
 @admin_required
 def department_create(request):
     if request.method == "POST":
@@ -111,6 +119,7 @@ def department_create(request):
 
     return render(request, "admin/departments/form.html", _department_form_context("create"))
 
+# Summary: Содержит логику для department edit.
 @admin_required
 def department_edit(request, pk):
     department = get_object_or_404(Department, pk=pk)
@@ -132,6 +141,7 @@ def department_edit(request, pk):
 
     return render(request, "admin/departments/form.html", _department_form_context("edit", department=department))
 
+# Summary: Содержит логику для department delete.
 @admin_required
 def department_delete(request, pk):
     department = get_object_or_404(Department, pk=pk)

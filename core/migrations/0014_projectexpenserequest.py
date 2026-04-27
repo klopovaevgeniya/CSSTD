@@ -1,6 +1,11 @@
 from django.db import migrations, models
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Определяет операции миграции базы данных для этого модуля.
 class Migration(migrations.Migration):
 
     dependencies = [

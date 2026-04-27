@@ -1,5 +1,6 @@
 {% extends 'employee/base_employee.html' %}
 
+<!-- Summary: Файл `templates/employee/project_detail.html`: содержит код и настройки для раздела "project detail". -->
 {% block title %}{{ project.name }} - Детали проекта{% endblock %}
 
 {% block content %}
@@ -232,6 +233,7 @@
     }
 
     .expense-form input,
+    .expense-form select,
     .expense-form textarea {
         width: 100%;
         border: 1px solid #cfe1ee;
@@ -245,7 +247,8 @@
         box-sizing: border-box;
     }
 
-    .expense-form input {
+    .expense-form input,
+    .expense-form select {
         height: 46px;
         padding: 10px 14px;
     }
@@ -265,6 +268,10 @@
         min-height: 110px;
         padding: 12px 14px;
         resize: vertical;
+    }
+
+    .expense-task-field {
+        display: none;
     }
 
     .expense-form .date-picker {
@@ -1269,35 +1276,41 @@
                 {% csrf_token %}
                 <input type="hidden" name="tab" value="expenses">
                 <input type="hidden" name="action" value="create_expense_request">
-                <input type="text" name="title" placeholder="Назначение траты (например: закупка оборудования)" required>
-                <input type="number" name="amount" step="0.01" min="0.01" {% if project.budget %}max="{{ project.budget|floatformat:2 }}"{% endif %} placeholder="Сумма, ₽" required>
+                <input
+                    type="text"
+                    name="title"
+                    placeholder="Назначение траты (например: закупка оборудования)"
+                    value="{{ expense_form_data.title }}"
+                    required
+                >
+                <input
+                    type="number"
+                    name="amount"
+                    step="0.01"
+                    min="0.01"
+                    {% if project.budget %}max="{{ project.budget|floatformat:2 }}"{% endif %}
+                    placeholder="Сумма, ₽"
+                    value="{{ expense_form_data.amount }}"
+                    required
+                >
+                <select name="expense_type" data-expense-type required>
+                    <option value="project" {% if expense_form_data.expense_type == 'project' %}selected{% endif %}>Трата по проекту</option>
+                    <option value="task" {% if expense_form_data.expense_type == 'task' %}selected{% endif %}>Трата по задаче</option>
+                </select>
+                <div class="expense-task-field" data-expense-task-field>
+                    <select name="task_id">
+                        <option value="">Выберите задачу</option>
+                        {% for task in expense_task_options %}
+                            <option value="{{ task.id }}" {% if expense_form_data.task_id == task.id|stringformat:"s" %}selected{% endif %}>
+                                {{ task.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
                 {% if project.budget %}
                     <div style="font-size: 0.84em; color: #64748b; margin-top: -4px;">Максимум по бюджету проекта: {{ project.budget|floatformat:2 }} ₽</div>
                 {% endif %}
-                <div class="date-picker" data-expense-date-picker>
-                    <input type="hidden" name="expense_date" value="">
-                    <button type="button" class="date-picker-trigger" aria-label="Выбор даты траты"></button>
-                    <div class="date-picker-panel">
-                        <div class="date-picker-header">
-                            <button type="button" class="date-picker-nav" data-date-prev aria-label="Предыдущий месяц">
-                                <i class="fa-solid fa-chevron-left"></i>
-                            </button>
-                            <p class="date-picker-month" data-date-month></p>
-                            <button type="button" class="date-picker-nav" data-date-next aria-label="Следующий месяц">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        <div class="date-picker-weekdays">
-                            <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
-                        </div>
-                        <div class="date-picker-days" data-date-days></div>
-                        <div class="date-picker-actions">
-                            <button type="button" class="date-picker-action date-picker-action-clear" data-date-clear>Удалить</button>
-                            <button type="button" class="date-picker-action date-picker-action-today" data-date-today>Сегодня</button>
-                        </div>
-                    </div>
-                </div>
-                <textarea name="description" placeholder="Комментарий (необязательно)"></textarea>
+                <textarea name="description" placeholder="Комментарий (необязательно)">{{ expense_form_data.description }}</textarea>
                 <button type="submit" class="expense-btn">Отправить на согласование</button>
             </form>
         {% else %}
@@ -1316,7 +1329,12 @@
                             <strong>{{ expense.title }}</strong>
                             <span class="expense-status expense-status-{{ expense.status }}">{{ expense.get_status_display }}</span>
                         </div>
-                        <p style="margin: 8px 0 4px; color:#526372;"><i class="fa-solid fa-calendar"></i> {{ expense.expense_date|date:"d.m.Y" }} · <i class="fa-solid fa-ruble-sign"></i> {{ expense.amount|floatformat:2 }} ₽</p>
+                        <p style="margin: 8px 0 4px; color:#526372;">
+                            <i class="fa-solid fa-layer-group"></i> {{ expense.get_expense_type_display }}
+                            {% if expense.expense_type == 'task' and expense.task %} · <i class="fa-solid fa-list-check"></i> {{ expense.task.name }}{% endif %}
+                            · <i class="fa-solid fa-calendar"></i> {{ expense.created_at|date:"d.m.Y" }}
+                            · <i class="fa-solid fa-ruble-sign"></i> {{ expense.amount|floatformat:2 }} ₽
+                        </p>
                         {% if expense.description %}<p style="margin: 4px 0 0; color: #5f7380;">{{ expense.description }}</p>{% endif %}
                         {% if expense.manager_comment %}<p style="margin: 6px 0 0;"><strong>Комментарий руководителя:</strong> {{ expense.manager_comment }}</p>{% endif %}
                         {% if expense.admin_comment %}<p style="margin: 6px 0 0;"><strong>Комментарий администратора:</strong> {{ expense.admin_comment }}</p>{% endif %}
@@ -1591,181 +1609,22 @@
         });
     }
 
-    const expenseDatePicker = document.querySelector('[data-expense-date-picker]');
-    if (expenseDatePicker) {
-        const monthNames = [
-            'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-            'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-        ];
-        const dateValueInput = expenseDatePicker.querySelector('input[name="expense_date"]');
-        const trigger = expenseDatePicker.querySelector('.date-picker-trigger');
-        const monthLabel = expenseDatePicker.querySelector('[data-date-month]');
-        const daysContainer = expenseDatePicker.querySelector('[data-date-days]');
-        const prevButton = expenseDatePicker.querySelector('[data-date-prev]');
-        const nextButton = expenseDatePicker.querySelector('[data-date-next]');
-        const clearButton = expenseDatePicker.querySelector('[data-date-clear]');
-        const todayButton = expenseDatePicker.querySelector('[data-date-today]');
-        const expenseForm = expenseDatePicker.closest('form');
+    const expenseTypeSelect = document.querySelector('[data-expense-type]');
+    const expenseTaskField = document.querySelector('[data-expense-task-field]');
+    const expenseTaskSelect = expenseTaskField ? expenseTaskField.querySelector('select[name="task_id"]') : null;
 
-        function parseIsoDate(value) {
-            if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-                return null;
-            }
-            const parts = value.split('-').map(Number);
-            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-            return Number.isNaN(dateObj.getTime()) ? null : dateObj;
-        }
-
-        function toIsoDate(dateObj) {
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            return y + '-' + m + '-' + d;
-        }
-
-        function toDisplayDate(dateObj) {
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            return d + '.' + m + '.' + dateObj.getFullYear();
-        }
-
-        function sameDay(a, b) {
-            return a && b
-                && a.getFullYear() === b.getFullYear()
-                && a.getMonth() === b.getMonth()
-                && a.getDate() === b.getDate();
-        }
-
-        function closeExpenseDatePicker() {
-            expenseDatePicker.classList.remove('open');
-        }
-
-        let selectedDate = parseIsoDate(dateValueInput.value);
-        const initialDate = selectedDate || new Date();
-        let viewYear = initialDate.getFullYear();
-        let viewMonth = initialDate.getMonth();
-
-        function updateDateTrigger() {
-            trigger.textContent = selectedDate ? ('Дата: ' + toDisplayDate(selectedDate)) : 'Дата траты';
-            trigger.style.borderColor = '';
-            trigger.style.boxShadow = '';
-        }
-
-        function renderDateGrid() {
-            monthLabel.textContent = monthNames[viewMonth] + ' ' + viewYear;
-            daysContainer.innerHTML = '';
-
-            const firstDay = new Date(viewYear, viewMonth, 1);
-            const dayOffset = (firstDay.getDay() + 6) % 7;
-            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-            const todayDate = new Date();
-            todayDate.setHours(0, 0, 0, 0);
-
-            for (let i = 0; i < dayOffset; i += 1) {
-                const spacer = document.createElement('div');
-                spacer.className = 'date-day muted';
-                daysContainer.appendChild(spacer);
-            }
-
-            for (let day = 1; day <= daysInMonth; day += 1) {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'date-day';
-                btn.textContent = day;
-
-                const dateObj = new Date(viewYear, viewMonth, day);
-                dateObj.setHours(0, 0, 0, 0);
-
-                if (sameDay(dateObj, selectedDate)) {
-                    btn.classList.add('selected');
-                }
-                if (sameDay(dateObj, todayDate)) {
-                    btn.classList.add('today');
-                }
-
-                btn.addEventListener('click', function () {
-                    selectedDate = new Date(viewYear, viewMonth, day);
-                    selectedDate.setHours(0, 0, 0, 0);
-                    dateValueInput.value = toIsoDate(selectedDate);
-                    updateDateTrigger();
-                    renderDateGrid();
-                    closeExpenseDatePicker();
-                });
-
-                daysContainer.appendChild(btn);
+    if (expenseTypeSelect && expenseTaskField && expenseTaskSelect) {
+        function syncExpenseTaskField() {
+            const isTaskExpense = expenseTypeSelect.value === 'task';
+            expenseTaskField.style.display = isTaskExpense ? 'block' : 'none';
+            expenseTaskSelect.required = isTaskExpense;
+            if (!isTaskExpense) {
+                expenseTaskSelect.value = '';
             }
         }
 
-        trigger.addEventListener('click', function () {
-            const isOpen = expenseDatePicker.classList.contains('open');
-            if (isOpen) {
-                closeExpenseDatePicker();
-                return;
-            }
-            expenseDatePicker.classList.add('open');
-            renderDateGrid();
-        });
-
-        prevButton.addEventListener('click', function () {
-            viewMonth -= 1;
-            if (viewMonth < 0) {
-                viewMonth = 11;
-                viewYear -= 1;
-            }
-            renderDateGrid();
-        });
-
-        nextButton.addEventListener('click', function () {
-            viewMonth += 1;
-            if (viewMonth > 11) {
-                viewMonth = 0;
-                viewYear += 1;
-            }
-            renderDateGrid();
-        });
-
-        clearButton.addEventListener('click', function () {
-            selectedDate = null;
-            dateValueInput.value = '';
-            updateDateTrigger();
-            closeExpenseDatePicker();
-        });
-
-        todayButton.addEventListener('click', function () {
-            const now = new Date();
-            selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            viewYear = selectedDate.getFullYear();
-            viewMonth = selectedDate.getMonth();
-            dateValueInput.value = toIsoDate(selectedDate);
-            updateDateTrigger();
-            closeExpenseDatePicker();
-        });
-
-        if (expenseForm) {
-            expenseForm.addEventListener('submit', function (event) {
-                if (!dateValueInput.value) {
-                    event.preventDefault();
-                    expenseDatePicker.classList.add('open');
-                    trigger.style.borderColor = '#dc2626';
-                    trigger.style.boxShadow = '0 0 0 3px rgba(220, 38, 38, 0.14)';
-                }
-            });
-        }
-
-        document.addEventListener('click', function (event) {
-            if (!expenseDatePicker.contains(event.target)) {
-                closeExpenseDatePicker();
-            }
-        });
-
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                closeExpenseDatePicker();
-            }
-        });
-
-        updateDateTrigger();
-        renderDateGrid();
+        expenseTypeSelect.addEventListener('change', syncExpenseTaskField);
+        syncExpenseTaskField();
     }
 </script>
 

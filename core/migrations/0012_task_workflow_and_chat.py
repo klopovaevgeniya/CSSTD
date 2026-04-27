@@ -1,6 +1,11 @@
 from django.db import migrations, models
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Применяет логику заполнения данных для seed task chain.
 def seed_task_chain(apps, schema_editor):
     ProjectTask = apps.get_model('core', 'ProjectTask')
     TaskAssignee = apps.get_model('core', 'TaskAssignee')
@@ -29,11 +34,13 @@ def seed_task_chain(apps, schema_editor):
             assignee.save(update_fields=['step_order', 'step_status'])
 
 
+# Summary: Применяет логику заполнения данных для unseed task chain.
 def unseed_task_chain(apps, schema_editor):
     # Откат не требуется.
     pass
 
 
+# Summary: Определяет операции миграции базы данных для этого модуля.
 class Migration(migrations.Migration):
 
     dependencies = [

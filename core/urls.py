@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/urls.py`: содержит код и настройки для раздела "urls".
 from django.urls import path
 from django.views.generic import RedirectView
 from django.contrib.staticfiles.storage import staticfiles_storage

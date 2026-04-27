@@ -4,6 +4,11 @@ from core.models import Employee, Project
 from core.utils.project_archive import archived_project_q
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Обрабатывает сценарий manager calendar.
 @role_required(['project_manager'])
 def manager_calendar(request):
     # Получаем объект Employee для текущего пользователя (руководителя)

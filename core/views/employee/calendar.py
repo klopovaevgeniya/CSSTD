@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/employee/calendar.py`: содержит код и настройки для раздела "calendar".
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from core.decorators import role_required
@@ -13,6 +18,7 @@ from core.models import (
 from core.utils.project_archive import archived_project_q
 
 
+# Summary: Обрабатывает сценарий employee calendar.
 @role_required(['employee'])
 def employee_calendar(request):
     # Получаем объект Employee для текущего пользователя

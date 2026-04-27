@@ -1,12 +1,16 @@
+<!-- Summary: Файл `templates/admin/base_admin.html`: содержит код и настройки для раздела "base admin". -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Администрирование{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
 
-    <link rel="stylesheet" href="{% static 'css/admin.css' %}?v=2026-04-16-2">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}?v=2026-04-27-responsive">
+    <link rel="stylesheet" href="{% static 'css/responsive-global.css' %}?v=2026-04-27-all-pages">
+    <link rel="stylesheet" href="{% static 'css/form-validation.css' %}?v=2026-04-27-forms">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -67,5 +71,6 @@
 
 </div>
 
+<script src="{% static 'js/form-validation.js' %}?v=2026-04-27-forms"></script>
 </body>
 </html>

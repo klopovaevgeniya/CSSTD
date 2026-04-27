@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/admin.py`: содержит код и настройки для раздела "admin".
 from django.contrib import admin
 from .models import Project, Employee, Partner, Event
 

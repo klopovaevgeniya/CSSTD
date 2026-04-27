@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Summary: Файл `core/views/manager/chat.py`: содержит код и настройки для раздела "chat".
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -11,6 +16,7 @@ from core.models import (
 )
 
 
+# Summary: Обрабатывает сценарий manager project chat.
 @role_required(['project_manager'])
 def manager_project_chat(request, pk):
     """Открытие чата проекта для менеджера."""
@@ -44,6 +50,7 @@ def manager_project_chat(request, pk):
     return render(request, 'manager/projects/chat.html', context)
 
 
+# Summary: Обрабатывает сценарий manager project chat send.
 @role_required(['project_manager'])
 @require_http_methods(["POST"])
 def manager_project_chat_send(request, pk):
@@ -94,6 +101,7 @@ def manager_project_chat_send(request, pk):
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 
+# Summary: Обрабатывает сценарий manager delete chat message.
 @role_required(['project_manager'])
 @require_http_methods(["POST"])
 def manager_delete_chat_message(request, pk, message_id):
@@ -112,6 +120,7 @@ def manager_delete_chat_message(request, pk, message_id):
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 
+# Summary: Обрабатывает сценарий manager edit chat message.
 @role_required(['project_manager'])
 @require_http_methods(["POST"])
 def manager_edit_chat_message(request, pk, message_id):
