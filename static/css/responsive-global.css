@@ -1,5 +1,4 @@
-/* Summary: Файл `static/css/responsive-global.css`: содержит код и настройки для раздела "responsive global". */
-/* Global responsive overrides for all pages */
+/* Summary: Файл `static/css/responsive-global.css`: содержит осторожные глобальные адаптивные правила без агрессивного переопределения локального дизайна. */
 *,
 *::before,
 *::after {
@@ -26,35 +25,20 @@ iframe {
 .page,
 .project-page,
 .task-page,
-.notifications-wrap,
-.projects-container,
-.chat-shell,
-.calendar-wrap,
-.calendar-shell,
 .dashboard-content,
 .list-container,
 .form-container,
-.modal-content {
+.modal-content,
+.chat-shell,
+.calendar-wrap,
+.calendar-shell {
     min-width: 0;
     max-width: 100%;
-}
-
-.tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.tab-link {
-    white-space: nowrap;
 }
 
 .filter-panel,
 .projects-filters,
 .tasks-filters,
-.header-toolbar,
-.page-header,
-.list-header,
 .form-row,
 .detail-row,
 .detail-grid,
@@ -78,33 +62,19 @@ iframe {
     min-width: 0;
 }
 
-table,
-.data-table {
-    width: 100%;
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tab-link {
+    white-space: nowrap;
 }
 
 .modal,
 .modal-overlay {
     padding: 14px;
-}
-
-@media (max-width: 1200px) {
-    .page-header,
-    .list-header {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: flex-start;
-    }
-
-    .projects-grid,
-    .projects-mini-grid,
-    .notifications-grid,
-    .reports-grid,
-    .kpi-grid,
-    .dashboard-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
 }
 
 @media (max-width: 992px) {
@@ -131,86 +101,122 @@ table,
     .user-info-grid,
     .urgent-grid,
     .budget-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
 
-    .task-item,
-    .project-header,
-    .notify-item,
-    .expense-head,
-    .expense-item-head {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .projects-title-row,
-    .project-detail-header,
-    .tabs-row,
-    .header-actions,
-    .tab-actions,
-    .projects-filters-meta {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+    .page-header,
+    .list-header {
+        flex-wrap: wrap;
         gap: 10px;
     }
 
     .projects-filters .custom-select-menu,
-    .tasks-filters .custom-select-menu {
-        left: 0 !important;
-        right: auto !important;
+    .tasks-filters .custom-select-menu,
+    .expense-form .custom-select-menu {
+        left: 0;
+        right: auto;
         width: min(100%, calc(100vw - 36px));
         max-width: calc(100vw - 36px);
     }
 
     .projects-filters .date-picker-panel,
-    .tasks-filters .date-picker-panel {
-        left: 0 !important;
-        right: auto !important;
-        transform: none !important;
+    .tasks-filters .date-picker-panel,
+    .expense-form .date-picker-panel {
+        left: 0;
+        right: auto;
+        transform: none;
         width: min(100%, calc(100vw - 36px));
-        min-width: 0 !important;
+        min-width: 0;
         max-width: calc(100vw - 36px);
-    }
-
-    .chat-shell,
-    .task-page,
-    .project-page {
-        padding-left: 0;
-        padding-right: 0;
-    }
-
-    .project-card,
-    .project-card-employee {
-        min-height: auto !important;
-    }
-
-    .archive-toggle-btn,
-    .projects-filters-submit,
-    .btn-action,
-    .btn-chat,
-    .btn-create-task,
-    .btn-closure {
-        width: 100%;
-        justify-content: center;
     }
 }
 
 @media (max-width: 768px) {
-    table,
-    .data-table {
-        display: block;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+    .content,
+    .main-content {
+        padding: 14px;
     }
 
-    table th,
-    table td,
-    .data-table th,
-    .data-table td {
-        white-space: nowrap;
+    .page-header,
+    .list-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .page-header h1,
+    .list-header h1,
+    .page-title {
+        font-size: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .header-toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .header-toolbar .btn-add,
+    .header-toolbar .btn-archive-toggle,
+    .header-toolbar .btn,
+    .header-toolbar a {
+        width: 100%;
+        justify-content: center;
+        margin-right: 0;
+    }
+
+    .filter-panel,
+    .projects-filters,
+    .tasks-filters {
+        gap: 8px;
+    }
+
+    .filter-group {
+        gap: 4px;
+    }
+
+    .filter-group label {
+        font-size: 0.76rem;
+    }
+
+    .filter-panel input,
+    .projects-filters input,
+    .tasks-filters input,
+    .filter-panel .ui-select-trigger,
+    .projects-filters .custom-select-trigger,
+    .tasks-filters .custom-select-trigger,
+    .projects-filters .date-picker-trigger,
+    .tasks-filters .date-picker-trigger,
+    .expense-form .custom-select-trigger,
+    .expense-form input {
+        min-height: 44px;
+    }
+
+    .btn-clear,
+    .projects-filters-reset {
+        width: 100%;
+        text-align: center;
+    }
+
+    .card,
+    .form-card,
+    .detail-card,
+    .list-container,
+    .task-create-content {
+        padding: 16px;
+    }
+
+    .action-links {
+        gap: 8px;
+    }
+
+    .action-links a {
+        width: 34px;
+        height: 34px;
     }
 
     .tabs {
@@ -223,159 +229,62 @@ table,
         flex: 0 0 auto;
     }
 
-    .sidebar nav {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        width: 100%;
-    }
-
-    .sidebar nav a {
-        width: 100%;
-    }
-
     .header-inner {
         flex-direction: column;
-        gap: 10px;
         align-items: flex-start;
+        gap: 10px;
     }
 
-    .chat-container {
-        height: calc(100vh - 165px) !important;
-        border-radius: 12px !important;
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .chat-header {
-        padding: 12px 14px !important;
+    table th {
+        white-space: nowrap;
     }
 
-    .chat-header h2 {
-        font-size: 1rem !important;
-    }
-
-    .chat-messages {
-        padding: 12px !important;
-    }
-
-    .chat-input-area {
-        padding: 10px !important;
-    }
-
-    .composer-main {
-        flex-wrap: wrap;
-    }
-
-    .composer-main .send-btn {
-        width: 100%;
-    }
-
-    .message-content {
-        max-width: 92% !important;
-    }
-
-    .task-meta,
-    .project-meta,
-    .expense-meta {
-        gap: 6px !important;
-    }
-
-    .modal-dialog {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 12px !important;
+    table td {
+        white-space: normal;
+        word-break: break-word;
     }
 
     .fc-toolbar {
-        padding: 10px !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .fc-toolbar-chunk {
-        flex-wrap: wrap !important;
-    }
-
-    .fc .fc-button {
-        font-size: 0.82rem !important;
-        padding: 0.32rem 0.5rem !important;
+        flex-wrap: wrap;
     }
 
     .calendar-tooltip {
-        display: none !important;
-    }
-
-    .hero {
-        padding: 96px 20px 70px;
-    }
-
-    .hero h1 {
-        font-size: 2.2em !important;
-    }
-
-    .hero p {
-        font-size: 1.05em !important;
-    }
-
-    .cards {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .cards .card {
-        flex: 1 1 100%;
+        display: none;
     }
 }
 
 @media (max-width: 560px) {
     .content,
-    .main-content,
-    .list-container,
-    .form-card,
-    .detail-card,
-    .card,
-    .modal-content {
-        padding: 12px !important;
-    }
-
-    .page-title,
-    h1 {
-        font-size: 1.5rem !important;
+    .main-content {
+        padding: 12px;
     }
 
     .auth-card {
-        padding: 18px 12px !important;
+        padding: 18px 12px;
     }
 
-    .chat-container {
-        height: calc(100vh - 150px) !important;
+    .page-header h1,
+    .list-header h1,
+    .page-title {
+        font-size: 1.35rem;
     }
 
-    .chat-header p,
-    .project-desc,
-    .project-description,
-    .message-text {
-        font-size: 0.9rem !important;
-    }
-
-    .projects-filters input,
-    .projects-filters .custom-select-trigger,
-    .projects-filters .date-picker-trigger,
-    .tasks-filters input,
-    .tasks-filters .custom-select-trigger,
-    .tasks-filters .date-picker-trigger {
-        height: 44px !important;
-        font-size: 0.92rem !important;
-    }
-
-    .projects-filters .date-picker-panel,
-    .tasks-filters .date-picker-panel {
-        width: calc(100vw - 24px) !important;
-        max-width: calc(100vw - 24px) !important;
-    }
-
-    .projects-filters-meta,
-    .projects-title-row,
-    .project-detail-header,
-    .tabs-row {
-        gap: 8px !important;
+    .card,
+    .form-card,
+    .detail-card,
+    .list-container,
+    .task-create-content {
+        padding: 12px;
     }
 }
