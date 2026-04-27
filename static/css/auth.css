@@ -87,7 +87,7 @@ body {
 }
 
 /* ===== BUTTON ===== */
-.auth-card button {
+.auth-card button:not(.password-toggle-btn) {
     width: 100%;
     padding: 13px;
     border: none;
@@ -100,7 +100,7 @@ body {
     transition: 0.3s;
 }
 
-.auth-card button:hover {
+.auth-card button:not(.password-toggle-btn):hover {
     opacity: 0.9;
 }
 
@@ -187,7 +187,7 @@ body {
     margin-bottom: 0;
 }
 
-.password-toggle-btn {
+.auth-card .password-toggle-btn {
     position: absolute;
     right: 8px;
     top: 50%;
@@ -205,13 +205,13 @@ body {
     transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.password-toggle-btn:hover {
+.auth-card .password-toggle-btn:hover {
     color: #0f172a;
     background: #f1f5f9;
     border-color: #cbd5e1;
 }
 
-.password-toggle-btn:focus-visible {
+.auth-card .password-toggle-btn:focus-visible {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.16);

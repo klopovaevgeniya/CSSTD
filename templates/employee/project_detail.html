@@ -233,7 +233,6 @@
     }
 
     .expense-form input,
-    .expense-form select,
     .expense-form textarea {
         width: 100%;
         border: 1px solid #cfe1ee;
@@ -247,8 +246,7 @@
         box-sizing: border-box;
     }
 
-    .expense-form input,
-    .expense-form select {
+    .expense-form input {
         height: 46px;
         padding: 10px 14px;
     }
@@ -272,6 +270,105 @@
 
     .expense-task-field {
         display: none;
+    }
+
+    .expense-form .custom-select {
+        position: relative;
+    }
+
+    .expense-form .native-select {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .expense-form .custom-select-trigger {
+        width: 100%;
+        height: 46px;
+        border: 1px solid #cfe1ee;
+        border-radius: 12px;
+        background-color: #fff;
+        color: #334155;
+        font-size: 0.95em;
+        font-weight: 500;
+        padding: 10px 42px 10px 14px;
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+        font-family: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .expense-form .custom-select-trigger::after {
+        content: '';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #6b7280;
+        border-bottom: 2px solid #6b7280;
+        transform: translateY(-65%) rotate(45deg);
+        transition: transform 0.2s ease;
+    }
+
+    .expense-form .custom-select.open .custom-select-trigger {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.16);
+    }
+
+    .expense-form .custom-select.open .custom-select-trigger::after {
+        transform: translateY(-35%) rotate(-135deg);
+    }
+
+    .expense-form .custom-select-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #dbe8f3;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        max-height: 240px;
+        overflow-y: auto;
+        padding: 6px;
+        z-index: 30;
+        display: none;
+    }
+
+    .expense-form .custom-select.open .custom-select-menu {
+        display: block;
+        animation: dropdownReveal 0.18s ease-out;
+    }
+
+    .expense-form .custom-select-option {
+        width: 100%;
+        border: none;
+        background: transparent;
+        text-align: left;
+        padding: 10px 12px;
+        border-radius: 9px;
+        color: #334155;
+        cursor: pointer;
+        font-size: 0.95em;
+        font-weight: 500;
+    }
+
+    .expense-form .custom-select-option:hover {
+        background: #f4f8fb;
+    }
+
+    .expense-form .custom-select-option.active {
+        background: linear-gradient(135deg, rgba(42, 157, 143, 0.16), rgba(77, 184, 232, 0.16));
+        color: #1f3c5a;
+        font-weight: 600;
     }
 
     .expense-form .date-picker {
@@ -1293,19 +1390,27 @@
                     value="{{ expense_form_data.amount }}"
                     required
                 >
-                <select name="expense_type" data-expense-type required>
-                    <option value="project" {% if expense_form_data.expense_type == 'project' %}selected{% endif %}>Трата по проекту</option>
-                    <option value="task" {% if expense_form_data.expense_type == 'task' %}selected{% endif %}>Трата по задаче</option>
-                </select>
-                <div class="expense-task-field" data-expense-task-field>
-                    <select name="task_id">
-                        <option value="">Выберите задачу</option>
-                        {% for task in expense_task_options %}
-                            <option value="{{ task.id }}" {% if expense_form_data.task_id == task.id|stringformat:"s" %}selected{% endif %}>
-                                {{ task.name }}
-                            </option>
-                        {% endfor %}
+                <div class="custom-select" data-expense-custom-select>
+                    <select name="expense_type" class="native-select" data-expense-type required>
+                        <option value="project" {% if expense_form_data.expense_type == 'project' %}selected{% endif %}>Трата по проекту</option>
+                        <option value="task" {% if expense_form_data.expense_type == 'task' %}selected{% endif %}>Трата по задаче</option>
                     </select>
+                    <button type="button" class="custom-select-trigger"></button>
+                    <div class="custom-select-menu"></div>
+                </div>
+                <div class="expense-task-field" data-expense-task-field>
+                    <div class="custom-select" data-expense-custom-select>
+                        <select name="task_id" class="native-select">
+                            <option value="">Выберите задачу</option>
+                            {% for task in expense_task_options %}
+                                <option value="{{ task.id }}" {% if expense_form_data.task_id == task.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ task.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="custom-select-trigger"></button>
+                        <div class="custom-select-menu"></div>
+                    </div>
                 </div>
                 {% if project.budget %}
                     <div style="font-size: 0.84em; color: #64748b; margin-top: -4px;">Максимум по бюджету проекта: {{ project.budget|floatformat:2 }} ₽</div>
@@ -1609,9 +1714,89 @@
         });
     }
 
+    const expenseForm = document.querySelector('.expense-form');
     const expenseTypeSelect = document.querySelector('[data-expense-type]');
     const expenseTaskField = document.querySelector('[data-expense-task-field]');
     const expenseTaskSelect = expenseTaskField ? expenseTaskField.querySelector('select[name="task_id"]') : null;
+
+    function initExpenseCustomSelects() {
+        if (!expenseForm) {
+            return;
+        }
+
+        const customBlocks = expenseForm.querySelectorAll('[data-expense-custom-select]');
+
+        function closeAllExpenseSelects(exceptSelect) {
+            customBlocks.forEach(function (block) {
+                if (block !== exceptSelect) {
+                    block.classList.remove('open');
+                }
+            });
+        }
+
+        customBlocks.forEach(function (block) {
+            const nativeSelect = block.querySelector('select');
+            const trigger = block.querySelector('.custom-select-trigger');
+            const menu = block.querySelector('.custom-select-menu');
+            if (!nativeSelect || !trigger || !menu) {
+                return;
+            }
+
+            function selectedOptionText() {
+                const selected = nativeSelect.options[nativeSelect.selectedIndex];
+                return selected ? selected.textContent.trim() : '';
+            }
+
+            function renderOptions() {
+                menu.innerHTML = '';
+                Array.from(nativeSelect.options).forEach(function (option) {
+                    const optionButton = document.createElement('button');
+                    optionButton.type = 'button';
+                    optionButton.className = 'custom-select-option' + (option.selected ? ' active' : '');
+                    optionButton.textContent = option.textContent.trim();
+                    optionButton.dataset.value = option.value;
+
+                    optionButton.addEventListener('click', function () {
+                        nativeSelect.value = option.value;
+                        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        block.classList.remove('open');
+                    });
+
+                    menu.appendChild(optionButton);
+                });
+            }
+
+            function syncFromNativeSelect() {
+                trigger.textContent = selectedOptionText();
+                renderOptions();
+            }
+
+            trigger.addEventListener('click', function () {
+                const isOpen = block.classList.contains('open');
+                closeAllExpenseSelects(block);
+                if (!isOpen) {
+                    block.classList.add('open');
+                }
+            });
+
+            nativeSelect.addEventListener('change', syncFromNativeSelect);
+            syncFromNativeSelect();
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!expenseForm.contains(event.target)) {
+                closeAllExpenseSelects(null);
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeAllExpenseSelects(null);
+            }
+        });
+    }
+
+    initExpenseCustomSelects();
 
     if (expenseTypeSelect && expenseTaskField && expenseTaskSelect) {
         function syncExpenseTaskField() {
@@ -1620,6 +1805,7 @@
             expenseTaskSelect.required = isTaskExpense;
             if (!isTaskExpense) {
                 expenseTaskSelect.value = '';
+                expenseTaskSelect.dispatchEvent(new Event('change', { bubbles: true }));
             }
         }
 

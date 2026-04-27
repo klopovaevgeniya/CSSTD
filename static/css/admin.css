@@ -863,12 +863,6 @@ iframe {
     max-width: 100%;
 }
 
-table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
 @media (max-width: 1200px) {
     .content {
         padding: 24px;
@@ -938,6 +932,12 @@ table {
 }
 
 @media (max-width: 640px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .content {
         padding: 14px;
     }
