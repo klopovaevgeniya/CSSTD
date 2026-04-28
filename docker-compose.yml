@@ -1,53 +1,48 @@
-# Summary: Файл `docker-compose.yml`: содержит код и настройки для раздела "docker compose".
-version: '3.8'
-
 services:
-  # Веб-приложение на Flask
   web:
-    build: .
-    container_name: csurt_web
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: csstd_web
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DEBUG: ${DEBUG:-False}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-0}
+      COLLECTSTATIC_ON_START: ${COLLECTSTATIC_ON_START:-1}
+      APP_CMD: ${APP_CMD:-python manage.py runserver 0.0.0.0:8000}
     ports:
-      - "5000:5000"
-    environment:
-      - DB_HOST=db
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - "8000:8000"
     depends_on:
-      - db
-    networks:
-      - app_net
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-
-  # База данных PostgreSQL
-  db:
-    image: postgres:15
-    container_name: csurt_db
-    environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      db:
+        condition: service_healthy
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - app_net
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: csstd_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
 
 volumes:
-  pgdata:
-    name: csurt_pgdata
-
-networks:
-  app_net:
-    name: csurt_app_net
-    driver: bridge
+  pg_data:
+  media_data:
+  static_data:

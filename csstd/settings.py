@@ -17,7 +17,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-9dg%e5+_9*b+o*lf4n)md
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '::1']
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,::1').split(',')
+    if host.strip()
+]
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -68,7 +72,7 @@ DATABASES = {
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '5432'),
         'OPTIONS': {
-            'options': '-c search_path=csurt'
+            'options': f"-c search_path={os.environ.get('DB_SCHEMA', 'public')},public"
         }
     }
 }
@@ -109,6 +113,7 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@csurt.ru')
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # media files for attachments, uploads
 MEDIA_URL = '/media/'

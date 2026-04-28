@@ -1,22 +1,20 @@
-# Используем официальный образ Python 3.10 на базе Debian (slim-версия для уменьшения размера)
-FROM python:3.10-slim
+FROM python:3.12-slim
 
-# Устанавливаем рабочую директорию внутри контейнера
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# Копируем файл с зависимостями и устанавливаем их (слой кешируется, если requirements.txt не менялся)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Копируем остальной код приложения
-COPY . .
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Создаём непривилегированного пользователя для повышения безопасности
-RUN useradd --create-home appuser && chown -R appuser:appuser /app
-USER appuser
+COPY . /app
+RUN chmod +x /app/entrypoint.sh
 
-# Открываем порт, на котором работает приложение
-EXPOSE 5000
+EXPOSE 8000
 
-# Команда запуска приложения
-CMD ["python", "app.py"]
+ENTRYPOINT ["/app/entrypoint.sh"]
