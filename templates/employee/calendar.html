@@ -118,15 +118,15 @@
     }
 
     .calendar-wrapper {
-        max-width: 1140px;
-        width: min(100%, 1140px);
-        margin: 0 auto 60px;
+        max-width: none;
+        width: calc(100% - 24px);
+        margin: 0 12px 48px;
         padding: 0 16px;
         animation: fadeInUp 0.6s ease-out 0.1s both;
     }
 
     .calendar-tooltip {
-        position: fixed;
+        position: absolute;
         pointer-events: none;
         z-index: 2100;
         padding: 14px 16px;
@@ -134,7 +134,9 @@
         background: var(--card-bg);
         border: 1px solid rgba(0, 132, 212, 0.15);
         box-shadow: 0 12px 32px rgba(0, 132, 212, 0.2);
-        max-width: 280px;
+        max-width: 300px;
+        max-height: 240px;
+        overflow: auto;
         font-size: 0.9em;
         color: #264653;
         display: none;
@@ -167,7 +169,54 @@
     }
 
     /* FullCalendar контейнер */
-    .fc {
+    /* Fallback when FullCalendar CDN CSS is blocked */
+.fc table {
+        display: table !important;
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid table {
+        border-collapse: collapse;
+    }
+
+    .fc .fc-col-header-cell,
+    .fc .fc-daygrid-day {
+        border: 1px solid #e5edf4;
+    }
+
+    .fc .fc-daygrid-day-frame {
+        min-height: 96px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .fc .fc-daygrid-day-top {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .fc .fc-daygrid-day-events {
+        margin-top: 4px;
+    }
+
+.fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: #e5edf4;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid table {
+        width: 100% !important;
+    }
+
+    .fc .fc-daygrid-body,
+    .fc .fc-daygrid-body table {
+        width: 100% !important;
+    }
+
+.fc {
         background: var(--card-bg);
         border-radius: 14px;
         box-shadow: 0 4px 20px rgba(0, 132, 212, 0.12);
@@ -299,6 +348,7 @@
     /* События на календаре */
     .fc-daygrid-day-frame {
         position: relative;
+        min-height: 96px;
     }
 
     .fc-daygrid-day-events {
@@ -333,7 +383,7 @@
     /* Модальное окно */
     .modal {
         display: none;
-        position: fixed;
+        position: absolute;
         inset: 0;
         z-index: 2000;
         align-items: center;
@@ -593,6 +643,11 @@
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
+            fixedWeekCount: false,
+            showNonCurrentDates: true,
+            height: 'auto',
+            contentHeight: 'auto',
+            expandRows: true,
             locale: 'ru',
             buttonText: {
                 today: 'Сегодня'
@@ -607,12 +662,46 @@
             eventDidMount: function (info) {
                 info.el.removeAttribute('title');
 
-                const showTooltip = (content, rect) => {
+                const showTooltip = (content, anchorRect) => {
                     const tooltip = document.getElementById('calendarTooltip');
+                    const wrapperRect = calendarEl.getBoundingClientRect();
+
                     tooltip.innerHTML = content;
                     tooltip.style.display = 'block';
-                    tooltip.style.top = `${Math.max(rect.top - 12, 12)}px`;
-                    tooltip.style.left = `${Math.min(rect.right + 8, window.innerWidth - tooltip.offsetWidth - 12)}px`;
+
+                    const gap = 8;
+                    const anchorLeft = anchorRect.left - wrapperRect.left;
+                    const anchorTop = anchorRect.top - wrapperRect.top;
+                    const anchorWidth = anchorRect.width;
+                    const anchorHeight = anchorRect.height;
+
+                    const rightPos = anchorLeft + anchorWidth + gap;
+                    const leftPos = anchorLeft - tooltip.offsetWidth - gap;
+
+                    let left = rightPos;
+                    if (rightPos + tooltip.offsetWidth > wrapperRect.width - 8) {
+                        left = leftPos;
+                    }
+                    if (left < 8) {
+                        left = 8;
+                    }
+                    if (left + tooltip.offsetWidth > wrapperRect.width - 8) {
+                        left = Math.max(8, wrapperRect.width - tooltip.offsetWidth - 8);
+                    }
+
+                    let top = anchorTop;
+                    if (top + tooltip.offsetHeight > wrapperRect.height - 8) {
+                        top = anchorTop + anchorHeight - tooltip.offsetHeight;
+                    }
+                    if (top < 8) {
+                        top = 8;
+                    }
+                    if (top + tooltip.offsetHeight > wrapperRect.height - 8) {
+                        top = Math.max(8, wrapperRect.height - tooltip.offsetHeight - 8);
+                    }
+
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.top = `${top}px`;
                 };
 
                 const hideTooltip = () => {
@@ -637,7 +726,9 @@
                         ${description}
                     `;
 
-                    showTooltip(content, info.el.getBoundingClientRect());
+                    const dayCell = info.el.closest('.fc-daygrid-day');
+                    const anchorRect = (dayCell || info.el).getBoundingClientRect();
+                    showTooltip(content, anchorRect);
                 });
 
                 info.el.addEventListener('mouseleave', hideTooltip);
@@ -647,12 +738,46 @@
                 const itemsOnDate = allEvents.filter(item => item.start === dateStr);
                 if (!itemsOnDate.length) return;
 
-                const showTooltip = (content, rect) => {
+                const showTooltip = (content, anchorRect) => {
                     const tooltip = document.getElementById('calendarTooltip');
+                    const wrapperRect = calendarEl.getBoundingClientRect();
+
                     tooltip.innerHTML = content;
                     tooltip.style.display = 'block';
-                    tooltip.style.top = `${Math.max(rect.top - 12, 12)}px`;
-                    tooltip.style.left = `${Math.min(rect.right + 8, window.innerWidth - tooltip.offsetWidth - 12)}px`;
+
+                    const gap = 8;
+                    const anchorLeft = anchorRect.left - wrapperRect.left;
+                    const anchorTop = anchorRect.top - wrapperRect.top;
+                    const anchorWidth = anchorRect.width;
+                    const anchorHeight = anchorRect.height;
+
+                    const rightPos = anchorLeft + anchorWidth + gap;
+                    const leftPos = anchorLeft - tooltip.offsetWidth - gap;
+
+                    let left = rightPos;
+                    if (rightPos + tooltip.offsetWidth > wrapperRect.width - 8) {
+                        left = leftPos;
+                    }
+                    if (left < 8) {
+                        left = 8;
+                    }
+                    if (left + tooltip.offsetWidth > wrapperRect.width - 8) {
+                        left = Math.max(8, wrapperRect.width - tooltip.offsetWidth - 8);
+                    }
+
+                    let top = anchorTop;
+                    if (top + tooltip.offsetHeight > wrapperRect.height - 8) {
+                        top = anchorTop + anchorHeight - tooltip.offsetHeight;
+                    }
+                    if (top < 8) {
+                        top = 8;
+                    }
+                    if (top + tooltip.offsetHeight > wrapperRect.height - 8) {
+                        top = Math.max(8, wrapperRect.height - tooltip.offsetHeight - 8);
+                    }
+
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.top = `${top}px`;
                 };
 
                 const hideTooltip = () => {
@@ -699,6 +824,8 @@
         });
 
         calendar.render();
+        setTimeout(() => calendar.updateSize(), 0);
+        window.addEventListener('resize', () => calendar.updateSize());
 
         function openModal() {
             document.getElementById('projectModal').setAttribute('aria-hidden', 'false');

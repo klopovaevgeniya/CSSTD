@@ -2,12 +2,12 @@
 {% load static %}
 <!-- Summary: Файл `templates/manager/calendar.html`: содержит код и настройки для раздела "calendar". -->
 
-{% block title %}График проектов{% endblock %}
+{% block title %}График задач и проектов{% endblock %}
 
 {% block content %}
 <div class="dashboard-header">
     <h1><i class="fa-solid fa-calendar-days"></i> График</h1>
-    <p>Сроки сдачи проектов руководителя на выбранный месяц.</p>
+    <p>Сроки сдачи проектов и задач руководителя на выбранный месяц.</p>
 </div>
 
 <div class="calendar-wrapper">
@@ -15,8 +15,8 @@
     <div id="calendarTooltip" class="calendar-tooltip" aria-hidden="true"></div>
 </div>
 
-<!-- Данные проектов для календаря -->
-{{ projects_for_calendar|json_script:"projects-data" }}
+<!-- Данные проектов/задач для календаря -->
+{{ calendar_items|json_script:"calendar-data" }}
 
 <!-- Модальное окно с подробностями проекта -->
 <div id="projectModal" class="modal" aria-hidden="true">
@@ -37,12 +37,63 @@
             </div>
         </div>
         <div class="modal-footer">
-            <a id="modalProjectLink" href="#" class="btn btn-sm">Открыть проект</a>
+            <a id="modalProjectLink" href="#" class="btn btn-sm">Открыть</a>
         </div>
     </div>
 </div>
 
 <style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideDownFade {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleUp {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
     .dashboard-header {
         margin-bottom: 32px;
         animation: slideDownFade 0.5s ease-out;
@@ -67,138 +118,258 @@
     }
 
     .calendar-wrapper {
-        max-width: 1140px;
-        width: min(100%, 1140px);
-        margin: 0 auto 60px;
+        max-width: none;
+        width: calc(100% - 24px);
+        margin: 0 12px 48px;
         padding: 0 16px;
         animation: fadeInUp 0.6s ease-out 0.1s both;
     }
 
     .calendar-tooltip {
-        position: fixed;
+        position: absolute;
         pointer-events: none;
         z-index: 2100;
         padding: 14px 16px;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.98);
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        box-shadow: 0 12px 40px rgba(231, 111, 81, 0.15);
-        backdrop-filter: blur(8px);
-        max-width: 280px;
+        background: var(--card-bg);
+        border: 1px solid rgba(0, 132, 212, 0.15);
+        box-shadow: 0 12px 32px rgba(0, 132, 212, 0.2);
+        max-width: 300px;
+        max-height: 240px;
+        overflow: auto;
         font-size: 0.9em;
         color: #264653;
         display: none;
-        animation: scaleUp 0.3s ease-out;
+        backdrop-filter: blur(8px);
     }
 
     .calendar-tooltip h4 {
         margin: 0 0 8px 0;
-        font-size: 1.05em;
+        font-size: 1em;
         font-weight: 700;
         color: var(--primary);
+        line-height: 1.4;
     }
 
     .calendar-tooltip p {
         margin: 4px 0;
-        line-height: 1.5;
+        color: #555;
+        font-size: 0.9em;
+        line-height: 1.4;
     }
 
-    /* FullCalendar overrides */
-    .fc {
+    .calendar-tooltip ul {
+        margin: 6px 0 0 0;
+        padding-left: 18px;
+        color: #666;
+    }
+
+    .calendar-tooltip li {
+        margin: 3px 0;
+    }
+
+    /* FullCalendar контейнер */
+    /* Fallback when FullCalendar CDN CSS is blocked */
+.fc table {
+        display: table !important;
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid table {
+        border-collapse: collapse;
+    }
+
+    .fc .fc-col-header-cell,
+    .fc .fc-daygrid-day {
+        border: 1px solid #e5edf4;
+    }
+
+    .fc .fc-daygrid-day-frame {
+        min-height: 96px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .fc .fc-daygrid-day-top {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .fc .fc-daygrid-day-events {
+        margin-top: 4px;
+    }
+
+.fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: #e5edf4;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid table {
+        width: 100% !important;
+    }
+
+    .fc .fc-daygrid-body,
+    .fc .fc-daygrid-body table {
+        width: 100% !important;
+    }
+
+.fc {
         background: var(--card-bg);
         border-radius: 14px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 20px rgba(0, 132, 212, 0.12);
         padding: 0;
         overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.02);
+        border: 1px solid rgba(0, 132, 212, 0.08);
     }
 
+    /* Тулбар с месяцем и кнопками */
     .fc-toolbar {
-        padding: 16px 20px;
-        background: linear-gradient(135deg, rgba(231, 111, 81, 0.03), rgba(244, 162, 97, 0.03));
-        border-bottom: 1px solid rgba(0,0,0,0.04);
+        padding: 24px 28px;
+        background: linear-gradient(135deg, #0084d4 0%, #4db8e8 100%);
+        border-bottom: none;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 16px;
-    }
-
-    .fc-toolbar-chunk {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-    }
-
-    /* Шапка дней недели */
-    .fc-col-header {
-        background: linear-gradient(135deg, rgba(231, 111, 81, 0.05), rgba(244, 162, 97, 0.05));
-        border-bottom: 2px solid rgba(231, 111, 81, 0.15);
-    }
-
-    .fc-col-header-cell {
-        border: none;
-        padding: 12px 4px;
-    }
-
-    .fc-col-header-cell-cushion {
-        font-weight: 700;
-        color: var(--secondary);
-        font-size: 0.95em;
     }
 
     .fc .fc-toolbar-title {
-        font-size: 1.5em;
+        font-size: 1.7em;
         font-weight: 700;
-        color: var(--secondary);
+        color: #ffffff;
         margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        letter-spacing: -0.5px;
+    }
+
+    .fc .fc-toolbar-chunk {
+        display: flex;
+        gap: 10px;
     }
 
     .fc .fc-toolbar-chunk:not(:last-child) {
-        margin-right: 12px;
+        margin-right: 0;
     }
 
+    /* Кнопки навигации */
     .fc-button {
         border-radius: 8px;
-        border: 1px solid rgba(231, 111, 81, 0.3);
-        background: white;
-        color: var(--primary);
-        box-shadow: 0 2px 8px rgba(231, 111, 81, 0.1);
-        transition: all 0.2s ease;
-        padding: 6px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        padding: 9px 16px;
+        box-shadow: none;
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         font-weight: 600;
+        font-size: 0.9em;
     }
 
     .fc-button:hover {
-        background: rgba(231, 111, 81, 0.08);
+        background: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(231, 111, 81, 0.2);
     }
 
     .fc-button:focus {
         outline: none;
-        box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.3);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
     }
 
     .fc-button.fc-button-active {
-        background: linear-gradient(135deg, var(--primary), var(--accent));
-        color: white;
-        border-color: transparent;
-        box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
+        background: rgba(255, 255, 255, 0.35);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Шапка с днями недели */
+    .fc-col-header {
+        background: linear-gradient(180deg, #e8f4fb 0%, #f0f7fc 100%);
+        border-bottom: 2px solid var(--primary);
+    }
+
+    .fc-col-header-cell {
+        border: none;
+        padding: 14px 4px;
+        background: transparent;
+        border-right: 1px solid rgba(0, 132, 212, 0.08);
+    }
+
+    .fc-col-header-cell:last-child {
+        border-right: none;
+    }
+
+    .fc-col-header-cell-cushion {
+        font-weight: 700;
+        color: var(--primary);
+        padding: 8px 4px;
+        font-size: 0.95em;
+        letter-spacing: 0.3px;
+    }
+
+    /* Ячейки дней календаря */
+    .fc-daygrid-day {
+        background: var(--card-bg);
+        border: 1px solid #e8f2f8;
+        transition: all 0.25s ease;
+        position: relative;
+    }
+
+    .fc-daygrid-day:hover {
+        background: #f8fbfe;
+        border-color: var(--primary);
+        box-shadow: inset 0 0 0 1px rgba(0, 132, 212, 0.1);
+    }
+
+    .fc-daygrid-day-number {
+        color: #264653;
+        font-weight: 600;
+        padding: 10px 12px 6px 12px;
+        font-size: 1em;
+    }
+
+    /* Сегодняшний день */
+    .fc-day-today {
+        background: linear-gradient(135deg, rgba(0, 132, 212, 0.08) 0%, rgba(77, 184, 232, 0.04) 100%) !important;
+        border-color: var(--primary) !important;
+    }
+
+    .fc-day-today .fc-daygrid-day-number {
+        color: var(--primary);
+        background: rgba(0, 132, 212, 0.12);
+        border-radius: 8px;
+        width: fit-content;
+        margin: 2px auto 6px auto;
+        padding: 5px 10px;
+        font-weight: 700;
+    }
+
+    /* События на календаре */
+    .fc-daygrid-day-frame {
+        position: relative;
+        min-height: 96px;
+    }
+
+    .fc-daygrid-day-events {
+        padding: 5px 4px;
     }
 
     .fc-event {
-        border: none;
-        border-radius: 8px;
-        padding: 6px 8px;
-        font-size: 0.85em;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 4px 8px !important;
+        font-size: 0.8em;
         cursor: pointer;
+        box-shadow: 0 3px 8px rgba(0, 132, 212, 0.15) !important;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #0084d4 0%, #4db8e8 100%) !important;
+        color: #ffffff !important;
     }
 
     .fc-event:hover {
-        transform: scale(1.02) translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 132, 212, 0.3) !important;
     }
 
     .fc-event-title {
@@ -206,27 +377,13 @@
         overflow: hidden;
         text-overflow: ellipsis;
         font-weight: 600;
+        color: #ffffff !important;
     }
 
-    .fc-daygrid-day {
-        padding: 4px !important;
-    }
-
-    .fc-daygrid-day-number {
-        padding: 8px 8px !important;
-    }
-
-    .fc-daygrid-day.fc-day-other {
-        background: rgba(0, 0, 0, 0.02);
-    }
-
-    .fc-daygrid-day:hover {
-        background: rgba(231, 111, 81, 0.02);
-    }
-
+    /* Модальное окно */
     .modal {
         display: none;
-        position: fixed;
+        position: absolute;
         inset: 0;
         z-index: 2000;
         align-items: center;
@@ -236,59 +393,51 @@
 
     .modal[aria-hidden="false"] {
         display: flex;
+        animation: modalFadeIn 0.3s ease-out;
     }
 
     .modal-backdrop {
         position: absolute;
         inset: 0;
-        background: rgba(0,0,0,0.45);
-        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.48);
+        backdrop-filter: blur(6px);
+        animation: fadeIn 0.3s ease-out;
     }
 
     .modal-dialog {
         position: relative;
-        width: min(640px, 100%);
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        width: min(660px, 100%);
+        background: var(--card-bg);
+        border-radius: 14px;
+        box-shadow: 0 24px 64px rgba(0, 132, 212, 0.28);
         overflow: hidden;
         z-index: 1;
         padding: 32px;
-        animation: modalFadeIn 0.3s ease-out;
-    }
-
-    @keyframes modalFadeIn {
-        from {
-            opacity: 0;
-            transform: scale(0.92) translateY(-30px);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
+        border: 1px solid rgba(0, 132, 212, 0.1);
+        animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .modal-close {
         position: absolute;
-        top: 16px;
-        right: 16px;
+        top: 14px;
+        right: 14px;
         border: none;
-        background: rgba(0, 0, 0, 0.05);
-        color: #666;
-        font-size: 1.1em;
+        background: rgba(0, 132, 212, 0.08);
+        color: var(--primary);
+        font-size: 1.2em;
         cursor: pointer;
+        border-radius: 8px;
         width: 36px;
         height: 36px;
-        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
+        transition: all 0.25s ease;
     }
 
     .modal-close:hover {
-        background: rgba(231, 111, 81, 0.15);
-        color: var(--primary);
+        background: rgba(0, 132, 212, 0.15);
+        transform: rotate(90deg);
     }
 
     .modal-header {
@@ -296,98 +445,94 @@
         flex-wrap: wrap;
         gap: 12px;
         align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
+        margin-bottom: 24px;
+        padding-bottom: 18px;
+        border-bottom: 2px solid #f0f7fc;
     }
 
     .modal-header h2 {
         margin: 0;
         font-size: 1.5em;
+        color: var(--primary);
         font-weight: 700;
-        color: var(--secondary);
-        flex: 1;
     }
 
     .project-status {
         font-size: 0.85em;
-        padding: 6px 14px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, rgba(231, 111, 81, 0.1), rgba(244, 162, 97, 0.1));
+        padding: 7px 16px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(0, 132, 212, 0.12), rgba(77, 184, 232, 0.08));
         color: var(--primary);
         font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .modal-body {
-        padding: 20px 0;
+        border: 1px solid rgba(0, 132, 212, 0.1);
     }
 
     .modal-meta {
-        margin: 8px 0;
+        margin: 14px 0;
         color: #555;
         font-size: 0.95em;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .modal-meta::before {
-        content: '📅';
-        font-size: 1.1em;
+        line-height: 1.6;
     }
 
     .modal-description {
-        margin-top: 12px;
-        line-height: 1.6;
+        margin-top: 18px;
+        line-height: 1.7;
         color: #444;
-        padding: 14px;
-        background: rgba(231, 111, 81, 0.03);
+        background: #f8fbfe;
+        padding: 16px 18px;
         border-radius: 10px;
-        border-left: 3px solid var(--primary);
+        border-left: 4px solid var(--primary);
     }
 
     .modal-list {
         display: grid;
         gap: 12px;
-        margin-bottom: 20px;
+        margin-bottom: 18px;
+    }
+
+    .modal-list h3 {
+        margin: 0 0 12px 0;
+        font-size: 1.1em;
+        color: var(--secondary);
+        font-weight: 700;
     }
 
     .modal-list-item {
-        padding: 14px 16px;
+        padding: 16px 18px;
         border-radius: 10px;
-        background: rgba(231, 111, 81, 0.05);
-        border: 1px solid rgba(231, 111, 81, 0.2);
+        background: #f8fbfe;
+        border: 1px solid rgba(0, 132, 212, 0.15);
         cursor: pointer;
         transition: all 0.2s ease;
     }
 
     .modal-list-item:hover {
-        background: rgba(231, 111, 81, 0.12);
-        border-color: rgba(231, 111, 81, 0.4);
-        transform: translateX(4px);
+        background: rgba(0, 132, 212, 0.08);
+        border-color: var(--primary);
+        box-shadow: 0 6px 16px rgba(0, 132, 212, 0.12);
+        transform: translateY(-2px);
     }
 
     .modal-list-item h3 {
         margin: 0 0 6px 0;
-        font-size: 1.05em;
+        font-size: 1em;
         font-weight: 700;
-        color: var(--secondary);
+        color: var(--primary);
     }
 
     .modal-list-item p {
         margin: 0;
-        color: #555;
+        color: #666;
         font-size: 0.9em;
     }
 
     .modal-footer {
-        margin-top: 20px;
+        margin-top: 24px;
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
-        padding-top: 16px;
-        border-top: 1px solid rgba(0,0,0,0.06);
+        gap: 12px;
+        padding-top: 18px;
+        border-top: 2px solid #f0f7fc;
     }
 
     .btn {
@@ -402,63 +547,133 @@
         gap: 8px;
         border: none;
         cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 15px rgba(231, 111, 81, 0.3);
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 6px 16px rgba(0, 132, 212, 0.24);
+        font-size: 0.95em;
     }
 
     .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(231, 111, 81, 0.4);
-    }
-
-    .btn:active {
-        transform: translateY(0);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 132, 212, 0.32);
     }
 
     .btn-secondary {
-        background: rgba(38,70,83,0.08);
-        color: var(--secondary);
-        box-shadow: none;
+        background: rgba(0, 132, 212, 0.1);
+        color: var(--primary);
+        box-shadow: 0 4px 12px rgba(0, 132, 212, 0.1);
     }
 
     .btn-secondary:hover {
-        background: rgba(38,70,83,0.14);
+        background: rgba(0, 132, 212, 0.15);
+        box-shadow: 0 6px 16px rgba(0, 132, 212, 0.15);
     }
 
-    .btn-sm {
+    .btn.btn-sm {
         padding: 8px 16px;
         font-size: 0.9em;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header h1 {
+            font-size: 2em;
+        }
+
+        .fc-toolbar {
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px 20px;
+        }
+
+        .fc .fc-toolbar-title {
+            font-size: 1.4em;
+        }
+
+        .modal-dialog {
+            padding: 24px;
+        }
+    }
+
+    /* manager-theme-overrides */
+    .fc-toolbar {
+        background: linear-gradient(135deg, #e76f51 0%, #f4a261 100%);
+    }
+    .fc-col-header {
+        background: linear-gradient(180deg, #fff1ec 0%, #fff6ef 100%);
+        border-bottom: 2px solid #e76f51;
+    }
+    .fc-col-header-cell-cushion {
+        color: #a44a33;
+    }
+    .fc-daygrid-day {
+        border-color: #f5ddd4;
+    }
+    .fc-daygrid-day:hover {
+        border-color: #e76f51;
+        box-shadow: inset 0 0 0 1px rgba(231, 111, 81, 0.12);
+    }
+    .fc-day-today {
+        background: linear-gradient(135deg, rgba(231, 111, 81, 0.10) 0%, rgba(244, 162, 97, 0.05) 100%) !important;
+        border-color: #e76f51 !important;
+    }
+    .fc-day-today .fc-daygrid-day-number {
+        color: #a44a33;
+        background: rgba(231, 111, 81, 0.14);
+    }
+    .fc-event {
+        background: linear-gradient(135deg, #e76f51 0%, #f4a261 100%) !important;
+        box-shadow: 0 3px 8px rgba(231, 111, 81, 0.2) !important;
+    }
+    .calendar-tooltip {
+        border: 1px solid rgba(231, 111, 81, 0.18);
+        box-shadow: 0 12px 32px rgba(231, 111, 81, 0.18);
+    }
+    .modal-dialog {
+        box-shadow: 0 24px 64px rgba(231, 111, 81, 0.26);
+        border: 1px solid rgba(231, 111, 81, 0.12);
+    }
+    .project-status {
+        background: linear-gradient(135deg, rgba(231, 111, 81, 0.14), rgba(244, 162, 97, 0.10));
+        color: #a44a33;
+        border: 1px solid rgba(231, 111, 81, 0.16);
+    }
+    .btn {
+        background: linear-gradient(135deg, #e76f51, #f4a261);
+        box-shadow: 0 6px 16px rgba(231, 111, 81, 0.24);
+    }
+    .btn:hover {
+        box-shadow: 0 10px 24px rgba(231, 111, 81, 0.32);
     }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const rawData = document.getElementById('projects-data');
-        const events = JSON.parse(rawData.textContent || '[]');
+        const rawData = document.getElementById('calendar-data');
+        const items = JSON.parse(rawData.textContent || '[]');
 
         const calendarEl = document.getElementById('calendar');
 
         const getColor = (id) => {
             // Простая детерминированная генерация цвета по id
             const palette = [
-                'rgba(231,111,81,0.45)',
-                'rgba(42,157,143,0.45)',
-                'rgba(38,70,83,0.35)',
-                'rgba(244,162,97,0.4)',
-                'rgba(142,202,230,0.45)',
-                'rgba(214,40,40,0.35)',
-                'rgba(0,119,182,0.35)',
-                'rgba(0,109,119,0.35)',
-                'rgba(155,34,38,0.35)',
-                'rgba(106,153,78,0.35)'
+                'rgba(231, 111, 81, 0.75)',
+                'rgba(244, 162, 97, 0.75)',
+                'rgba(233, 196, 106, 0.75)',
+                'rgba(42, 157, 143, 0.7)',
+                'rgba(38, 70, 83, 0.68)',
+                'rgba(231, 111, 81, 0.66)',
+                'rgba(244, 162, 97, 0.66)',
+                'rgba(233, 196, 106, 0.66)',
+                'rgba(42, 157, 143, 0.64)',
+                'rgba(38, 70, 83, 0.64)'
             ];
+            // Поддерживаем строки вида "project-1" / "task-2" и числовые id
             const numericId = parseInt(String(id).replace(/\D/g, ''), 10);
             const index = Number.isNaN(numericId) ? 0 : numericId;
             return palette[index % palette.length];
         };
 
-        const allEvents = events.map(item => ({
+        const allEvents = items.map(item => ({
             id: item.id,
             title: item.title,
             start: item.start,
@@ -472,11 +687,18 @@
                 description: item.description,
                 code: item.code,
                 start_date: item.start_date,
+                item_type: item.item_type,
+                link: item.link,
             }
         }));
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
+            fixedWeekCount: false,
+            showNonCurrentDates: true,
+            height: 'auto',
+            contentHeight: 'auto',
+            expandRows: true,
             locale: 'ru',
             buttonText: {
                 today: 'Сегодня'
@@ -491,12 +713,46 @@
             eventDidMount: function (info) {
                 info.el.removeAttribute('title');
 
-                const showTooltip = (content, rect) => {
+                const showTooltip = (content, anchorRect) => {
                     const tooltip = document.getElementById('calendarTooltip');
+                    const wrapperRect = calendarEl.getBoundingClientRect();
+
                     tooltip.innerHTML = content;
                     tooltip.style.display = 'block';
-                    tooltip.style.top = `${Math.max(rect.top - 12, 12)}px`;
-                    tooltip.style.left = `${Math.min(rect.right + 8, window.innerWidth - tooltip.offsetWidth - 12)}px`;
+
+                    const gap = 8;
+                    const anchorLeft = anchorRect.left - wrapperRect.left;
+                    const anchorTop = anchorRect.top - wrapperRect.top;
+                    const anchorWidth = anchorRect.width;
+                    const anchorHeight = anchorRect.height;
+
+                    const rightPos = anchorLeft + anchorWidth + gap;
+                    const leftPos = anchorLeft - tooltip.offsetWidth - gap;
+
+                    let left = rightPos;
+                    if (rightPos + tooltip.offsetWidth > wrapperRect.width - 8) {
+                        left = leftPos;
+                    }
+                    if (left < 8) {
+                        left = 8;
+                    }
+                    if (left + tooltip.offsetWidth > wrapperRect.width - 8) {
+                        left = Math.max(8, wrapperRect.width - tooltip.offsetWidth - 8);
+                    }
+
+                    let top = anchorTop;
+                    if (top + tooltip.offsetHeight > wrapperRect.height - 8) {
+                        top = anchorTop + anchorHeight - tooltip.offsetHeight;
+                    }
+                    if (top < 8) {
+                        top = 8;
+                    }
+                    if (top + tooltip.offsetHeight > wrapperRect.height - 8) {
+                        top = Math.max(8, wrapperRect.height - tooltip.offsetHeight - 8);
+                    }
+
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.top = `${top}px`;
                 };
 
                 const hideTooltip = () => {
@@ -506,33 +762,73 @@
 
                 info.el.addEventListener('mouseenter', () => {
                     const props = info.event.extendedProps;
+                    const type = props.item_type ? `<strong>Тип:</strong> ${props.item_type}` : '';
+                    const projectLine = props.code ? `<strong>Проект:</strong> ${props.code}` : '';
                     const status = props.status ? `<strong>Статус:</strong> ${props.status}` : '';
                     const deadline = info.event.end ? `<strong>Срок:</strong> ${FullCalendar.formatDate(info.event.end, {year: 'numeric', month: '2-digit', day: '2-digit'})}` : '';
                     const description = props.description ? `<div style="margin-top:6px;">${props.description}</div>` : '';
 
                     const content = `
                         <h4>${info.event.title}</h4>
+                        <p>${type}</p>
+                        <p>${projectLine}</p>
                         <p>${status}</p>
                         <p>${deadline}</p>
                         ${description}
                     `;
 
-                    showTooltip(content, info.el.getBoundingClientRect());
+                    const dayCell = info.el.closest('.fc-daygrid-day');
+                    const anchorRect = (dayCell || info.el).getBoundingClientRect();
+                    showTooltip(content, anchorRect);
                 });
 
                 info.el.addEventListener('mouseleave', hideTooltip);
             },
             dayCellDidMount: function (arg) {
                 const dateStr = arg.date.toISOString().slice(0, 10);
-                const items = allEvents.filter(item => item.start === dateStr);
-                if (!items.length) return;
+                const itemsOnDate = allEvents.filter(item => item.start === dateStr);
+                if (!itemsOnDate.length) return;
 
-                const showTooltip = (content, rect) => {
+                const showTooltip = (content, anchorRect) => {
                     const tooltip = document.getElementById('calendarTooltip');
+                    const wrapperRect = calendarEl.getBoundingClientRect();
+
                     tooltip.innerHTML = content;
                     tooltip.style.display = 'block';
-                    tooltip.style.top = `${Math.max(rect.top - 12, 12)}px`;
-                    tooltip.style.left = `${Math.min(rect.right + 8, window.innerWidth - tooltip.offsetWidth - 12)}px`;
+
+                    const gap = 8;
+                    const anchorLeft = anchorRect.left - wrapperRect.left;
+                    const anchorTop = anchorRect.top - wrapperRect.top;
+                    const anchorWidth = anchorRect.width;
+                    const anchorHeight = anchorRect.height;
+
+                    const rightPos = anchorLeft + anchorWidth + gap;
+                    const leftPos = anchorLeft - tooltip.offsetWidth - gap;
+
+                    let left = rightPos;
+                    if (rightPos + tooltip.offsetWidth > wrapperRect.width - 8) {
+                        left = leftPos;
+                    }
+                    if (left < 8) {
+                        left = 8;
+                    }
+                    if (left + tooltip.offsetWidth > wrapperRect.width - 8) {
+                        left = Math.max(8, wrapperRect.width - tooltip.offsetWidth - 8);
+                    }
+
+                    let top = anchorTop;
+                    if (top + tooltip.offsetHeight > wrapperRect.height - 8) {
+                        top = anchorTop + anchorHeight - tooltip.offsetHeight;
+                    }
+                    if (top < 8) {
+                        top = 8;
+                    }
+                    if (top + tooltip.offsetHeight > wrapperRect.height - 8) {
+                        top = Math.max(8, wrapperRect.height - tooltip.offsetHeight - 8);
+                    }
+
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.top = `${top}px`;
                 };
 
                 const hideTooltip = () => {
@@ -541,10 +837,10 @@
                 };
 
                 arg.el.addEventListener('mouseenter', () => {
-                    const projectNames = items.slice(0, 3).map(i => `<li>${i.title}</li>`).join('');
-                    const extra = items.length > 3 ? `<li>...и ещё ${items.length - 3}</li>` : '';
+                    const projectNames = itemsOnDate.slice(0, 3).map(i => `<li>${i.title}</li>`).join('');
+                    const extra = itemsOnDate.length > 3 ? `<li>...и ещё ${itemsOnDate.length - 3}</li>` : '';
                     const content = `
-                        <h4>${items.length} проект${items.length === 1 ? '' : 'ов'}</h4>
+                        <h4>${itemsOnDate.length} элемент${itemsOnDate.length === 1 ? '' : 'ов'}</h4>
                         <ul style="margin:6px 0 0 0; padding-left: 18px;">${projectNames}${extra}</ul>
                     `;
 
@@ -565,18 +861,22 @@
                     end: info.event.end ? FullCalendar.formatDate(info.event.end, {year: 'numeric', month: '2-digit', day: '2-digit'}) : '',
                     description: props.description,
                     code: props.code,
+                    item_type: props.item_type,
+                    link: props.link,
                 });
 
                 openModal();
             },
             dateClick: function (arg) {
                 const clickedDate = arg.dateStr;
-                const items = allEvents.filter(item => item.start === clickedDate);
-                renderList(clickedDate, items);
+                const itemsOnDate = allEvents.filter(item => item.start === clickedDate);
+                renderList(clickedDate, itemsOnDate);
             }
         });
 
         calendar.render();
+        setTimeout(() => calendar.updateSize(), 0);
+        window.addEventListener('resize', () => calendar.updateSize());
 
         function openModal() {
             document.getElementById('projectModal').setAttribute('aria-hidden', 'false');
@@ -587,15 +887,17 @@
         }
 
         function renderDetail(item) {
-            document.getElementById('modalTitle').textContent = item.title;
+            const titlePrefix = item.item_type === 'task' ? 'Задача: ' : 'Проект: ';
+            document.getElementById('modalTitle').textContent = `${titlePrefix}${item.title}`;
             document.getElementById('modalStatus').textContent = item.status || '';
 
-const start = item.start_date ? item.start_date : '';
+            const start = item.start_date ? item.start_date : '';
             const end = item.end ? item.end : '';
             document.getElementById('modalDates').textContent = start && end ? `Период: ${start} — ${end}` : (end ? `Дата завершения: ${end}` : '');
 
             document.getElementById('modalDescription').textContent = item.description || 'Описание отсутствует.';
-            document.getElementById('modalProjectLink').href = `/manager/projects/${item.id}/detail/`;
+            document.getElementById('modalProjectLink').href = item.link || '#';
+            document.getElementById('modalProjectLink').textContent = item.link ? 'Открыть' : 'Нет ссылки';
 
             document.getElementById('modalList').style.display = 'none';
             document.getElementById('modalDetail').style.display = 'block';
@@ -612,13 +914,13 @@ const start = item.start_date ? item.start_date : '';
             listEl.innerHTML = '';
 
             const title = document.createElement('h3');
-            title.textContent = `Проекты на ${dateStr}`;
+            title.textContent = `Элементы на ${dateStr}`;
             title.style.margin = '0 0 10px 0';
             listEl.appendChild(title);
 
             if (!items.length) {
                 const message = document.createElement('p');
-                message.textContent = 'Нет проектов на выбранную дату.';
+                message.textContent = 'Нет проектов или задач на выбранную дату.';
                 listEl.appendChild(message);
             } else {
                 items.forEach(item => {
@@ -630,7 +932,7 @@ const start = item.start_date ? item.start_date : '';
                     itemEl.appendChild(heading);
 
                     const meta = document.createElement('p');
-                    meta.textContent = `${item.status ? item.status + ' · ' : ''}${item.type ? item.type : ''}`;
+                    meta.textContent = `${item.type ? item.type + ' · ' : ''}${item.status ? item.status : ''}`;
                     itemEl.appendChild(meta);
 
                     itemEl.addEventListener('click', () => {
@@ -646,7 +948,6 @@ const start = item.start_date ? item.start_date : '';
 
             openModal();
         }
-
 
         document.querySelectorAll('[data-close="true"]').forEach(el => {
             el.addEventListener('click', closeModal);
