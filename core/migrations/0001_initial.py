@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'audit_log',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'contacts',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'employees',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'events',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -86,7 +86,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'event_participants',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -98,7 +98,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'event_types',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -115,7 +115,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'partners',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'partner_types',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -146,7 +146,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'projects',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -157,7 +157,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'project_participant',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -168,7 +168,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'project_partner',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -181,7 +181,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'project_statuses',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -195,7 +195,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'project_tasks',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -207,7 +207,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'project_types',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -219,7 +219,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'resources',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -231,7 +231,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'resource_types',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -241,7 +241,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'resource_usage',
-                'managed': False,
+                
             },
         ),
         migrations.CreateModel(
@@ -255,7 +255,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'users',
-                'managed': False,
+                
             },
         ),
     ]
