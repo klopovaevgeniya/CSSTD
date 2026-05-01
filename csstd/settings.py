@@ -70,6 +70,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'csstd.wsgi.application'
 
+db_options = {}
+pg_sslmode = os.environ.get('PGSSLMODE')
+if pg_sslmode:
+    db_options['sslmode'] = pg_sslmode
+
+db_schema = os.environ.get('DB_SCHEMA', '').strip()
+if db_schema:
+    db_options['options'] = f"-c search_path={db_schema},public"
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -78,9 +87,7 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_PASSWORD', '1'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '5432'),
-        'OPTIONS': {
-            'options': f"-c search_path={os.environ.get('DB_SCHEMA', 'public')},public"
-        }
+        'OPTIONS': db_options,
     }
 }
 
