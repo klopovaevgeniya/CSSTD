@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate as django_authenticate
 from django.contrib.auth.models import User
 from django.db import connection
+from django.db.utils import DatabaseError
 
 import logging
 
@@ -35,18 +36,23 @@ def authenticate(username, password):
             return None
     
     # Если не найден в Django User, проверим в старой таблице 'users' с crypt (старые пользователи)
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT id, role
-            FROM users
-            WHERE username = %s
-              AND crypt(%s, password_hash) = password_hash
-              AND is_active = TRUE
-        """, [username, password])
-        row = cursor.fetchone()
-        if row:
-            print(f"Old user auth success: {username}, role: {row[1]}")
-            return {'id': row[0], 'role': row[1]}
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, role
+                FROM users
+                WHERE username = %s
+                  AND crypt(%s, password_hash) = password_hash
+                  AND is_active = TRUE
+            """, [username, password])
+            row = cursor.fetchone()
+            if row:
+                print(f"Old user auth success: {username}, role: {row[1]}")
+                return {'id': row[0], 'role': row[1]}
+    except DatabaseError as e:
+        # Legacy users table / crypt may be unavailable in some deployments.
+        print(f"Legacy auth query failed for {username}: {e}")
+        return None
     
     print(f"Auth failed for: {username}")
     return None
